@@ -1,0 +1,261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<title>SlackRoll: Manage a Slackware system</title>
+		<style type="text/css"><!--
+			body {
+				background: white;
+				color: black;
+				font-family: sans-serif;
+			}
+			h1 {
+				text-align: center;
+				background: #006699;
+				color: white;
+			}
+			h2 {
+				background: white;
+				color: #006699;
+				margin-left: 5%;
+				margin-right: 5%;
+			}
+			h3 {
+				margin-left: 10%;
+				margin-right: 10%;
+			}
+			p {
+				text-align: justify;
+				margin-left: 15%;
+				margin-right: 15%;
+			}
+			dl {
+				text-align: justify;
+				margin-left: 15%;
+				margin-right: 15%;
+			}
+			dt {
+				font-weight: bold;
+				margin-top: 1ex;
+				margin-bottom: 1ex;
+			}
+			code {
+				color: red;
+				background: white;
+			}
+			--></style>
+	</head>
+	<body>
+		<h1>SlackRoll: Manage a Slackware system</h1>
+
+		<h2>Target audience</h2>
+
+		<p><strong>slackroll</strong> is a package or update manager
+		for Slackware systems. It does not provide dependency
+		checking and uses <strong>pkgtools</strong> to install or
+		upgrade packages. It's designed to work with official
+		mirrors. If you have a Slackware system mainly
+		composed of official packages and a handful of
+		unofficial packages, <strong>slackroll</strong>
+		can help you manage it and keep in touch with the remote
+		tree. It tries to know when new packages appear, when
+		packages are removed and when packages are upgraded.</p>
+
+		<h2>Before you start</h2>
+
+		<p>So you have decided to try <strong>slackroll</strong>. Let
+		me introduce a few concepts so you don't get lost.</p>
+
+		<p><strong>slackroll</strong> works with the current directory.
+		It doesn't work with a fixed system directory like, let's say,
+		<code>/var/slackroll</code>. You can use
+		<code>/var/slackroll</code> if you want. You have to choose
+		a directory and <code>cd</code> to it before running the
+		program. Want to use something inside <code>/var</code>?
+		Inside <code>/root</code>? Inside <code>/media</code>?
+		Whatever floats your boat.</p>
+
+		<p>In the following text I'm going to be talking about packages.
+		For package, we are going to understand a named piece of
+		software, without having any specific version unless I
+		explicitly mention it. A package can be <em>bash</em> or
+		<em>kdewebdev</em> or <em>gcc-gfortran</em>, for example.</p>
+
+		<p>Each package is in one of several possible states. The
+		program tries to keep a persistent "database" that associates
+		each package with its state. When it runs, it analyzes the list
+		of packages present in your system, the list of remote packages
+		and tries to keep the persistent database updated by introducing
+		new entries, deleting old ones and changing the state of some
+		of those entries.</p>
+
+		<h3>States to avoid</h3>
+
+		<dl>
+		<dt>NEW</dt> <dd>A package is in this state when it's
+		present in the remote tree and it wasn't present before.
+		If you detect you have packages in this state you should
+		decide if you want to install them or mark them as not
+		installed.</dd>
+
+		<dt>UNAVAILABLE</dt> <dd>Sorry if this name is
+		somehow confusing. A package is in this state when it's
+		present in your system, but not in the remote tree. You
+		should decide if you want to remove them from your system
+		or mark them as custom packages.</dd>
+		</dl>
+
+		<h3>Normal states</h3>
+
+		<dl>
+		<dt>INSTALLED</dt> <dd>A package is installed if
+		it's present in your system and in the remote tree. Very
+		common state, as you can suppose.</dd>
+
+		<dt>NOT INSTALLED</dt> <dd>A package is not
+		installed if it's a known package which is not present
+		in your system but exists in the remote tree. It's also
+		a very common state.</dd>
+
+		<dt>CUSTOM</dt> <dd>A package is custom if the
+		user has marked it as a custom package. Simple as that.
+		The package may or may not be in the remote tree, in that
+		very same version or in a different one. Custom packages
+		are ignored by <strong>slackroll</strong> on most
+		situations, and won't be candidates for upgrading,
+		among other things. You are in charge of these packages.</dd>
+		</dl>
+
+		<h2>Get SlackRoll</h2>
+
+		<p><a href="slackroll">slackroll</a> is a self-contained Python
+		script released to the public domain. Drop it somewhere like
+		<code>/usr/local/sbin</code> or <code>/usr/local/bin</code>,
+		give it execution permissions and you will be ready.</p>
+
+		<h2>Getting started</h2>
+
+		<p><strong>slackroll</strong> requires <em>python</em>,
+		<em>pkgtools</em>, <em>gnupg</em> and <em>less</em> to
+		operate properly.</p>
+
+		<p>You should first choose a working directory and a
+		Slackware mirror. Create the directory, change to it and
+		echo the mirror name to a file named <em>mirror</em>.</p>
+
+		<p><code>echo 'http://slackware.osuosl.org/slackware-current/'
+			&gt;mirror</code></p>
+
+		<p><strong>Do not forget the trailing slash!</strong>
+		Great. You are ready to start. Retrieve the remote GPG
+		key from the mirror to add it to your keyring. Having the
+		GPG key is required, and it's safe to do this step even
+		if the key is already in your keyring, supposing you trust
+		the mirror you chose. If you don't, get the GPG key by
+		other means and add it to your keyring, skipping this
+		step.</p>
+
+		<p><code>slackroll import-key</code></p>
+
+		<p>Retrieve information about the remote packages. You'll have
+		to perform this step every time Patrick Volkerding changes the
+		remote tree.</p>
+
+		<p><code>slackroll update</code></p>
+
+		<p>Finally, you could start checking if there are new packages,
+		unavailable packages or upgrades. However, the first time you
+		use <strong>slackroll</strong>, any package not installed in
+		your system will be marked as new, and every custom package
+		will probably be marked as unavailable or ready for an upgrade.
+		If you have your system under control (and I hope you do!),
+		you can in most cases blindly mark all new packages as not
+		installed. There's a command to do it, being a common first
+		operation.</p>
+
+		<p><code>slackroll new-not-installed</code></p>
+
+		<p>In most cases, you can also mark any unavailable packages as
+		custom. However, the number of custom packages is usually quite
+		low, and forgetting to uninstall a package which has been
+		removed is a very common mistake, so my advice is to review
+		the list of unavailable packages by hand, detecting which
+		ones may not be custom packages and need to be uninstalled.</p>
+
+		<p><code>slackroll list-unavailable</code></p>
+
+		<p>Once you've got rid of old packages (using
+		<strong>removepkg</strong>, of course!), mark the rest as custom
+		packages.</p>
+
+		<p><code>slackroll unavailable-custom</code></p>
+
+		<p>Some people like to "blacklist" packages so they are not
+		upgraded normally. Almost always, you want to do this with
+		the package <em>aaa_elflibs</em> if it's present in your
+		system, and maybe with some other packages. If you don't want
+		them to be upgraded normally, you're effectively taking
+		care of these packages yourself, so they're custom packages.
+		Mark them as custom.</p>
+
+		<p><code>slackroll custom aaa_elflibs</code></p>
+
+		<p>The <em>custom</em> command accepts a list of packages
+		as its arguments. You don't need to issue a separate command
+		for each one of them.</p>
+
+		<h2>Normal operation</h2>
+
+		<p>You can run <code>slackroll help</code> to get a list of
+		commands and a brief description of each one. This program
+		is not a perfect tool. I think it can handle almost every
+		situation and be told to do exactly what you want, but
+		reading the change log and subscribing to the
+		<em>slackware-security</em> mailing list is highly
+		recommended.</p>
+
+		<h3>Rolling tree (slackware-current)</h3>
+
+		<p>First, <em>update</em>. Then, check for new packages
+		with <em>list-new</em>. Decide to download and install
+		them with <em>install</em> or mark them as not installed
+		with <em>not-installed</em>. List unavailable packages with
+		<em>list-unavailable</em> and remove them or mark them as
+		custom if a new custom package is present in the list
+		(which may happen if you had forgotten to mark it as custom
+		when you installed it).  Finally, list possible upgrades
+		with <em>list-upgrades</em> and upgrade to new versions
+		with <em>upgrade</em>.</p>
+
+		<h3>Stable tree</h3>
+
+		<p>Mostly the same, but in the stable tree it's extremely
+		rare to see packages being removed or being added to the
+		tree, so you probably won't need to run <em>list-new</em>
+		or <em>list-unavailable</em>, but you never know...</p>
+
+		<h2>Feedback, questions, bug reports</h2>
+
+		<p>I'm all open for good bug reports and general feedback
+		but I'm, as always, reluctanct to change the main program
+		concepts, like adding support for multiple mirrors, or
+		adding dependency support or probably adding more package
+		states. I also know the program currently can't be used
+		to upgrade the system in non-interactive mode (like
+		calling it from a <em>cron</em> entry). That is very
+		unlikely to change, because when there's an upgrade,
+		there's no easy way of deciding which version should be
+		installed if a package has a version in the main tree,
+		another one in <em>/patches/</em> and another one
+		in <em>/testing/</em>, so it's always going to ask.</p>
+
+		<p>If you have any questions or suggestions, my contact
+		information can be found at
+		<a href="http://freshmeat.net/~rg3/">freshmeat.net</a>.</p>
+
+		<p>Keep in mind I'm using the program under
+		<em>slackware-current</em>. If you detect a problem under
+		the stable version, please report it as soon as possible
+		because it may go unnoticed to me.</p>
+	</body>
+</html>

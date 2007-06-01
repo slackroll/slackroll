@@ -1,0 +1,772 @@
+#!/usr/bin/env python
+# Author: Ricardo Garcia
+# License: Public domain code
+import anydbm
+import glob
+import os
+import os.path
+import re
+import shelve
+import socket
+import subprocess
+import sys
+import urllib
+import urlparse
+
+slackroll_version = 1
+
+slackroll_exit_failure = 1
+slackroll_exit_success = 0
+
+slackroll_pkg_re = re.compile(r'^(\.?/.+/)?([^/]+)-([^/-]+)-([^/-]+)-([^/-]+?)(?:\.tgz)?$')
+slackroll_pkg_re_path_group = 1
+slackroll_pkg_re_name_group = 2
+slackroll_pkg_re_version_group = 3
+slackroll_pkg_re_arch_group = 4
+slackroll_pkg_re_build_group = 5
+
+slackroll_packages_dir = './packages'
+slackroll_packages_dir_glob = os.path.join(slackroll_packages_dir, '*.tgz')
+slackroll_local_pkgs_glob = '/var/log/packages/*'
+slackroll_filelist_pkg_re = re.compile(r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\./.+/[^/]+-[^/-]+-[^/-]+-[^/-]+\.tgz)$')
+slackroll_source_indicator = '/source/'
+slackroll_pasture_indicator = '/pasture/'
+slackroll_patch_indicator = '/patches/'
+slackroll_testing_indicator = '/testing/'
+slackroll_extra_indicator = '/extra/'
+
+slackroll_mirror_filename = 'mirror'
+slackroll_persistentlist_filename = 'persistent.db'
+slackroll_filelist_filename = 'FILELIST.TXT'
+slackroll_gpgkey_filename = 'GPG-KEY'
+slackroll_temp_suffix = '.part'
+slackroll_signature_suffix = '.asc'
+slackroll_info_suffix = '.txt'
+
+slackroll_state_new = 0
+slackroll_state_unavailable = 1
+slackroll_state_installed = 2
+slackroll_state_notinstalled = 3
+slackroll_state_custom = 4
+slackroll_state_strings = ['new', 'unavailable', 'installed', 'not-installed', 'custom']
+
+class SlackRollError(Exception):
+	pass
+
+class SlackwarePackage:
+	__name = None
+	__version = None
+	__arch = None
+	__build = None
+	__path = None
+
+	def __init__(self, name, version, arch, build, path):
+		self.__name = name
+		self.__version = version
+		self.__arch = arch
+		self.__build = build
+		if path is None:
+			self.__path = ''
+		else:
+			self.__path = path
+
+	def __eq__(self, other):
+		return self.__name == other.__name and self.__version == other.__version and self.__arch == other.__arch and self.__build == other.__build
+
+	def shortname(self):
+		return '%s-%s-%s-%s' % (self.__name, self.__version, self.__arch, self.__build)
+
+	def fullname(self):
+		return '%s%s-%s-%s-%s.tgz' % (self.__path, self.__name, self.__version, self.__arch, self.__build)
+
+	def name(self):
+		return self.__name
+
+	def version(self):
+		return self.__version
+
+	def arch(self):
+		return self.__arch
+
+	def build(self):
+		return self.__build
+
+	def path(self):
+		return self.__path
+
+def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
+	matchobj = slackroll_pkg_re.match(path_or_name)
+
+	if matchobj is None:
+		raise SlackRollError('No match parsing package name: %s' % path_or_name)
+
+	path = matchobj.group(slackroll_pkg_re_path_group)
+	name = matchobj.group(slackroll_pkg_re_name_group)
+	version = matchobj.group(slackroll_pkg_re_version_group)
+	arch = matchobj.group(slackroll_pkg_re_arch_group)
+	build = matchobj.group(slackroll_pkg_re_build_group)
+	return SlackwarePackage(name, version, arch, build, path)
+
+def kibi(bytes):
+	return bytes/1024
+
+def get_local_pkgs(): # Return a list of packages from /var/log/packages
+	local_pkgs = glob.glob(slackroll_local_pkgs_glob)
+	if len(local_pkgs) == 0:
+		sys.exit('Error: could not read list of local packages')
+	local_pkgs = [pkg_from_str(x) for x in local_pkgs]
+	return local_pkgs
+
+def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
+	try:
+		lines = file(slackroll_filelist_filename, 'r').readlines()
+		matches = [slackroll_filelist_pkg_re.match(x) for x in lines]
+		pkgs = [x.group(1) for x in matches if x is not None]
+		return [pkg_from_str(x) for x in pkgs if slackroll_source_indicator not in x]
+	except IOError:
+		sys.exit('Error: could not read %s' % slackroll_filelist_filename)
+
+def get_mirror(): # From the 'mirror' file
+	try:
+		lines = file(slackroll_mirror_filename, 'r').readlines()
+		if len(lines) != 1:
+			raise IOError()
+		mirror = lines[0].strip()
+		if len(mirror) == 0:
+			raise IOError()
+		return lines[0].strip()
+	except IOError:
+		sys.exit('Error: %s unreadable or incorrect format' % slackroll_mirror_filename)
+
+def run_pager_on(file_path): # Does not exit on errors
+	try:
+		proc = subprocess.Popen(['less', file_path])
+		proc.wait()
+	except OSError:
+		sys.stderr.write('Error: unable to run "less" on %s\n' % file_path)
+		raise SlackRollError('OSError running pager on %s' % file_path)
+
+def filelist_total_size(path_list): # Examine FILELIST.TXT and sum file sizes
+	try:
+		total = 0
+		plist = path_list[:]
+		for line in file(slackroll_filelist_filename, 'r'):
+			for pos in xrange(len(plist)):
+				if line.endswith('%s\n' % plist[pos]):
+					total += long(line.split()[4])
+					del plist[pos]
+					break
+		return total
+	except IOError:
+		sys.exit('Error: could not read %s' % slackroll_filelist_filename)
+
+def try_to_remove(file_path):
+	if not os.path.exists(file_path):
+		return
+	try:
+		os.remove(file_path)
+	except OSError:
+		sys.exit('Error: unable to remove %s' % file_path)
+
+def download_report_hook(filename, numblocks, blocksize, totalsize): # Callback for urllib.urlretrieve()
+	percent = min(int(float(numblocks) * float(blocksize) / float(totalsize) * 100.0), 100)
+	kibibytes = kibi(totalsize)
+	sys.stdout.write('\rDownloading %s ... %s%% of %sk' % (filename, percent, kibibytes))
+	sys.stdout.flush()
+
+def download_file(mirror, filepath, local_temp, local_final): # Does not exit on errors and shouldn't be called directly
+	try:
+		sys.stdout.write('Downloading %s ...' % filepath)
+		sys.stdout.flush()
+		full_url = urlparse.urljoin(mirror, filepath)
+		urllib.urlretrieve(full_url, local_temp, lambda a, b, c: download_report_hook(filepath, a, b, c))
+		print
+		os.rename(local_temp, local_final)
+	except (IOError, socket.error):
+		sys.stderr.write('\nError: unable to download %s\n' % full_url)
+		raise SlackRollError('IOError or socket.error on %s' % full_url)
+	except urllib.ContentTooShortError:
+		sys.stderr.write('\nError: connection cut and file incomplete: %s\n' % full_url)
+		raise SlackRollError('ContentTooShortError on %s' % full_url)
+	except OSError:
+		sys.stderr.write('\nError: unable to rename %s to %s\n' % (local_temp, local_final))
+		raise SlackRollError('OSError renaming %s to %s' % (local_temp, local_final))
+
+def download(mirror, filepath, localdir): # Wrapper that does NOT exit on errors
+	name = os.path.basename(filepath)
+	localtemp = os.path.join(localdir, '%s%s' % (name, slackroll_temp_suffix))
+	localfinal = os.path.join(localdir, name)
+	download_file(mirror, filepath, localtemp, localfinal)
+
+def download_or_exit(mirror, filepath, localdir): # Wrapper that exits on errors
+	try:
+		download(mirror, filepath, localdir)
+	except SlackRollError:
+		sys.exit(slackroll_exit_failure)
+
+def handle_writable_dir(dirname): # Make sure dirname is available and writable
+	if not os.path.exists(dirname):
+		try:
+			os.mkdir(dirname)
+		except OSError:
+			sys.exit('Error: cannot create directory %s' % dirname)
+	else:
+		if not os.path.isdir(dirname):
+			sys.exit('Error: %s exists but is not a directory' % dirname)
+	if not os.access(dirname, os.R_OK | os.W_OK | os.X_OK):
+		sys.exit('Error: directory %s has incorrect permissions' % dirname)
+
+def import_key(filename):
+	try:
+		print 'Importing keys from %s ...' % filename
+		proc = subprocess.Popen(['gpg', '--import', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
+		retcode = proc.wait()
+		if retcode != 0:
+			raise OSError
+	except OSError:
+		sys.exit('Error: unable to import keys in %s' % filename)
+
+def verify_signature(filename):	# Does not exit on errors
+	try:
+		print 'Verifying signature %s ... ' % filename
+		proc = subprocess.Popen(['gpg', '--verify', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
+		retcode = proc.wait()
+		if retcode == 0:
+			return
+		if retcode == 1:
+			sys.stderr.write('Error: signature not valid\n')
+			raise SlackRollError('GnuPG exited with status code 1')
+	except OSError:
+		sys.stderr.write('Error: unable to verify signature in %s\n' % filename)
+		raise SlackRollError('OSError running GnuPG to verify signature')
+
+def upgrade_or_install(filename):
+	try:
+		print 'Installing %s ...' % filename
+		proc = subprocess.Popen(['/sbin/upgradepkg', '--install-new', filename])
+		retcode = proc.wait()
+		if retcode != 0:
+			sys.exit('Error: installation failed: %s' % filename)
+	except OSError:
+		sys.exit('Error: unable to install %s' % filename)
+
+def package_in_cache(package): # Check if package is in ./packages
+	filepath = os.path.join(slackroll_packages_dir, os.path.basename(package.fullname()))
+	return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
+
+def download_verify(mirror, package): # Download package, signature and verify it
+	remote_name = package.fullname()
+	remote_sig = '%s%s' % (remote_name, slackroll_signature_suffix)
+	local_name = os.path.join(slackroll_packages_dir, os.path.basename(package.fullname()))
+	local_sig = '%s%s' % (local_name, slackroll_signature_suffix)
+
+	if not package_in_cache(package):
+		try:
+			download(mirror, remote_name, slackroll_packages_dir)
+			download(mirror, remote_sig, slackroll_packages_dir)
+			verify_signature(local_sig)
+		except KeyboardInterrupt: # Watch out! We can't be sure the package is safe
+			try_to_remove(local_name)
+			try_to_remove(local_sig)
+			raise KeyboardInterrupt
+		except SlackRollError:
+			try_to_remove(local_name)
+			try_to_remove(local_sig)
+			return None
+		try_to_remove(local_sig)
+	
+	return local_name
+
+def download_verify_install(mirror, package):
+	local_name = download_verify(mirror, package)
+	if local_name is not None:
+		upgrade_or_install(local_name)
+
+def download_display_info(mirror, package): # Downloads info file and sends it to the pager
+	suffix_len = len(slackroll_info_suffix)
+	remote_file = package.fullname()[:-suffix_len] + slackroll_info_suffix
+	local_file = os.path.basename(remote_file)
+	download_or_exit(mirror, remote_file, '.')
+	try:
+		run_pager_on(local_file)
+	except SlackRollError:
+		try_to_remove(local_file)
+		sys.exit(slackroll_exit_failure)
+	try_to_remove(local_file)
+
+def print_urls(mirror, package):
+	pkg_url = urlparse.urljoin(mirror, package.fullname())
+	sig_url = '%s%s' % (pkg_url, slackroll_signature_suffix)
+	print pkg_url
+	print sig_url
+
+def choose_pkg(pkg_list): # Prompt user and return the package index or -1
+	print 'Choose package:'
+	print '    [0] None'
+	for x in xrange(len(pkg_list)):
+		print '    [%s] %s' % (x+1, pkg_list[x].fullname())
+	while True:
+		try:
+			num = long(raw_input('You choose number... '))
+			if num < 0 or num > len(pkg_list):
+				raise ValueError
+			break
+		except EOFError:
+			print
+			continue
+		except ValueError:
+			continue
+	return (num - 1)
+
+def not_pasture(pkg_list): # Returns packages not in pasture
+	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path()]
+
+def not_standard(pkg_list): # Returns packages not in the main tree
+	new_list = []
+	for pkg in pkg_list:
+		path = x.path()
+		if (slackroll_patch_indicator in path or slackroll_extra_indicator in path or
+		    slackroll_testing_indicator in path or slackroll_pasture_indicator in path):
+			new_list.append(pkg)
+	return new_list
+
+def print_in_states(states, persistent_list, header): # Print package name if its state matches
+	print header
+	for name in persistent_list.iterkeys():
+		if persistent_list[name] in states:
+			print '    %s' % name
+	print 'End of list.'
+	sys.exit()
+
+def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): # Changes state if it matches
+	dest_st_name = slackroll_state_strings[dest_state]
+	print 'Marking packages as %s...' % dest_st_name
+	for name in pkg_names:
+		if name not in persistent_list:
+			print '%s: unknown package' % name
+			continue
+		cur_st = persistent_list[name]
+		cur_st_name = slackroll_state_strings[cur_st]
+		if cur_st not in orig_states:
+			print '%s: cannot change state from %s to %s' % (name, cur_st_name, dest_st_name)
+			continue
+		persistent_list[name] = dest_state
+		persistent_list.sync()
+	sys.exit()
+
+def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
+	already_analyzed = dict()
+
+	# Go over packages present in local system and update their state or introduce them
+	for name in local_list.iterkeys():
+		already_analyzed[name] = True
+		if name in persistent_list:
+			# Update their state if needed
+			state = persistent_list[name]
+			if state == slackroll_state_new or state == slackroll_state_notinstalled:
+				if name in remote_list:
+					persistent_list[name] = slackroll_state_installed
+				else:
+					persistent_list[name] = slackroll_state_unavailable
+			elif state == slackroll_state_unavailable:
+				if name in remote_list:
+					persistent_list[name] = slackroll_state_installed
+			elif state == slackroll_state_installed:
+				if name not in remote_list:
+					persistent_list[name] = slackroll_state_unavailable
+		else:
+			# Introduce them in the persistent list
+			if name in remote_list:
+				persistent_list[name] = slackroll_state_installed
+			else:
+				persistent_list[name] = slackroll_state_unavailable
+		persistent_list.sync()
+	
+	# Go over remaining remote packages not already analyzed (hence, not present in local system)
+	for name in remote_list.iterkeys():
+		if name in already_analyzed:
+			continue
+		already_analyzed[name] = True
+		if name in persistent_list:
+			# Update their state if needed
+			state = persistent_list[name]
+			if state == slackroll_state_unavailable:
+				persistent_list[name] = slackroll_state_new
+			elif state == slackroll_state_installed or state == slackroll_state_custom:
+				persistent_list[name] = slackroll_state_notinstalled
+		else:
+			# Introduce them as new
+			persistent_list[name] = slackroll_state_new
+		persistent_list.sync()
+	
+	# Remaining packages, not present in local or remote systems, need to disappear
+	for name in persistent_list.keys():	# Must not use iterkeys()!
+		if name in already_analyzed:
+			continue
+		del persistent_list[name]
+		persistent_list.sync()
+
+def print_help():
+	print """Available commands:
+
+help			Print this help
+version			Print the program version
+update			Download remote tree information
+import-key		Download and import the GPG key
+upgrade			Upgrade system packages
+download-upgrades	Like 'upgrade' but without installing
+show-upgrade-urls	Like 'upgrade' but only printing URLs
+clean-cache		Remove unknown packages from cache
+list-upgrades		List available upgrades
+list-alternatives	List packages with alternative versions
+list-new		List new packages
+list-unavailable	List unavailable packages
+list-installed		List installed packages
+list-not-installed	List not installed packages
+list-custom		List custom packages
+list-local		List all local packages (present in system)
+list-remote		List all remote packages (present in remote tree)
+new-not-installed	Mark all new packages as not installed
+unavailable-custom	Mark all unavailable packages as custom
+custom PKG...		Mark packages as custom
+not-installed PKG...	Mark packages as not installed
+unavailable PKG...	Mark packages as unavailable
+new PKG...		Mark packages as new
+list-versions PKG...	List all known versions of given packages
+install PKG...		Install packages or specific package versions
+download PKG...		Download packages or specific package versions
+info PKG...		Show info about packages or specific package versions
+urls PKG...		Show package or specific package version URLs"""
+
+### Main program ###
+try:
+	local_list = None
+	remote_list = None
+	persistent_list = None
+
+	all_ops = [
+		'help',
+		'version',
+		'update',
+		'import-key',
+		'upgrade',
+		'download-upgrades',
+		'show-upgrade-urls',
+		'clean-cache',
+		'list-upgrades',
+		'list-alternatives',
+		'list-new',
+		'list-unavailable',
+		'list-installed',
+		'list-not-installed',
+		'list-custom',
+		'list-local',
+		'list-remote',
+		'new-not-installed',
+		'unavailable-custom',
+		'custom',
+		'not-installed',
+		'unavailable',
+		'new',
+		'list-versions',
+		'install',
+		'download',
+		'info',
+		'urls',
+	]
+
+	no_args_ops = [
+		'help',
+		'version',
+		'update',
+		'import-key',
+		'upgrade',
+		'download-upgrades',
+		'show-upgrade-urls',
+		'clean-cache',
+		'list-upgrades',
+		'list-alternatives',
+		'list-new',
+		'list-unavailable',
+		'list-installed',
+		'list-not-installed',
+		'list-custom',
+		'list-local',
+		'list-remote',
+		'new-not-installed',
+		'unavailable-custom',
+	]
+
+	operation = sys.argv[1]
+	
+	if operation not in all_ops:
+		sys.stderr.write('Error: unknown command: %s\n' % operation)
+		print_help()
+		sys.exit(slackroll_exit_failure)
+
+	if operation in no_args_ops and len(sys.argv[2:]) != 0:
+		sys.exit('Error: too many arguments for command %s' % operation)
+
+	if operation not in no_args_ops and len(sys.argv[2:]) == 0:
+		sys.exit('Error: not enough arguments for command %s' % operation)
+
+	if operation == 'help':
+		print_help()
+		sys.exit()
+	
+	if operation == 'version':
+		print 'SlackRoll v%s' % slackroll_version
+		sys.exit()
+
+	handle_writable_dir(slackroll_packages_dir)
+
+	if operation == 'update':
+		download_or_exit(get_mirror(), slackroll_filelist_filename, '.')
+
+	if operation == 'import-key':
+		download_or_exit(get_mirror(), slackroll_gpgkey_filename, '.')
+		import_key(slackroll_gpgkey_filename)
+		try_to_remove(slackroll_gpgkey_filename)
+		sys.exit()
+
+	### All the operations below need to update the persistent database first ###
+	print 'Updating persistent database...'
+
+	local_list = dict()
+	for pkg in get_local_pkgs():
+		local_list[pkg.name()] = pkg
+
+	remote_list = dict()
+	has_patch = dict()
+	for pkg in get_remote_pkgs():
+		# Mark packages with patches
+		name = pkg.name()
+		if slackroll_patch_indicator in pkg.path():
+			has_patch[name] = True
+		value = remote_list.get(name, [])
+		value.append(pkg)
+		remote_list[name] = value
+	# Remove unpatched versions
+	for name in has_patch.iterkeys():
+		remote_list[name] = not_standard(remote_list[name])
+
+	try:
+		persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
+	except anydbm.error:
+		sys.exit('Error: unable to open %s' % slackroll_persistentlist_filename)
+
+	analyze_changes(local_list, remote_list, persistent_list)
+
+	### Rest of the operations ###
+
+	if operation == 'upgrade' or operation == 'download-upgrades' or operation == 'show-upgrade-urls':
+		mirror = get_mirror()
+		chosen_pkgs = []
+		for name in local_list:
+			if persistent_list[name] == slackroll_state_installed:
+				candidates = not_pasture(remote_list[name])
+				if len(candidates) == 0:
+					print 'Warning: %s only present in /pasture/' % name
+					continue
+				if local_list[name] not in candidates:
+					if len(candidates) == 1:
+						chosen_pkgs.append(candidates[0])
+					else:
+						chosen = choose_pkg(candidates)
+						if chosen >= 0:
+							chosen_pkgs.append(candidates[chosen])
+		
+		print 'Total package size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
+		if operation == 'upgrade':
+			action = lambda x: download_verify_install(mirror, x)
+		elif operation == 'download-upgrades':
+			action = lambda x: download_verify(mirror, x)
+		else:
+			action = lambda x: print_urls(mirror, x)
+		for pkg in chosen_pkgs:
+			action(pkg)
+
+	if operation == 'clean-cache':
+		cache_files = glob.glob(slackroll_packages_dir_glob)
+		cache_pkgs = []
+		for elem in cache_files:
+			try:
+				cache_pkgs.append(pkg_from_str(elem))
+			except SlackRollError:
+				continue
+		for pkg in cache_pkgs:
+			name = pkg.name()
+			if (name in local_list and local_list[name] == pkg) or (name in remote_list and pkg in remote_list[name]):
+				continue
+			print 'Removing %s ...' % pkg.fullname()
+			try_to_remove(pkg.fullname())
+
+	if operation == 'list-upgrades':
+		print 'Available upgrades:'
+		for name in local_list:
+			if persistent_list[name] == slackroll_state_installed:
+				candidates = not_pasture(remote_list[name])
+				if len(candidates) == 0:
+					print '    %s: Warning: only present in /pasture/\n' % name
+					continue
+				if local_list[name] not in candidates:
+					print '    %s:' % name
+					print '\tLocal:\t%s' % local_list[name].shortname()
+					for other in candidates:
+						print '\tRemote:\t%s' % other.fullname()
+					print
+		print 'End of list.'
+		sys.exit()
+
+	if operation == 'list-alternatives':
+		print 'Packages with alternatives:'
+		for name in persistent_list.iterkeys():
+			versions = []
+			if name in remote_list:
+				versions.extend(remote_list[name])
+			if name in local_list and local_list[name] not in versions:
+				versions.append(local_list[name])
+			if len(versions) > 1:
+				print '    %s:' % name
+				for ver in versions:
+					print '\t%s %s' % (ver.path(), ver.shortname())
+				print
+		print 'End of list.'
+		sys.exit()
+
+	if operation == 'list-new':
+		print_in_states([slackroll_state_new], persistent_list, 'New packages:')
+
+	if operation == 'list-unavailable':
+		print_in_states([slackroll_state_unavailable], persistent_list, 'Unavailable packages:')
+
+	if operation == 'list-installed':
+		print_in_states([slackroll_state_installed], persistent_list, 'Installed packages:')
+
+	if operation == 'list-not-installed':
+		print_in_states([slackroll_state_notinstalled], persistent_list, 'Not installed packages:')
+
+	if operation == 'list-custom':
+		print_in_states([slackroll_state_custom], persistent_list, 'Custom packages:')
+
+	if operation == 'list-local':
+		print_in_states([slackroll_state_unavailable, slackroll_state_installed, slackroll_state_custom], persistent_list, 'Local packages:')
+
+	if operation == 'list-remote':	# We can't use print_in_states due to custom packages
+		print 'Remote packages:'
+		for name in remote_list.iterkeys():
+			print '    %s' % name
+		print 'End of list.'
+		sys.exit()
+
+	if operation == 'new-not-installed':
+		from_states_to_state([slackroll_state_new], slackroll_state_notinstalled, persistent_list,
+				[x for x in persistent_list.iterkeys() if persistent_list[x] == slackroll_state_new])
+
+	if operation == 'unavailable-custom':
+		from_states_to_state([slackroll_state_unavailable], slackroll_state_custom, persistent_list,
+				[x for x in persistent_list.iterkeys() if persistent_list[x] == slackroll_state_unavailable])
+
+	if operation == 'custom':
+		from_states_to_state([slackroll_state_custom, slackroll_state_unavailable, slackroll_state_installed],
+				slackroll_state_custom, persistent_list, sys.argv[2:])
+
+	if operation == 'not-installed':
+		from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_notinstalled, persistent_list, sys.argv[2:])
+
+	if operation == 'unavailable':
+		from_states_to_state([slackroll_state_custom, slackroll_state_unavailable], slackroll_state_unavailable, persistent_list, sys.argv[2:])
+
+	if operation == 'new':
+		from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_new, persistent_list, sys.argv[2:])
+
+	if operation == 'list-versions':
+		print 'Available versions:'
+		for name in sys.argv[2:]:
+			if name not in persistent_list:
+				print '%s: unknown package' % name
+				continue
+			print '    %s:' % name
+			if name in local_list:
+				print '\tLocal:\t%s' % local_list[name].shortname()
+			if name in remote_list:
+				for ver in remote_list[name]:
+					print '\tRemote:\t%s' % ver.fullname()
+			print
+		print 'End of list.'
+		sys.exit()
+
+	if operation == 'install' or operation == 'download' or operation == 'info' or operation == 'urls':
+		mirror = get_mirror()
+		chosen_pkgs = []
+		for arg in sys.argv[2:]:
+			# Decide the type of argument
+			try:
+				pkg = pkg_from_str(arg)
+				name = pkg.name()
+				is_full = True
+			except SlackRollError:
+				name = arg
+				is_full = False
+
+			if name not in persistent_list:
+				sys.exit('Error: unknown package %s' % name)
+
+			if is_full:
+				# Specific version given
+				if name in local_list and local_list[name] == pkg and operation == 'info':
+					chosen_pkgs.append(local_list[name])
+				else:
+					if name not in remote_list or pkg not in remote_list[name]:
+						sys.exit('Error: unable to find remote package %s' % pkg.shortname())
+					chosen_pkgs.append([x for x in remote_list[name] if x == pkg][0])
+			else:
+				# Only generic name given
+				if name in local_list and operation == 'info':
+					chosen_pkgs.append(local_list[name])
+				else:
+					if name not in remote_list:
+						sys.exit('Error: unable to find remote package %s' % name)
+					candidates = remote_list[name]
+					if len(candidates) == 1:
+						chosen_pkgs.append(candidates[0])
+					else:
+						chosen = choose_pkg(candidates)
+						if chosen >= 0:
+							chosen_pkgs.append(candidates[chosen])
+	
+		# After selecting the packages, run the requested operation on them
+		if operation == 'install' or operation == 'download' or operation == 'urls':
+			print 'Total package size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
+			if operation == 'install':
+				action = lambda x: download_verify_install(mirror, x)
+			elif operation == 'download':
+				action = lambda x: download_verify(mirror, x)
+			else:
+				action = lambda x: print_urls(mirror, x)
+			for pkg in chosen_pkgs:
+				action(pkg)
+		else:	# info operation
+			for pkg in chosen_pkgs:
+				name = pkg.name()
+				if name in local_list and local_list[name] == pkg:
+					try:
+						info_file = os.path.join(pkg.path(), pkg.shortname())
+						run_pager_on(info_file)
+					except SlackRollError:
+						sys.exit('Error: unable to run pager on %s' % info_file)
+				else:
+					download_display_info(mirror, pkg)
+
+except (KeyboardInterrupt, IOError), error:
+	if isinstance(error, KeyboardInterrupt):
+		print '\nProgram aborted by user'
+	else:
+		print '\nIOError: Broken pipe?'
+	if persistent_list is not None:
+		persistent_list.close()
+	sys.exit(slackroll_exit_failure)
+
+except IndexError:
+	print_help()
+	sys.exit(slackroll_exit_failure)
