@@ -134,7 +134,7 @@ def get_mirror(): # From the 'mirror' file
 		mirror = lines[0].strip()
 		if len(mirror) == 0:
 			raise IOError()
-		return lines[0].strip()
+		return mirror
 	except IOError:
 		sys.exit('Error: %s unreadable or incorrect format' % slackroll_mirror_filename)
 
