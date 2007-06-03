@@ -558,7 +558,7 @@ try:
 
 	analyze_changes(local_list, remote_list, persistent_list)
 
-	### Rest of the operations ###
+	### Other operations ###
 
 	if operation == 'upgrade' or operation == 'download-upgrades' or operation == 'show-upgrade-urls':
 		mirror = get_mirror()
