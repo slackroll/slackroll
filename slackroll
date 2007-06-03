@@ -108,7 +108,7 @@ def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 	return SlackwarePackage(name, version, arch, build, path)
 
 def kibi(bytes):
-	return bytes/1024
+	return (bytes / 1024)
 
 def get_local_pkgs(): # Return a list of packages from /var/log/packages
 	local_pkgs = glob.glob(slackroll_local_pkgs_glob)
