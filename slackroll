@@ -581,7 +581,7 @@ try:
 						if chosen >= 0:
 							chosen_pkgs.append(candidates[chosen])
 		
-		print 'Total package size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
+		print 'Total size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
 		if operation == 'upgrade':
 			action = lambda x: download_verify_install(mirror, x)
 		elif operation == 'download-upgrades':
@@ -742,7 +742,7 @@ try:
 	
 		# After selecting the packages, run the requested operation on them
 		if operation == 'install' or operation == 'download' or operation == 'urls':
-			print 'Total package size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
+			print 'Total size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
 			if operation == 'install':
 				action = lambda x: download_verify_install(mirror, x)
 			elif operation == 'download':
