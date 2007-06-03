@@ -522,6 +522,7 @@ try:
 
 	if operation == 'update':
 		download_or_exit(get_mirror(), slackroll_filelist_filename, '.')
+		sys.exit()
 
 	if operation == 'import-key':
 		download_or_exit(get_mirror(), slackroll_gpgkey_filename, '.')
