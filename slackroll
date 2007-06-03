@@ -321,7 +321,7 @@ def choose_pkg(pkg_list): # Prompt user and return the package index or -1
 def not_pasture(pkg_list): # Returns packages not in pasture
 	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path()]
 
-def not_standard(pkg_list): # Returns packages not in the main tree
+def not_main(pkg_list): # Returns packages not in the main tree
 	new_list = []
 	for pkg in pkg_list:
 		path = x.path()
@@ -549,7 +549,7 @@ try:
 		remote_list[name] = value
 	# Remove unpatched versions
 	for name in has_patch.iterkeys():
-		remote_list[name] = not_standard(remote_list[name])
+		remote_list[name] = not_main(remote_list[name])
 
 	try:
 		persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
