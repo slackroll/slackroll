@@ -214,9 +214,8 @@ def handle_writable_dir(dirname): # Make sure dirname is available and writable
 			os.mkdir(dirname)
 		except OSError:
 			sys.exit('Error: cannot create directory %s' % dirname)
-	else:
-		if not os.path.isdir(dirname):
-			sys.exit('Error: %s exists but is not a directory' % dirname)
+	if not os.path.isdir(dirname):
+		sys.exit('Error: %s exists but is not a directory' % dirname)
 	if not os.access(dirname, os.R_OK | os.W_OK | os.X_OK):
 		sys.exit('Error: wrong permissions for directory %s' % dirname)
 
