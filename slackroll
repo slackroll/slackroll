@@ -13,7 +13,7 @@ import sys
 import urllib
 import urlparse
 
-slackroll_version = 1
+slackroll_version = 2
 
 slackroll_exit_failure = 1
 slackroll_exit_success = 0
