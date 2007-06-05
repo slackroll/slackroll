@@ -327,7 +327,7 @@ def not_pasture(pkg_list): # Returns packages not in pasture
 def not_main(pkg_list): # Returns packages not in the main tree
 	new_list = []
 	for pkg in pkg_list:
-		path = x.path()
+		path = pkg.path()
 		if (slackroll_patch_indicator in path or slackroll_extra_indicator in path or
 		    slackroll_testing_indicator in path or slackroll_pasture_indicator in path):
 			new_list.append(pkg)
