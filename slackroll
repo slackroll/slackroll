@@ -464,6 +464,7 @@ list-not-installed	List not installed packages
 list-custom		List custom packages
 list-local		List all local packages (present in system)
 list-remote		List all remote packages (present in remote tree)
+list-all		List every known package
 new-not-installed	Mark all new packages as not installed
 unavailable-custom	Mark all unavailable packages as custom
 custom PKG...		Mark packages as custom
@@ -501,6 +502,7 @@ try:
 		'list-custom',
 		'list-local',
 		'list-remote',
+		'list-all',
 		'new-not-installed',
 		'unavailable-custom',
 		'custom',
@@ -533,6 +535,7 @@ try:
 		'list-custom',
 		'list-local',
 		'list-remote',
+		'list-all',
 		'new-not-installed',
 		'unavailable-custom',
 	]
@@ -706,6 +709,10 @@ try:
 			print '    %s' % name
 		print 'End of list.'
 		sys.exit()
+
+	if operation == 'list-all':
+		print_in_states([slackroll_state_new, slackroll_state_unavailable, slackroll_state_installed,
+			slackroll_state_notinstalled, slackroll_state_custom], persistent_list, 'All packages:')
 
 	if operation == 'new-not-installed':
 		from_states_to_state([slackroll_state_new], slackroll_state_notinstalled, persistent_list,
