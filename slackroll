@@ -377,8 +377,8 @@ def process_package_browser_answer(data):
 		pkgname = match.group(1)
 		pkgcontents = match.group(2)
 	
-		print '\t%s' % re.sub(r'\s', '', pkgname)
-		print '\n'.join(['\t    %s' % x for x in re.split(r'(?i)<br(\s*/)?>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
+		print '    %s' % re.sub(r'\s', '', pkgname)
+		print '\n'.join(['\t%s' % x for x in re.split(r'(?i)<br(\s*/)?>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
 		print
 	
 	if not has_results:
@@ -386,7 +386,7 @@ def process_package_browser_answer(data):
 
 def query_package_browser(version, name):
 	searchstr = '"%s"' % name
-	print '    Searching for %s:' % searchstr
+	print 'Searching for %s:' % searchstr
 	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
 	try:
 		data = urllib.urlopen(url).read()
