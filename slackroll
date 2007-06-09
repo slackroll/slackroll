@@ -445,7 +445,8 @@ list-versions PKG...	List all known versions of given packages
 install PKG...		Install packages or specific package versions
 download PKG...		Download packages or specific package versions
 info PKG...		Show info about packages or specific package versions
-urls PKG...		Show package or specific package version URLs"""
+urls PKG...		Show package or specific package version URLs
+pb-search FILE...	Search for files in the Slackware Package Browser"""
 
 ### Main program ###
 try:
@@ -482,6 +483,7 @@ try:
 		'download',
 		'info',
 		'urls',
+		'pb-search',
 	]
 
 	no_args_ops = [
