@@ -369,8 +369,30 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 		persistent_list.sync()
 	sys.exit()
 
+def process_package_browser_answer(data):
+	has_results = False
+	
+	for match in re.finditer(slackroll_pb_result_re, data):
+		has_results = True
+		pkgname = match.group(1)
+		pkgcontents = match.group(2)
+	
+		print '\t%s' % re.sub(r'\s', '', pkgname)
+		print '\n'.join(['\t    %s' % x for x in re.split(r'(?i)<br(\s*/)?>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
+		print
+	
+	if not has_results:
+		print '\t(No results)\n'
+
 def query_package_browser(version, name):
-	print slackroll_pb_template_url % (urllib.quote(version), urllib.quote('"%s"' % name))
+	searchstr = '"%s"' % name
+	print '    Searching for %s:' % searchstr
+	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
+	try:
+		data = urllib.urlopen(url).read()
+	except (IOError, socket.error, urllib.ContentTooShortError):
+		sys.exit('Error: unable to search using this URL: %s' % url)
+	process_package_browser_answer(data)
 
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	already_analyzed = dict()
