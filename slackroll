@@ -369,6 +369,9 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 		persistent_list.sync()
 	sys.exit()
 
+def query_package_browser(version, name):
+	print slackroll_pb_template_url % (urllib.quote(version), urllib.quote('"%s"' % name))
+
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	already_analyzed = dict()
 
@@ -538,7 +541,8 @@ try:
 	if operation == 'pb-search':
 		mirror = get_mirror()
 		slackver = get_version_from_mirror(mirror)
-		print slackver
+		for name in sys.argv[2:]:
+			query_package_browser(slackver, name)
 		sys.exit()
 
 	handle_writable_dir(slackroll_packages_dir)
