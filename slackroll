@@ -381,7 +381,7 @@ def process_package_browser_answer(data):
 		print
 	
 	if not has_results:
-		print '\t(No results)\n'
+		print '    (No results)\n'
 
 def query_package_browser(version, name):
 	searchstr = '"%s"' % name
