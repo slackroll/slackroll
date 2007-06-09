@@ -368,7 +368,7 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 		persistent_list.sync()
 	sys.exit()
 
-def process_package_browser_answer(data):
+def process_package_browser_answer(data): # Extract results from answer webpage
 	has_results = False
 	
 	for match in re.finditer(slackroll_pb_result_re, data):
@@ -382,7 +382,7 @@ def process_package_browser_answer(data):
 	if not has_results:
 		print '    (No results)\n'
 
-def query_package_browser(version, name):
+def query_package_browser(version, name): # Query for package browser on given file with given slackware version
 	searchstr = '"%s"' % name
 	print 'Searching for %s:' % searchstr
 	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
