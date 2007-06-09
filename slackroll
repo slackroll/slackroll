@@ -51,7 +51,6 @@ slackroll_state_custom = 4
 slackroll_state_strings = ['new', 'unavailable', 'installed', 'not-installed', 'custom']
 
 slackroll_mirror_version_re = re.compile(r'/slackware-([^/]+)/')
-slackroll_pb_url = 'http://packages.slackware.it/'
 slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=%s'
 slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?<a[^>]*>(.+?)</a>.*?</div>.*?<div class="pkgdescr">(.+?)</div>.*?</div>'
 
@@ -378,7 +377,7 @@ def process_package_browser_answer(data):
 		pkgcontents = match.group(2)
 	
 		print '    %s' % re.sub(r'\s', '', pkgname)
-		print '\n'.join(['\t%s' % x for x in re.split(r'(?i)<br(\s*/)?>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
+		print '\n'.join(['\t%s' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
 		print
 	
 	if not has_results:
