@@ -143,6 +143,12 @@ def get_mirror(): # From the 'mirror' file
 	except IOError:
 		sys.exit('Error: %s unreadable or wrong format' % slackroll_mirror_filename)
 
+def get_version_from_mirror(mirror):
+	match = slackroll_mirror_version_re.search(mirror)
+	if match is None:
+		sys.exit('Error: unable to extract Slackware version from mirror name')
+	return match.group(1)
+
 def run_pager_on(file_path): # Does not exit on errors
 	try:
 		proc = subprocess.Popen(['less', file_path])
