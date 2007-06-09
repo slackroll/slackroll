@@ -377,8 +377,7 @@ def process_package_browser_answer(data):
 		pkgcontents = match.group(2)
 	
 		print '    %s' % re.sub(r'\s', '', pkgname)
-		print '\n'.join(['\t%s' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
-		print
+		print ''.join(['\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
 	
 	if not has_results:
 		print '    (No results)\n'
