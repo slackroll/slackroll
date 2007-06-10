@@ -309,10 +309,8 @@ def download_display_info(mirror, package): # Downloads info file and sends it t
 	try_to_remove(local_file)
 
 def print_urls(mirror, package):
-	pkg_url = urlparse.urljoin(mirror, package.fullname())
-	sig_url = '%s%s' % (pkg_url, slackroll_signature_suffix)
-	print pkg_url
-	print sig_url
+	print urlparse.urljoin(mirror, package.fullname())	# package URL
+	print '%s%s' % (pkg_url, slackroll_signature_suffix)	# sig URL
 
 def choose_pkg(pkg_list): # Prompt user and return the package index or -1
 	print 'Choose package:'
@@ -447,37 +445,36 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 
 def print_help():
 	print """Available commands:
-
-help			Print this help
-version			Print the program version
-update			Download remote tree information
-import-key		Download and import the GPG key
-upgrade			Upgrade system packages
-download-upgrades	Like 'upgrade' but without installing
-show-upgrade-urls	Like 'upgrade' but only printing URLs
-clean-cache		Remove unknown packages from cache
-list-upgrades		List available upgrades
-list-alternatives	List packages with alternative versions
-list-new		List new packages
-list-unavailable	List unavailable packages
-list-installed		List installed packages
-list-not-installed	List not installed packages
-list-custom		List custom packages
-list-local		List all local packages (present in system)
-list-remote		List all remote packages (present in remote tree)
-list-all		List every known package
-new-not-installed	Mark all new packages as not installed
-unavailable-custom	Mark all unavailable packages as custom
-custom PKG...		Mark packages as custom
-not-installed PKG...	Mark packages as not installed
-unavailable PKG...	Mark packages as unavailable
-new PKG...		Mark packages as new
-list-versions PKG...	List all known versions of given packages
-install PKG...		Install packages or specific package versions
-download PKG...		Download packages or specific package versions
-info PKG...		Show info about packages or specific package versions
-urls PKG...		Show package or specific package version URLs
-pb-search FILE...	Search for files in the Slackware Package Browser"""
+  help			Print this help
+  version		Print the program version
+  update		Download remote tree information
+  import-key		Download and import the GPG key
+  upgrade		Upgrade system packages
+  download-upgrades	Like 'upgrade' but without installing
+  show-upgrade-urls	Like 'upgrade' but only printing URLs
+  clean-cache		Remove unknown packages from cache
+  list-upgrades		List available upgrades
+  list-alternatives	List packages with alternative versions
+  list-new		List new packages
+  list-unavailable	List unavailable packages
+  list-installed	List installed packages
+  list-not-installed	List not installed packages
+  list-custom		List custom packages
+  list-local		List all local packages (present in system)
+  list-remote		List all remote packages (present in remote tree)
+  list-all		List every known package
+  new-not-installed	Mark all new packages as not installed
+  unavailable-custom	Mark all unavailable packages as custom
+  custom PKG...		Mark packages as custom
+  not-installed PKG...	Mark packages as not installed
+  unavailable PKG...	Mark packages as unavailable
+  new PKG...		Mark packages as new
+  list-versions PKG...	List all known versions of given packages
+  install PKG...	Install packages or specific package versions
+  download PKG...	Download packages or specific package versions
+  info PKG...		Show info about packages or specific package versions
+  urls PKG...		Show package or specific package version URLs
+  pb-search FILE...	Search for files in the Slackware Package Browser"""
 
 ### Main program ###
 try:
