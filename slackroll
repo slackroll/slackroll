@@ -369,6 +369,7 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 	sys.exit()
 
 def process_package_browser_answer(data): # Extract results from answer webpage
+	data = re.sub(r'(?s)<!--.*?-->', '', data) # Strip HTML comments
 	has_results = False
 	
 	for match in re.finditer(slackroll_pb_result_re, data):
