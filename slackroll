@@ -183,7 +183,7 @@ def download_report_hook(filename, numblocks, blocksize, totalsize): # Callback 
 		percent = 'N/A'
 		kibibytes = 'N/A'
 	else:
-		percent = min(int(float(numblocks) * float(blocksize) / float(totalsize) * 100.0), 100)
+		percent = min(int(round(numblocks * blocksize * 100.0 / totalsize)), 100)
 		kibibytes = kibi(totalsize)
 	sys.stdout.write('\rDownloading %s ... %s%% of %sk' % (filename, percent, kibibytes))
 	sys.stdout.flush()
