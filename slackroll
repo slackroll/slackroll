@@ -194,7 +194,8 @@ def download_file(mirror, filepath, local_temp, local_final): # Does not exit on
 		sys.stdout.write('Downloading %s ... ' % filename)
 		sys.stdout.flush()
 		full_url = urlparse.urljoin(mirror, filepath)
-		urllib.urlretrieve(full_url, local_temp, lambda a, b, c: download_report_hook(filename, a, b, c))
+		hook = lambda a, b, c: download_report_hook(filename, a, b, c)
+		urllib.urlretrieve(full_url, local_temp, hook)
 		print
 		os.rename(local_temp, local_final)
 	except (IOError, socket.error):
