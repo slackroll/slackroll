@@ -445,6 +445,7 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 
 def print_help():
 	print """Available commands:
+
   help			Print this help
   version		Print the program version
   update		Download remote tree information
@@ -474,7 +475,10 @@ def print_help():
   download PKG...	Download packages or specific package versions
   info PKG...		Show info about packages or specific package versions
   urls PKG...		Show package or specific package version URLs
-  pb-search FILE...	Search for files in the Slackware Package Browser"""
+  pb-search FILE...	Search for files in the Slackware Package Browser
+
+Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
+"""
 
 ### Main program ###
 try:
