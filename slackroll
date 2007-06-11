@@ -359,8 +359,8 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 			print '%s: unknown package' % name
 			continue
 		cur_st = persistent_list[name]
-		cur_st_name = slackroll_state_strings[cur_st]
 		if cur_st not in orig_states:
+			cur_st_name = slackroll_state_strings[cur_st]
 			print '%s: cannot change state from %s to %s' % (name, cur_st_name, dest_st_name)
 			continue
 		persistent_list[name] = dest_state
