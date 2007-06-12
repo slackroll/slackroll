@@ -351,6 +351,13 @@ def print_in_states(states, persistent_list, header): # Print package name if it
 	print 'End of list.'
 	sys.exit()
 
+def print_keys(dictionary, header):
+	print header
+	for key in dictionary.iterkeys():
+		print '    %s' % key
+	print 'End of list.'
+	sys.exit()
+
 def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): # Changes state if it matches
 	dest_st_name = slackroll_state_strings[dest_state]
 	print 'Marking packages as %s...' % dest_st_name
@@ -705,16 +712,11 @@ try:
 	if operation == 'list-local':
 		print_in_states([slackroll_state_unavailable, slackroll_state_installed, slackroll_state_custom], persistent_list, 'Local packages:')
 
-	if operation == 'list-remote':	# We can't use print_in_states due to custom packages
-		print 'Remote packages:'
-		for name in remote_list.iterkeys():
-			print '    %s' % name
-		print 'End of list.'
-		sys.exit()
+	if operation == 'list-remote':
+		print_keys(remote_list, 'Remote packages:')
 
 	if operation == 'list-all':
-		print_in_states([slackroll_state_new, slackroll_state_unavailable, slackroll_state_installed,
-			slackroll_state_notinstalled, slackroll_state_custom], persistent_list, 'All packages:')
+		print_keys(persistent_list, 'All packages:')
 
 	if operation == 'new-not-installed':
 		from_states_to_state([slackroll_state_new], slackroll_state_notinstalled, persistent_list,
