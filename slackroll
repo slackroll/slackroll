@@ -572,8 +572,7 @@ try:
 		sys.exit()
 
 	if operation == 'pb-search':
-		mirror = get_mirror()
-		slackver = get_version_from_mirror(mirror)
+		slackver = get_version_from_mirror(get_mirror())
 		for name in sys.argv[2:]:
 			query_package_browser(slackver, name)
 		sys.exit()
@@ -645,6 +644,7 @@ try:
 			action = lambda x: print_urls(mirror, x)
 		for pkg in chosen_pkgs:
 			action(pkg)
+		sys.exit()
 
 	if operation == 'clean-cache':
 		cache_files = glob.glob(slackroll_packages_dir_glob)
@@ -660,6 +660,7 @@ try:
 				continue
 			print 'Removing %s ...' % pkg.fullname()
 			try_to_remove(pkg.fullname())
+		sys.exit()
 
 	if operation == 'list-upgrades':
 		print 'Available upgrades:'
@@ -816,6 +817,7 @@ try:
 						sys.exit('Error: unable to run pager on %s' % info_file)
 				else:
 					download_display_info(mirror, pkg)
+		sys.exit()
 
 except (KeyboardInterrupt, IOError), error:
 	if isinstance(error, KeyboardInterrupt):
