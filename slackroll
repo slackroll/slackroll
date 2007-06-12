@@ -484,6 +484,7 @@ def print_help():
   info PKG...		Show info about packages or specific package versions
   urls PKG...		Show package or specific package version URLs
   pb-search FILE...	Search for files in the Slackware Package Browser
+  name-search REGEX...	Search for package names matching regular expressions
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
@@ -525,6 +526,7 @@ try:
 		'info',
 		'urls',
 		'pb-search',
+		'name-search',
 	]
 
 	no_args_ops = [
@@ -817,6 +819,23 @@ try:
 						sys.exit('Error: unable to run pager on %s' % info_file)
 				else:
 					download_display_info(mirror, pkg)
+		sys.exit()
+
+	if operation == 'name-search':
+		for retxt in sys.argv[2:]:
+			results = False
+			try:
+				regexp = re.compile(retxt)
+			except re.error:
+				sys.exit('Error: invalid regular expression: %s' % retxt)
+			print '    %s:' % retxt
+			for name in persistent_list.iterkeys():
+				if regexp.search(name) is not None:
+					results = True
+					print '\t%s' % name
+			if not results:
+				print '\t(No results)'
+			print
 		sys.exit()
 
 except (KeyboardInterrupt, IOError), error:
