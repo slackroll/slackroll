@@ -351,7 +351,7 @@ def print_in_states(states, persistent_list, header): # Print package name if it
 	print 'End of list.'
 	sys.exit()
 
-def print_keys(dictionary, header):
+def print_keys(dictionary, header): # Print every package name in list
 	print header
 	for key in dictionary.iterkeys():
 		print '    %s' % key
