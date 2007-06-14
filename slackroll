@@ -141,7 +141,10 @@ def get_local_pkgs(): # Return a list of packages from /var/log/packages
 	local_pkgs = glob.glob(slackroll_local_pkgs_glob)
 	if len(local_pkgs) == 0:
 		sys.exit('Error: could not read list of local packages')
-	local_pkgs = [pkg_from_str(x) for x in local_pkgs]
+	try:
+		local_pkgs = [pkg_from_str(x) for x in local_pkgs]
+	except SlackRollError, err:
+		sys.exit('Error: %s' % err)
 	return local_pkgs
 
 def get_local_list(): # Return list of local packages from cache, updating it if needed
