@@ -118,6 +118,13 @@ def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 def kibi(bytes):
 	return (bytes / 1024)
 
+def newer_than(path1, path2): # path1 modification time more recent than path2 modification time?
+	reftime = get_mtime_or_exit(path2)
+	if not os.path.exists(path1):
+		return False
+	modtime = get_mtime_or_exit(path1)
+	return (modtime > reftime)
+	
 def try_dump(object, filepath):
 	try:
 		cPickle.dump(object, file(filepath, 'wb'), -1)
@@ -281,13 +288,6 @@ def get_mtime_or_exit(path):
 	except OSError:
 		sys.exit('Error: unable to get modification time for %s' % path)
 
-def newer_than(path1, path2): # path1 modification time more recent than path2 modification time?
-	reftime = get_mtime_or_exit(path2)
-	if not os.path.exists(path1):
-		return False
-	modtime = get_mtime_or_exit(path1)
-	return (modtime > reftime)
-	
 def import_key(filename):
 	try:
 		print 'Importing keys from %s ...' % filename
@@ -652,22 +652,24 @@ try:
 		try_to_remove(slackroll_gpgkey_filename)
 		sys.exit()
 
-	### Every operation below needs an updated persistent database ###
+	# Every operation below needs an updated persistent database
 	handle_writable_dir(slackroll_packages_dir)
 	print 'Initializing package lists...'
 	local_list = get_local_list()
 	remote_list = get_remote_list()
+
+	needs_update = (not newer_than(slackroll_persistentlist_filename, slackroll_remotelist_filename) or
+			not newer_than(slackroll_persistentlist_filename, slackroll_locallist_filename))
+
 	try:
 		persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
 	except anydbm.error:
-		sys.exit('Error: unable to open %s' % slackroll_persistentlist_filename)
-	if (newer_than(slackroll_remotelist_filename, slackroll_persistentlist_filename) or
-	    newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename)):
+		sys.exit('Error: unable to properly open %s' % slackroll_persistentlist_filename)
+
+	if needs_update:
 		print 'Updating persistent database...'
 		analyze_changes(local_list, remote_list, persistent_list)
 		touch_persistent_list(persistent_list)
-
-	### Other operations ###
 
 	if operation == 'upgrade' or operation == 'download-upgrades' or operation == 'show-upgrade-urls':
 		mirror = get_mirror()
