@@ -118,6 +118,18 @@ def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 def kibi(bytes):
 	return (bytes / 1024)
 
+def try_dump(object, filepath):
+	try:
+		cPickle.dump(object, file(filepath, 'wb'), -1)
+	except (OSError, IOError, cPickle.PickleError):
+		sys.exit('Error: unable to dump object to file %s' % filepath)
+
+def try_load(filepath):
+	try:
+		return cPickle.load(file(filepath, 'rb'))
+	except (OSError, IOError, cPickle.PickleError):
+		sys.exit('Error: unable to load object from file %s' % filepath)
+
 def get_local_pkgs(): # Return a list of packages from /var/log/packages
 	local_pkgs = glob.glob(slackroll_local_pkgs_glob)
 	if len(local_pkgs) == 0:
@@ -131,14 +143,8 @@ def get_local_list(): # Return list of local packages from cache, updating it if
 		local_list = dict()
 		for pkg in get_local_pkgs():
 			local_list[pkg.name()] = pkg
-		try:
-			cPickle.dump(local_list, file(slackroll_locallist_filename, 'w'))
-		except (OSError, IOError, cPickle.PickleError):
-			sys.exit('Error: unable to dump local packages cache to %s' % slackroll_locallist_filename)
-	try:
-		return cPickle.load(file(slackroll_locallist_filename, 'r'))
-	except (OSError, IOError, cPickle.PickleError):
-		sys.exit('Error: unable to read local packages cache from %s' % slackroll_locallist_filename)
+		try_dump(local_list, slackroll_locallist_filename)
+	return try_load(slackroll_locallist_filename)
 
 def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
 	try:
@@ -165,14 +171,8 @@ def get_remote_list(): # Return list of remote packages from cache, updating if 
 		# Remove unpatched versions
 		for name in has_patch.iterkeys():
 			remote_list[name] = not_main(remote_list[name])
-		try:
-			cPickle.dump(remote_list, file(slackroll_remotelist_filename, 'w'))
-		except (OSError, IOError, cPickle.PickleError):
-			sys.exit('Error: unable to dump remote packages cache to %s' % slackroll_remotelist_filename)
-	try:
-		return cPickle.load(file(slackroll_remotelist_filename, 'r'))
-	except (OSError, IOError, cPickle.PickleError):
-		sys.exit('Error: unable to read local packages cache from %s' % slackroll_remotelist_filename)
+		try_dump(remote_list, slackroll_remotelist_filename)
+	return try_load(slackroll_remotelist_filename)
 
 def get_mirror(): # From the 'mirror' file
 	try:
