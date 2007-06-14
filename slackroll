@@ -814,7 +814,7 @@ try:
 		print_in_states([slackroll_state_frozen], persistent_list, 'Frozen packages:')
 
 	if operation == 'list-local':
-		print_in_states([slackroll_state_unavailable, slackroll_state_installed, slackroll_state_foreign], persistent_list, 'Local packages:')
+		print_keys(local_list, 'Local packages:')
 
 	if operation == 'list-remote':
 		print_keys(remote_list, 'Remote packages:')
@@ -837,13 +837,13 @@ try:
 		from_states_to_state([slackroll_state_frozen, slackroll_state_installed], slackroll_state_frozen, persistent_list, sys.argv[2:])
 
 	if operation == 'not-installed':
-		from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_notinstalled, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_notinstalled, persistent_list, sys.argv[2:])
 
 	if operation == 'unavailable':
-		from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_unavailable, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_unavailable, slackroll_state_foreign], slackroll_state_unavailable, persistent_list, sys.argv[2:])
 
 	if operation == 'new':
-		from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_new, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_new, persistent_list, sys.argv[2:])
 
 	if operation == 'installed':
 		from_states_to_state([slackroll_state_installed, slackroll_state_frozen], slackroll_state_installed, persistent_list, sys.argv[2:])
