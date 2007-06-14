@@ -456,6 +456,12 @@ def query_package_browser(version, name): # Query for package browser on given f
 		sys.exit('Error: unable to search using this URL: %s' % url)
 	process_package_browser_answer(data)
 
+def touch_persistent_list(persistent_list): # Force an update in the modification time
+	persistent_list[''] = True
+	persistent_list.sync()
+	del persistent_list['']
+	persistent_list.sync()
+
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	already_analyzed = dict()
 
@@ -648,18 +654,18 @@ try:
 
 	### Every operation below needs an updated persistent database ###
 	handle_writable_dir(slackroll_packages_dir)
+	print 'Initializing package lists...'
 	local_list = get_local_list()
 	remote_list = get_remote_list()
-
 	try:
 		persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
 	except anydbm.error:
 		sys.exit('Error: unable to open %s' % slackroll_persistentlist_filename)
-
 	if (newer_than(slackroll_remotelist_filename, slackroll_persistentlist_filename) or
 	    newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename)):
 		print 'Updating persistent database...'
 		analyze_changes(local_list, remote_list, persistent_list)
+		touch_persistent_list(persistent_list)
 
 	### Other operations ###
 
