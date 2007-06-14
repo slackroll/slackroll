@@ -28,6 +28,7 @@ slackroll_pkg_re_build_group = 5
 slackroll_packages_dir = './packages'
 slackroll_packages_dir_glob = os.path.join(slackroll_packages_dir, '*.tgz')
 slackroll_local_pkgs_glob = '/var/log/packages/*'
+slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 slackroll_filelist_pkg_re = re.compile(r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\./.+/[^/]+-[^/-]+-[^/-]+-[^/-]+\.tgz)$')
 slackroll_source_indicator = '/source/'
 slackroll_pasture_indicator = '/pasture/'
@@ -37,6 +38,8 @@ slackroll_extra_indicator = '/extra/'
 
 slackroll_mirror_filename = 'mirror'
 slackroll_persistentlist_filename = 'persistent.db'
+slackroll_locallist_filename = 'local.db'
+slackroll_remotelist_filename = 'remote.db'
 slackroll_filelist_filename = 'FILELIST.TXT'
 slackroll_gpgkey_filename = 'GPG-KEY'
 slackroll_temp_suffix = '.part'
