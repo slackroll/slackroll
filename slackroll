@@ -926,7 +926,7 @@ try:
 			for name in persistent_list.iterkeys():
 				if regexp.search(name) is not None:
 					results = True
-					print '\t%s' % name
+					print '\t%s (%s)' % (name, slackroll_state_strings[persistent_list[name]])
 			if not results:
 				print '\t(No results)'
 			print
