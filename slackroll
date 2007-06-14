@@ -585,6 +585,7 @@ def print_help():
   not-installed PKG...	Mark packages as not installed
   unavailable PKG...	Mark packages as unavailable
   new PKG...		Mark packages as new
+  installed PKG...	Mark packages as installed
   list-versions PKG...	List all known versions of given packages
   install PKG...	Install packages or specific package versions
   download PKG...	Download packages or specific package versions
@@ -830,8 +831,7 @@ try:
 				[x for x in persistent_list.iterkeys() if persistent_list[x] == slackroll_state_unavailable])
 
 	if operation == 'foreign':
-		from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable, slackroll_state_installed],
-				slackroll_state_foreign, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_foreign, persistent_list, sys.argv[2:])
 	
 	if operation == 'frozen':
 		from_states_to_state([slackroll_state_frozen, slackroll_state_installed], slackroll_state_frozen, persistent_list, sys.argv[2:])
@@ -844,6 +844,9 @@ try:
 
 	if operation == 'new':
 		from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_new, persistent_list, sys.argv[2:])
+
+	if operation == 'installed':
+		from_states_to_state([slackroll_state_installed, slackroll_state_frozen], slackroll_state_installed, persistent_list, sys.argv[2:])
 
 	if operation == 'list-versions':
 		print 'Available versions:'
