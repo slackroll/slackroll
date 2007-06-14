@@ -351,8 +351,9 @@ def download_verify(mirror, package): # Download package, signature and verify i
 
 def download_verify_install(mirror, package):
 	local_name = download_verify(mirror, package)
-	if local_name is not None:
-		upgrade_or_install(local_name)
+	if local_name is None:
+		sys.exit(slackroll_exit_failure)
+	upgrade_or_install(local_name)
 
 def download_display_info(mirror, package): # Downloads info file and sends it to the pager
 	suffix_len = len(slackroll_info_suffix)
@@ -692,7 +693,7 @@ try:
 		if operation == 'upgrade':
 			action = lambda x: download_verify_install(mirror, x)
 		elif operation == 'download-upgrades':
-			action = lambda x: download_verify(mirror, x)
+			action = lambda x: download_verify(mirror, x) is None and sys.exit(slackroll_exit_failure)
 		else:
 			action = lambda x: print_urls(mirror, x)
 		for pkg in chosen_pkgs:
@@ -854,7 +855,7 @@ try:
 			if operation == 'install':
 				action = lambda x: download_verify_install(mirror, x)
 			elif operation == 'download':
-				action = lambda x: download_verify(mirror, x)
+				action = lambda x: download_verify(mirror, x) is None and sys.exit(slackroll_exit_failure)
 			else:
 				action = lambda x: print_urls(mirror, x)
 			for pkg in chosen_pkgs:
