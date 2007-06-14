@@ -518,12 +518,13 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 					persistent_list[name] = slackroll_state_installed
 				else:
 					persistent_list[name] = slackroll_state_unavailable
-			elif state == slackroll_state_unavailable:
+			elif state == slackroll_state_unavailable or state == slackroll_state_foreign:
 				if name in remote_list:
 					persistent_list[name] = slackroll_state_installed
-			elif state == slackroll_state_installed:
+			elif state == slackroll_state_installed or state == slackroll_state_frozen:
 				if name not in remote_list:
 					persistent_list[name] = slackroll_state_unavailable
+				
 		else:
 			# Introduce them in the persistent list
 			if name in remote_list:
@@ -542,7 +543,7 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 			state = persistent_list[name]
 			if state == slackroll_state_unavailable:
 				persistent_list[name] = slackroll_state_new
-			elif state == slackroll_state_installed or state == slackroll_state_foreign:
+			elif state == slackroll_state_installed or state == slackroll_state_foreign or state == slackroll_state_frozen:
 				persistent_list[name] = slackroll_state_notinstalled
 		else:
 			# Introduce them as new
