@@ -657,7 +657,7 @@ try:
 		sys.exit('Error: unable to open %s' % slackroll_persistentlist_filename)
 
 	if (newer_than(slackroll_remotelist_filename, slackroll_persistentlist_filename) or
-	    newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename):
+	    newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename)):
 		print 'Updating persistent database...'
 		analyze_changes(local_list, remote_list, persistent_list)
 
