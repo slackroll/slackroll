@@ -42,6 +42,7 @@ slackroll_persistentlist_filename = 'persistent.db'
 slackroll_locallist_filename = 'local.db'
 slackroll_remotelist_filename = 'remote.db'
 slackroll_filelist_filename = 'FILELIST.TXT'
+slackroll_changelog_filename = 'ChangeLog.txt'
 slackroll_gpgkey_filename = 'GPG-KEY'
 slackroll_temp_suffix = '.part'
 slackroll_signature_suffix = '.asc'
@@ -370,6 +371,42 @@ def download_display_info(mirror, package): # Downloads info file and sends it t
 		sys.exit(slackroll_exit_failure)
 	try_to_remove(local_file)
 
+def update_changelog(mirror):
+	if not os.path.exists(slackroll_changelog_filename):
+		download_or_exit(mirror, slackroll_changelog_filename, '.')
+		return
+
+	sys.stdout.write('Updating %s ... ' % slackroll_changelog_filename)
+	sys.stdout.flush()
+
+	try: # Only read until last known entry
+		limit = file(slackroll_changelog_filename, 'r').readline()
+	except (OSError, IOError):
+		sys.exit('Error: unable to read first line of %s' % slackroll_changelog_filename)
+
+	try:
+		changelog_url = urlparse.urljoin(mirror, slackroll_changelog_filename)
+		lines = []
+		conn = urllib.urlopen(changelog_url)
+		while True:
+			new_line = conn.readline()
+			if len(new_line) == 0 or new_line == limit:
+				break
+			lines.append(new_line)
+		conn.close()
+		if len(lines) == 0:
+			print 'no new entries.'
+			return
+		print 'new entries found.'
+	except (IOError, socket.error, urllib.ContentTooShortError):
+		sys.exit('Error: could not retrieve this URL: %s' % changelog_url)
+
+	try:
+		file(slackroll_changelog_filename, 'w').writelines(lines)
+	except (OSError, IOError):
+		sys.exit('Error: unable to write to %s' % slackroll_changelog_filename)
+
+
 def print_urls(mirror, package):
 	print urlparse.urljoin(mirror, package.fullname())	# package URL
 	print '%s%s' % (pkg_url, slackroll_signature_suffix)	# sig URL
@@ -647,7 +684,9 @@ try:
 		sys.exit()
 
 	if operation == 'update':
-		download_or_exit(get_mirror(), slackroll_filelist_filename, '.')
+		mirror = get_mirror()
+		download_or_exit(mirror, slackroll_filelist_filename, '.')
+		update_changelog(mirror)
 		sys.exit()
 
 	if operation == 'import-key':
