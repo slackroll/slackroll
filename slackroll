@@ -648,8 +648,6 @@ try:
 
 	### Every operation below needs an updated persistent database ###
 	handle_writable_dir(slackroll_packages_dir)
-	print 'Updating persistent database...'
-
 	local_list = get_local_list()
 	remote_list = get_remote_list()
 
@@ -658,7 +656,10 @@ try:
 	except anydbm.error:
 		sys.exit('Error: unable to open %s' % slackroll_persistentlist_filename)
 
-	analyze_changes(local_list, remote_list, persistent_list)
+	if (newer_than(slackroll_remotelist_filename, slackroll_persistentlist_filename) or
+	    newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename):
+		print 'Updating persistent database...'
+		analyze_changes(local_list, remote_list, persistent_list)
 
 	### Other operations ###
 
