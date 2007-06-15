@@ -52,9 +52,9 @@ slackroll_state_new = 0
 slackroll_state_unavailable = 1
 slackroll_state_installed = 2
 slackroll_state_notinstalled = 3
-slackroll_state_foreign = 4
-slackroll_state_frozen = 5
-slackroll_state_strings = ['new', 'unavailable', 'installed', 'not-installed', 'foreign', 'frozen']
+slackroll_state_frozen = 4
+slackroll_state_foreign = 5
+slackroll_state_strings = ['new', 'unavailable', 'installed', 'not-installed', 'frozen', 'foreign']
 
 slackroll_mirror_version_re = re.compile(r'/slackware-([^/]+)/')
 slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=%s'
@@ -575,15 +575,15 @@ def print_help():
   list-unavailable	List unavailable packages
   list-installed	List installed packages
   list-not-installed	List not installed packages
-  list-foreign		List foreign packages
   list-frozen		List frozen packages
+  list-foreign		List foreign packages
   list-local		List all local packages (present in system)
   list-remote		List all remote packages (present in remote tree)
   list-all		List every known package
   new-not-installed	Mark all new packages as not installed
   unavailable-foreign	Mark all unavailable packages as foreign
-  foreign PKG...	Mark packages as foreign
   frozen PKG...		Mark packages as frozen
+  foreign PKG...	Mark packages as foreign
   not-installed PKG...	Mark packages as not installed
   unavailable PKG...	Mark packages as unavailable
   new PKG...		Mark packages as new
@@ -620,15 +620,15 @@ try:
 		'list-unavailable',
 		'list-installed',
 		'list-not-installed',
-		'list-foreign',
 		'list-frozen',
+		'list-foreign',
 		'list-local',
 		'list-remote',
 		'list-all',
 		'new-not-installed',
 		'unavailable-foreign',
-		'foreign',
 		'frozen',
+		'foreign',
 		'not-installed',
 		'unavailable',
 		'new',
@@ -657,8 +657,8 @@ try:
 		'list-unavailable',
 		'list-installed',
 		'list-not-installed',
-		'list-foreign',
 		'list-frozen',
+		'list-foreign',
 		'list-local',
 		'list-remote',
 		'list-all',
@@ -813,12 +813,12 @@ try:
 	if operation == 'list-not-installed':
 		print_in_states([slackroll_state_notinstalled], persistent_list, 'Not installed packages:')
 
-	if operation == 'list-foreign':
-		print_in_states([slackroll_state_foreign], persistent_list, 'Foreign packages:')
-	
 	if operation == 'list-frozen':
 		print_in_states([slackroll_state_frozen], persistent_list, 'Frozen packages:')
 
+	if operation == 'list-foreign':
+		print_in_states([slackroll_state_foreign], persistent_list, 'Foreign packages:')
+	
 	if operation == 'list-local':
 		print_keys(local_list, 'Local packages:')
 
@@ -836,12 +836,12 @@ try:
 		from_states_to_state([slackroll_state_unavailable], slackroll_state_foreign, persistent_list,
 				[x for x in persistent_list.iterkeys() if persistent_list[x] == slackroll_state_unavailable])
 
-	if operation == 'foreign':
-		from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_foreign, persistent_list, sys.argv[2:])
-	
 	if operation == 'frozen':
 		from_states_to_state([slackroll_state_frozen, slackroll_state_installed], slackroll_state_frozen, persistent_list, sys.argv[2:])
 
+	if operation == 'foreign':
+		from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_foreign, persistent_list, sys.argv[2:])
+	
 	if operation == 'not-installed':
 		from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_notinstalled, persistent_list, sys.argv[2:])
 
