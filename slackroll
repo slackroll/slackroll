@@ -505,7 +505,7 @@ def query_package_browser(version, name, local_list): # Query package browser on
 		except SlackRollError:
 			pass
 	
-		print '    %s (%s in your system)' % (re.sub(r'\s', '', pkgstr), (in_local and 'present' or 'not present'))
+		print '    %s (%s)' % (re.sub(r'\s', '', pkgstr), (in_local and 'local' or 'remote'))
 		print ''.join(['\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
 	
 	if not has_results:
