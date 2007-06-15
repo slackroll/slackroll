@@ -321,10 +321,10 @@ def verify_signature(filename):	# Does not exit on errors
 		sys.stderr.write('Error: unable to verify signature in %s\n' % filename)
 		raise SlackRollError('OSError running GnuPG to verify signature')
 
-def upgrade_or_install(filename):
+def upgrade_or_install(filename, reinstall):
 	try:
 		print 'Installing %s ...' % filename
-		proc = subprocess.Popen(['/sbin/upgradepkg', '--install-new', filename])
+		proc = subprocess.Popen(['/sbin/upgradepkg', '--install-new'] + (reinstall and ['--reinstall'] or []) + [filename])
 		retcode = proc.wait()
 		if retcode != 0:
 			sys.exit('Error: installation failed: %s' % filename)
@@ -358,11 +358,11 @@ def download_verify(mirror, package): # Download package, signature and verify i
 	
 	return local_name
 
-def download_verify_install(mirror, package):
+def download_verify_install(mirror, package, reinstall=False):
 	local_name = download_verify(mirror, package)
 	if local_name is None:
 		sys.exit(slackroll_exit_failure)
-	upgrade_or_install(local_name)
+	upgrade_or_install(local_name, reinstall)
 
 def download_display_info(mirror, package): # Downloads info file and sends it to the pager
 	suffix_len = len(slackroll_info_suffix)
@@ -596,6 +596,7 @@ def print_help():
   installed PKG...	Mark packages as installed
   list-versions PKG...	List all known versions of given packages
   install PKG...	Install packages or specific package versions
+  reinstall PKG...	Same as 'install' but reinstalls if needed
   download PKG...	Download packages or specific package versions
   info PKG...		Show info about packages or specific package versions
   urls PKG...		Show package or specific package version URLs
@@ -643,6 +644,7 @@ try:
 		'installed',
 		'list-versions',
 		'install',
+		'reinstall',
 		'download',
 		'info',
 		'urls',
@@ -911,7 +913,7 @@ try:
 		print 'End of list.'
 		sys.exit()
 
-	if operation == 'install' or operation == 'download' or operation == 'info' or operation == 'urls':
+	if operation == 'install' or operation == 'reinstall' or operation == 'download' or operation == 'info' or operation == 'urls':
 		mirror = get_mirror()
 		chosen_pkgs = []
 		for arg in sys.argv[2:]:
@@ -953,10 +955,12 @@ try:
 							chosen_pkgs.append(candidates[chosen])
 	
 		# After selecting the packages, run the requested operation on them
-		if operation == 'install' or operation == 'download' or operation == 'urls':
+		if operation == 'install' or operation == 'reinstall' or operation == 'download' or operation == 'urls':
 			print 'Total size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
 			if operation == 'install':
 				action = lambda x: download_verify_install(mirror, x)
+			elif operation == 'reinstall':
+				action = lambda x: download_verify_install(mirror, x, reinstall=True)
 			elif operation == 'download':
 				action = lambda x: download_verify(mirror, x) is None and sys.exit(slackroll_exit_failure)
 			else:
