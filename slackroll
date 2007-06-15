@@ -409,8 +409,9 @@ def update_changelog(mirror):
 
 
 def print_urls(mirror, package):
-	print urlparse.urljoin(mirror, package.fullname())	# package URL
-	print '%s%s' % (pkg_url, slackroll_signature_suffix)	# sig URL
+	url = urlparse.urljoin(mirror, package.fullname())
+	print url
+	print '%s%s' % (url, slackroll_signature_suffix)
 
 def choose_pkg(pkg_list): # Prompt user and return the package index or -1
 	print 'Choose package:'
