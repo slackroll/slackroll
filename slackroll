@@ -36,6 +36,7 @@ slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
 slackroll_testing_indicator = '/testing/'
 slackroll_extra_indicator = '/extra/'
+slackroll_glibc_indicator = 'glibc'
 
 slackroll_mirror_filename = 'mirror'
 slackroll_persistentlist_filename = 'persistent.db'
@@ -119,6 +120,9 @@ def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 
 def kibi(bytes):
 	return (bytes / 1024)
+
+def print_glibc_warning():
+	print '\n!!! WATCH OUT: ACTIVITY IN GLIBC PACKAGES !!!\n'
 
 def newer_than(path1, path2): # path1 modification time more recent than path2 modification time?
 	reftime = get_mtime_or_exit(path2)
@@ -569,6 +573,7 @@ def print_help():
   download-upgrades	Like 'upgrade' but without installing
   show-upgrade-urls	Like 'upgrade' but only printing URLs
   clean-cache		Remove unknown packages from cache
+  list-transient	Combined list of new, unavailable and outdated packages
   list-upgrades		List available upgrades
   list-alternatives	List packages with alternative versions
   list-new		List new packages
@@ -614,6 +619,7 @@ try:
 		'download-upgrades',
 		'show-upgrade-urls',
 		'clean-cache',
+		'list-transient',
 		'list-upgrades',
 		'list-alternatives',
 		'list-new',
@@ -651,6 +657,7 @@ try:
 		'download-upgrades',
 		'show-upgrade-urls',
 		'clean-cache',
+		'list-transient',
 		'list-upgrades',
 		'list-alternatives',
 		'list-new',
@@ -767,9 +774,29 @@ try:
 			print 'Removing %s ...' % pkg.fullname()
 			try_to_remove(pkg.fullname())
 		sys.exit()
+	
+	if operation == 'list-transient':
+		print 'Transient packages:'
+		transient = []
+		glibc_affected = False
+		for name in persistent_list.iterkeys():
+			state = persistent_list[name]
+			if state == slackroll_state_new or state == slackroll_state_unavailable:
+				transient.append((name, slackroll_state_strings[state]))
+			elif state == slackroll_state_installed and local_list[name] not in not_pasture(remote_list[name]):
+				transient.append((name, 'outdated'))
+			if slackroll_glibc_indicator in name:
+				glibc_affected = True
+		for (name, reason) in transient:
+			print '    %s (%s)' % (name, reason)
+		print 'End of list.'
+		if glibc_affected:
+			print_glibc_warning()
+		sys.exit()
 
 	if operation == 'list-upgrades':
 		print 'Available upgrades:'
+		glibc_affected = False
 		for name in local_list:
 			if persistent_list[name] == slackroll_state_installed:
 				candidates = not_pasture(remote_list[name])
@@ -777,12 +804,16 @@ try:
 					print '    %s: Warning: only present in /pasture/\n' % name
 					continue
 				if local_list[name] not in candidates:
+					if slackroll_glibc_indicator in name:
+						glibc_affected = True
 					print '    %s:' % name
 					print '\tLocal:\t%s' % local_list[name].shortname()
 					for other in candidates:
 						print '\tRemote:\t%s' % other.fullname()
 					print
 		print 'End of list.'
+		if glibc_affected:
+			print_glibc_warning()
 		sys.exit()
 
 	if operation == 'list-alternatives':
