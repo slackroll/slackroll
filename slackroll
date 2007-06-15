@@ -750,6 +750,7 @@ try:
 					if len(candidates) == 1:
 						chosen_pkgs.append(candidates[0])
 					else:
+						print 'Local version: %s' % local_list[name].shortname()
 						chosen = choose_pkg(candidates)
 						if chosen >= 0:
 							chosen_pkgs.append(candidates[chosen])
@@ -942,6 +943,8 @@ try:
 					if len(candidates) == 1:
 						chosen_pkgs.append(candidates[0])
 					else:
+						if name in local_list:
+							print 'Local version: %s' % local_list[name].shortname()
 						chosen = choose_pkg(candidates)
 						if chosen >= 0:
 							chosen_pkgs.append(candidates[chosen])
