@@ -84,7 +84,7 @@
 		<p>Each package is in one of several possible states. The
 		program tries to keep a persistent "database" that associates
 		each package with its state. When it runs, it analyzes the list
-		of packages present in your system, the list of remote packages
+		of packages present in your system, the list of remote packages,
 		and tries to keep the persistent database updated by introducing
 		new entries, deleting old ones and changing the state of some
 		of those entries.</p>
@@ -96,13 +96,16 @@
 		present in the remote tree and it wasn't present before.
 		If you detect you have packages in this state you should
 		decide if you want to install them or mark them as not
-		installed.</dd>
+		installed. This state lets you see which packages are being
+		added to the remote tree.</dd>
 
 		<dt>UNAVAILABLE</dt> <dd>Sorry if this name is
 		somehow confusing. A package is in this state when it's
 		present in your system, but not in the remote tree. You
 		should decide if you want to remove them from your system
-		or mark them as custom packages.</dd>
+		or mark them as foreign packages. This state lets you
+		see which packages are being removed from the remote
+		tree.</dd>
 		</dl>
 
 		<h3>Normal states</h3>
@@ -117,13 +120,37 @@
 		in your system but exists in the remote tree. It's also
 		a very common state.</dd>
 
-		<dt>CUSTOM</dt> <dd>A package is custom if the
-		user has marked it as a custom package. Simple as that.
-		The package may or may not be in the remote tree, in that
-		very same version or in a different one. Custom packages
-		are ignored by <strong>slackroll</strong> on most
-		situations, and won't be candidates for upgrading,
-		among other things. You are in charge of these packages.</dd>
+		<dt>FOREIGN</dt> <dd>No package will enter the foreign
+		state unless you mark it so. It should be used for
+		packages present in your system because you want to have
+		them, but that are not present in the remote tree.
+		For example, the <em>mplayer</em> package in my system is
+		marked as foreign. A foreign package will be
+		marked as installed if it ever appears in the remote
+		tree, becoming a candidate for upgrading. Hopefully, you'll
+		notice this fact. You can still use your own version
+		instead of the remote (official) one by marking it as
+		frozen.</dd>
+
+		<dt>FROZEN</dt> <dd>No package will enter the frozen state
+		unless you mark it so. It should be used for packages
+		present in your system and in the remote tree, but that
+		you don't want to upgrade automatically.  This state can
+		be used for packages which are not meant to be upgraded
+		automatically or ever, like <em>aaa_elflibs</em> and others,
+		and for customized versions of official packages. For
+		example, my custom build of <em>freetype</em> is marked as
+		frozen. You must pay attention to these packages, as upgrades
+		to them will be silently ignored. You may find the
+		<em>list-versions</em> command useful to detect version
+		mismatches between your custom builds and the remote
+		packages. Having a package in the frozen state does not
+		prevent you from using the <em>install</em> command to
+		download and install a different version. If the package
+		ever disappears from the remote tree, it will be marked
+		as unavailable and you will probably see it. You can
+		continue to use it by marking it as foreign if you
+		wish.</dd>
 		</dl>
 
 		<h2>Get SlackRoll</h2>
@@ -179,8 +206,9 @@
 		<p>Finally, you could start checking if there are new packages,
 		unavailable packages or upgrades. However, the first time you
 		use <strong>slackroll</strong>, any package not installed in
-		your system will be marked as new, and every custom package
-		will probably be marked as unavailable or ready for an upgrade.
+		your system will be marked as new, every foreign package will
+		be marked as unavailable, and every customized package will
+		probably be a candidate for upgrading if you try to do so.
 		If you have your system under control (and I hope you do!),
 		you can in most cases blindly mark all new packages as not
 		installed. There's a command to do it, being a common first
@@ -189,36 +217,33 @@
 		<p><code>slackroll new-not-installed</code></p>
 
 		<p>In most cases, you can also mark any unavailable packages as
-		custom. However, the number of custom packages is usually quite
-		low, and forgetting to uninstall a package which has been
+		foreign. However, the number of foreign packages is usually
+		quite low, and forgetting to uninstall a package which has been
 		removed is a very common mistake, so my advice is to review
 		the list of unavailable packages by hand, detecting which
-		ones may not be custom packages and need to be uninstalled.</p>
+		ones may not be foreign packages and need to be uninstalled.</p>
 
 		<p><code>slackroll list-unavailable</code></p>
 
 		<p>Once you've got rid of old packages (using
-		<strong>removepkg</strong>, of course!), mark the rest as custom
-		packages.</p>
+		<strong>removepkg</strong>, of course!), mark the rest as
+		foreign packages.</p>
 
-		<p><code>slackroll unavailable-custom</code></p>
+		<p><code>slackroll unavailable-foreign</code></p>
 
 		<p>Some people like to "blacklist" packages so they are not
 		upgraded normally. Almost always, you want to do this with
 		the package <em>aaa_elflibs</em> if it's present in your
 		system, and maybe with some other packages. If you don't want
-		them to be upgraded normally, you're effectively taking
-		care of these packages yourself, so they're custom packages.
-		Mark them as custom.</p>
+		them to be upgraded normally, they belong to the frozen state.
+		Mark them as frozen. The same applies to customized builds
+		of official packages.</p>
 
-		<p><code>slackroll custom aaa_elflibs</code></p>
+		<p><code>slackroll frozen aaa_elflibs</code></p>
 
-		<p>The <em>custom</em> command accepts a list of packages
+		<p>The <em>frozen</em> command accepts a list of packages
 		as its arguments. You don't need to issue a separate command
-		for each one of them. Of course, you should also mark as
-		custom any other package for which you installed a custom
-		build (for example, this is the case of the <em>freetype</em>
-		package I have in my system).</p>
+		for each one of them.</p>
 
 		<h2>Normal operation</h2>
 
@@ -239,8 +264,8 @@
 		with <em>list-upgrades</em> and upgrade to new versions
 		with <em>upgrade</em>. Finally, list unavailable packages with
 		<em>list-unavailable</em> and remove them or mark them as
-		custom if a new custom package is present in the list
-		(which may happen if you had forgotten to mark it as custom
+		foreign if a new foreign package is present in the list
+		(which may happen if you had forgotten to mark it as foreign
 		when you installed it).</p>
 
 		<h3>Stable tree</h3>
