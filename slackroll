@@ -573,6 +573,7 @@ def print_help():
   download-upgrades	Like 'upgrade' but without installing
   show-upgrade-urls	Like 'upgrade' but only printing URLs
   clean-cache		Remove unknown packages from cache
+  touch			Force update on persistent database
   list-transient	Combined list of new, unavailable and outdated packages
   list-upgrades		List available upgrades
   list-alternatives	List packages with alternative versions
@@ -619,6 +620,7 @@ try:
 		'download-upgrades',
 		'show-upgrade-urls',
 		'clean-cache',
+		'touch',
 		'list-transient',
 		'list-upgrades',
 		'list-alternatives',
@@ -657,6 +659,7 @@ try:
 		'download-upgrades',
 		'show-upgrade-urls',
 		'clean-cache',
+		'touch',
 		'list-transient',
 		'list-upgrades',
 		'list-alternatives',
@@ -719,7 +722,7 @@ try:
 	remote_list = get_remote_list()
 
 	needs_update = (not newer_than(slackroll_persistentlist_filename, slackroll_remotelist_filename) or
-			not newer_than(slackroll_persistentlist_filename, slackroll_locallist_filename))
+			not newer_than(slackroll_persistentlist_filename, slackroll_locallist_filename) or operation == 'touch')
 
 	try:
 		persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
@@ -730,6 +733,9 @@ try:
 		print 'Updating persistent database...'
 		analyze_changes(local_list, remote_list, persistent_list)
 		touch_persistent_list(persistent_list)
+	
+	if operation == 'touch':
+		sys.exit()
 
 	if operation == 'upgrade' or operation == 'download-upgrades' or operation == 'show-upgrade-urls':
 		mirror = get_mirror()
