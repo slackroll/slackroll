@@ -478,22 +478,7 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 		persistent_list.sync()
 	sys.exit()
 
-def process_package_browser_answer(data): # Extract results from answer webpage
-	data = re.sub(r'(?s)<!--.*?-->', '', data) # Strip HTML comments
-	has_results = False
-	
-	for match in re.finditer(slackroll_pb_result_re, data):
-		has_results = True
-		pkgname = match.group(1)
-		pkgcontents = match.group(2)
-	
-		print '    %s' % re.sub(r'\s', '', pkgname)
-		print ''.join(['\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
-	
-	if not has_results:
-		print '    (No results)\n'
-
-def query_package_browser(version, name): # Query package browser on given file with given slackware version
+def query_package_browser(version, name, local_list): # Query package browser on given file with given slackware version
 	searchstr = '"%s"' % name
 	print 'Searching for %s:' % searchstr
 	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
@@ -501,7 +486,30 @@ def query_package_browser(version, name): # Query package browser on given file 
 		data = urllib.urlopen(url).read()
 	except (IOError, socket.error, urllib.ContentTooShortError):
 		sys.exit('Error: unable to search using this URL: %s' % url)
-	process_package_browser_answer(data)
+
+	# Extract results from answer webpage
+	data = re.sub(r'(?s)<!--.*?-->', '', data) # Strip HTML comments
+	has_results = False
+	
+	for match in re.finditer(slackroll_pb_result_re, data):
+		has_results = True
+		pkgstr = match.group(1)
+		pkgcontents = match.group(2)
+
+		in_local = False
+		try:
+			pkg = pkg_from_str(pkgstr)
+			name = pkg.name()
+			if name in local_list and local_list[name] == pkg:
+				in_local = True
+		except SlackRollError:
+			pass
+	
+		print '    %s (%s in your system)' % (re.sub(r'\s', '', pkgstr), (in_local and 'present' or 'not present'))
+		print ''.join(['\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
+	
+	if not has_results:
+		print '    (No results)\n'
 
 def touch_persistent_list(persistent_list): # Force an update in the modification time
 	persistent_list[''] = True
@@ -699,12 +707,6 @@ try:
 		print 'SlackRoll v%s' % slackroll_version
 		sys.exit()
 
-	if operation == 'pb-search':
-		slackver = get_version_from_mirror(get_mirror())
-		for name in sys.argv[2:]:
-			query_package_browser(slackver, name)
-		sys.exit()
-
 	if operation == 'update':
 		mirror = get_mirror()
 		download_or_exit(mirror, slackroll_filelist_filename, '.')
@@ -737,6 +739,12 @@ try:
 		touch_persistent_list(persistent_list)
 	
 	if operation == 'touch':
+		sys.exit()
+
+	if operation == 'pb-search':
+		slackver = get_version_from_mirror(get_mirror())
+		for name in sys.argv[2:]:
+			query_package_browser(slackver, name, local_list)
 		sys.exit()
 
 	if operation == 'upgrade' or operation == 'download-upgrades' or operation == 'show-upgrade-urls':
