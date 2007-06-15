@@ -92,6 +92,7 @@
 		<h3>States to avoid</h3>
 
 		<dl>
+
 		<dt>NEW</dt> <dd>A package is in this state when it's
 		present in the remote tree and it wasn't present before.
 		If you detect you have packages in this state you should
@@ -120,18 +121,6 @@
 		in your system but exists in the remote tree. It's also
 		a very common state.</dd>
 
-		<dt>FOREIGN</dt> <dd>No package will enter the foreign
-		state unless you mark it so. It should be used for
-		packages present in your system because you want to have
-		them, but that are not present in the remote tree.
-		For example, the <em>mplayer</em> package in my system is
-		marked as foreign. A foreign package will be
-		marked as installed if it ever appears in the remote
-		tree, becoming a candidate for upgrading. Hopefully, you'll
-		notice this fact. You can still use your own version
-		instead of the remote (official) one by marking it as
-		frozen.</dd>
-
 		<dt>FROZEN</dt> <dd>No package will enter the frozen state
 		unless you mark it so. It should be used for packages
 		present in your system and in the remote tree, but that
@@ -151,6 +140,19 @@
 		as unavailable and you will probably see it. You can
 		continue to use it by marking it as foreign if you
 		wish.</dd>
+
+		<dt>FOREIGN</dt> <dd>No package will enter the foreign
+		state unless you mark it so. It should be used for
+		packages present in your system because you want to have
+		them, but that are not present in the remote tree.
+		For example, the <em>mplayer</em> package in my system is
+		marked as foreign. A foreign package will be
+		marked as installed if it ever appears in the remote
+		tree, becoming a candidate for upgrading. Hopefully, you'll
+		notice this fact. You can still use your own version
+		instead of the remote (official) one by marking it as
+		frozen.</dd>
+
 		</dl>
 
 		<h2>Get SlackRoll</h2>
