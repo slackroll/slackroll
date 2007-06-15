@@ -272,7 +272,12 @@
 		even before new packages. The <em>install</em> command,
 		among others, accepts specific package versions and is
 		copy/paste friendly. You can use it to manually upgrade
-		<em>glibc</em> packages first.</p>
+		<em>glibc</em> packages first. Notice that specifying
+		the new version explicitly is optional. The program should
+		do the right thing in most cases if you only provide
+		the package name, but always be extremely careful with
+		<em>glibc</em> packages and make sure you're doing the
+		right thing.</p>
 		
 		<h3>Rolling tree (slackware-current)</h3>
 
@@ -292,7 +297,9 @@
 		<p>Mostly the same, but in the stable tree it's extremely
 		rare to see packages being removed or being added to the
 		tree, so you probably won't need to run <em>list-new</em>
-		or <em>list-unavailable</em>, but you never know...</p>
+		or <em>list-unavailable</em>, but you never know. The
+		<em>list-transient</em> command may be useful to detect
+		these rare cases.</p>
 
 		<h2>Feedback, questions, bug reports</h2>
 
