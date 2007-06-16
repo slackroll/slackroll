@@ -797,15 +797,23 @@ try:
 			try_to_remove(pkg.fullname())
 		sys.exit()
 	
-	if operation == 'list-transient':
-		print 'Transient packages:'
+	if operation == 'list-transient' or operation == 'list-outdated':
+		if operation == 'list-transient':
+			print 'Transient packages:'
+			valid_states = [slackroll_state_new, slackroll_state_unavailable, slackroll_state_outdated]
+		else:
+			print 'Outdated packages:'
+			valid_states = [slackroll_state_outdated]
 		glibc_affected = False
 		for name in persistent_list.iterkeys():
 			state = persistent_list[name]
-			if state in [slackroll_state_new, slackroll_state_unavailable, slackroll_state_outdated]:
+			if state in valid_states:
 				if slackroll_glibc_indicator in name:
 					glibc_affected = True
-				print '    %s (%s)' % (name, slackroll_state_strings[state])
+				if operation == 'list-transient':
+					print '    %s (%s)' % (name, slackroll_state_strings[state])
+				else:
+					print '    %s' % name
 		print 'End of list.'
 		if glibc_affected:
 			print_glibc_warning()
@@ -865,9 +873,6 @@ try:
 
 	if operation == 'list-foreign':
 		print_in_states([slackroll_state_foreign], persistent_list, 'Foreign packages:')
-	
-	if operation == 'list-outdated':
-		print_in_states([slackroll_state_outdated], persistent_list, 'Outdated packages:')
 	
 	if operation == 'list-local':
 		print_keys(local_list, 'Local packages:')
