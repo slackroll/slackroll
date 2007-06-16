@@ -478,7 +478,7 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 		persistent_list.sync()
 	sys.exit()
 
-def query_package_browser(version, name, local_list): # Query package browser on given file with given slackware version
+def query_package_browser(version, name): # Query package browser on given file with given slackware version
 	searchstr = '"%s"' % name
 	print 'Searching for %s:' % searchstr
 	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
@@ -496,16 +496,7 @@ def query_package_browser(version, name, local_list): # Query package browser on
 		pkgstr = match.group(1)
 		pkgcontents = match.group(2)
 
-		in_local = False
-		try:
-			pkg = pkg_from_str(pkgstr)
-			name = pkg.name()
-			if name in local_list and local_list[name] == pkg:
-				in_local = True
-		except SlackRollError:
-			pass
-	
-		print '    %s (%s)' % (re.sub(r'\s', '', pkgstr), (in_local and 'local' or 'remote'))
+		print '    %s' % re.sub(r'\s', '', pkgstr)
 		print ''.join(['\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
 	
 	if not has_results:
@@ -719,6 +710,12 @@ try:
 		try_to_remove(slackroll_gpgkey_filename)
 		sys.exit()
 
+	if operation == 'pb-search':
+		slackver = get_version_from_mirror(get_mirror())
+		for name in sys.argv[2:]:
+			query_package_browser(slackver, name)
+		sys.exit()
+
 	# Every operation below needs an updated persistent database
 	handle_writable_dir(slackroll_packages_dir)
 	print 'Initializing package lists...'
@@ -739,12 +736,6 @@ try:
 		touch_persistent_list(persistent_list)
 	
 	if operation == 'touch':
-		sys.exit()
-
-	if operation == 'pb-search':
-		slackver = get_version_from_mirror(get_mirror())
-		for name in sys.argv[2:]:
-			query_package_browser(slackver, name, local_list)
 		sys.exit()
 
 	if operation == 'upgrade' or operation == 'download-upgrades' or operation == 'show-upgrade-urls':
