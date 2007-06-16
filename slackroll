@@ -518,22 +518,31 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 		if name in persistent_list:
 			# Update their state if needed
 			state = persistent_list[name]
-			if state == slackroll_state_new or state == slackroll_state_notinstalled:
+			if state in [slackroll_state_new, slackroll_state_notinstalled]:
 				if name in remote_list:
-					persistent_list[name] = slackroll_state_installed
+					if local_list[name] in not_pasture(remote_list[name]):
+						persistent_list[name] = slackroll_state_installed
+					else:
+						persistent_list[name] = slackroll_state_outdated
 				else:
 					persistent_list[name] = slackroll_state_unavailable
-			elif state == slackroll_state_unavailable or state == slackroll_state_foreign:
+			elif state in [slackroll_state_unavailable, slackroll_state_foreign]:
 				if name in remote_list:
-					persistent_list[name] = slackroll_state_installed
-			elif state == slackroll_state_installed or state == slackroll_state_frozen:
+					if local_list[name] in not_pasture(remote_list[name]):
+						persistent_list[name] = slackroll_state_installed
+					else:
+						persistent_list[name] = slackroll_state_outdated
+			elif state in [slackroll_state_installed, slackroll_state_outdated, slackroll_state_frozen]:
 				if name not in remote_list:
 					persistent_list[name] = slackroll_state_unavailable
 				
 		else:
 			# Introduce them in the persistent list
 			if name in remote_list:
-				persistent_list[name] = slackroll_state_installed
+				if local_list[name] in not_pasture(remote_list[name]):
+					persistent_list[name] = slackroll_state_installed
+				else:
+					persistent_list[name] = slackroll_state_outdated
 			else:
 				persistent_list[name] = slackroll_state_unavailable
 		persistent_list.sync()
@@ -546,9 +555,9 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 		if name in persistent_list:
 			# Update their state if needed
 			state = persistent_list[name]
-			if state == slackroll_state_unavailable:
+			if state in [slackroll_state_unavailable]:
 				persistent_list[name] = slackroll_state_new
-			elif state == slackroll_state_installed or state == slackroll_state_foreign or state == slackroll_state_frozen:
+			elif state in [slackroll_state_installed, slackroll_state_outdated, slackroll_state_foreign, slackroll_state_frozen]:
 				persistent_list[name] = slackroll_state_notinstalled
 		else:
 			# Introduce them as new
