@@ -757,19 +757,18 @@ try:
 		mirror = get_mirror()
 		chosen_pkgs = []
 		for name in local_list:
-			if persistent_list[name] == slackroll_state_installed:
+			if persistent_list[name] == slackroll_state_outdated:
 				candidates = not_pasture(remote_list[name])
 				if len(candidates) == 0:
 					print 'Warning: %s only present in /pasture/' % name
 					continue
-				if local_list[name] not in candidates:
-					if len(candidates) == 1:
-						chosen_pkgs.append(candidates[0])
-					else:
-						print 'Local version: %s' % local_list[name].shortname()
-						chosen = choose_pkg(candidates)
-						if chosen >= 0:
-							chosen_pkgs.append(candidates[chosen])
+				if len(candidates) == 1:
+					chosen_pkgs.append(candidates[0])
+				else:
+					print 'Local version: %s' % local_list[name].shortname()
+					chosen = choose_pkg(candidates)
+					if chosen >= 0:
+						chosen_pkgs.append(candidates[chosen])
 		
 		print 'Total size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
 		if operation == 'upgrade':
