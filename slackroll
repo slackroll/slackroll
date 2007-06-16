@@ -516,29 +516,29 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 			state = persistent_list[name]
 			if state in [slackroll_state_new, slackroll_state_notinstalled]:
 				if name in remote_list:
-					if local_list[name] in not_pasture(remote_list[name]):
-						persistent_list[name] = slackroll_state_installed
-					else:
-						persistent_list[name] = slackroll_state_outdated
+					up_to_date = local_list[name] in not_pasture(remote_list[name])
+					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][up_to_date]
 				else:
 					persistent_list[name] = slackroll_state_unavailable
 			elif state in [slackroll_state_unavailable, slackroll_state_foreign]:
 				if name in remote_list:
-					if local_list[name] in not_pasture(remote_list[name]):
-						persistent_list[name] = slackroll_state_installed
-					else:
-						persistent_list[name] = slackroll_state_outdated
-			elif state in [slackroll_state_installed, slackroll_state_outdated, slackroll_state_frozen]:
+					up_to_date = local_list[name] in not_pasture(remote_list[name])
+					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][up_to_date]
+			elif state in [slackroll_state_frozen]:
 				if name not in remote_list:
 					persistent_list[name] = slackroll_state_unavailable
+			elif state in [slackroll_state_installed, slackroll_state_outdated]:
+				if name not in remote_list:
+					persistent_list[name] = slackroll_state_unavailable
+				else:
+					up_to_date = local_list[name] in not_pasture(remote_list[name])
+					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][up_to_date]
 				
 		else:
 			# Introduce them in the persistent list
 			if name in remote_list:
-				if local_list[name] in not_pasture(remote_list[name]):
-					persistent_list[name] = slackroll_state_installed
-				else:
-					persistent_list[name] = slackroll_state_outdated
+				up_to_date = local_list[name] in not_pasture(remote_list[name])
+				persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][up_to_date]
 			else:
 				persistent_list[name] = slackroll_state_unavailable
 		persistent_list.sync()
