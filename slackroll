@@ -592,6 +592,7 @@ def print_help():
   list-not-installed	List not installed packages
   list-frozen		List frozen packages
   list-foreign		List foreign packages
+  list-outdated		List outdated packages
   list-local		List all local packages (present in system)
   list-remote		List all remote packages (present in remote tree)
   list-all		List every known package
@@ -640,6 +641,7 @@ try:
 		'list-not-installed',
 		'list-frozen',
 		'list-foreign',
+		'list-outdated',
 		'list-local',
 		'list-remote',
 		'list-all',
@@ -680,6 +682,7 @@ try:
 		'list-not-installed',
 		'list-frozen',
 		'list-foreign',
+		'list-outdated',
 		'list-local',
 		'list-remote',
 		'list-all',
@@ -872,6 +875,9 @@ try:
 
 	if operation == 'list-foreign':
 		print_in_states([slackroll_state_foreign], persistent_list, 'Foreign packages:')
+	
+	if operation == 'list-outdated':
+		print_in_states([slackroll_state_outdated], persistent_list, 'Outdated packages:')
 	
 	if operation == 'list-local':
 		print_keys(local_list, 'Local packages:')
