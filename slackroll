@@ -712,6 +712,8 @@ try:
 
 	if operation == 'pb-search':
 		slackver = get_version_from_mirror(get_mirror())
+		(scheme, netloc, path, parameters, query, fragment) = urlparse.urlparse(slackroll_pb_template_url)
+		print 'Using the Slackware Package Browser at %s://%s' % (scheme, netloc)
 		for name in sys.argv[2:]:
 			query_package_browser(slackver, name)
 		sys.exit()
