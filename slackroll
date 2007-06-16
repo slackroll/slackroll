@@ -815,19 +815,18 @@ try:
 		print 'Available upgrades:'
 		glibc_affected = False
 		for name in local_list:
-			if persistent_list[name] == slackroll_state_installed:
+			if persistent_list[name] == slackroll_state_outdated:
 				candidates = not_pasture(remote_list[name])
 				if len(candidates) == 0:
 					print '    %s: Warning: only present in /pasture/\n' % name
 					continue
-				if local_list[name] not in candidates:
-					if slackroll_glibc_indicator in name:
-						glibc_affected = True
-					print '    %s:' % name
-					print '\tLocal:\t%s' % local_list[name].shortname()
-					for other in candidates:
-						print '\tRemote:\t%s' % other.fullname()
-					print
+				if slackroll_glibc_indicator in name:
+					glibc_affected = True
+				print '    %s:' % name
+				print '\tLocal:\t%s' % local_list[name].shortname()
+				for other in candidates:
+					print '\tRemote:\t%s' % other.fullname()
+				print
 		print 'End of list.'
 		if glibc_affected:
 			print_glibc_warning()
