@@ -463,7 +463,7 @@ def print_keys(dictionary, header): # Print every package name in list
 	print 'End of list.'
 	sys.exit()
 
-def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): # Changes state if it matches
+def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names, exit_flag=True): # Changes state if it matches
 	dest_st_name = slackroll_state_strings[dest_state]
 	print 'Marking packages as %s...' % dest_st_name
 	for name in pkg_names:
@@ -477,7 +477,8 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 			continue
 		persistent_list[name] = dest_state
 		persistent_list.sync()
-	sys.exit()
+	if exit_flag:
+		sys.exit()
 
 def query_package_browser(version, name): # Query package browser on given file with given slackware version
 	searchstr = '"%s"' % name
@@ -503,13 +504,8 @@ def query_package_browser(version, name): # Query package browser on given file 
 	if not has_results:
 		print '    (No results)\n'
 
-def touch_persistent_list(persistent_list): # Force an update in the modification time
-	persistent_list[''] = True
-	persistent_list.sync()
-	del persistent_list['']
-	persistent_list.sync()
-
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
+	print 'Updating persistent database...'
 	already_analyzed = dict()
 
 	# Go over packages present in local system and update their state or introduce them
@@ -570,6 +566,12 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 			continue
 		del persistent_list[name]
 		persistent_list.sync()
+	
+	# Always touch persistent list to force update in modification time
+	persistent_list[''] = True
+	persistent_list.sync()
+	del persistent_list['']
+	persistent_list.sync()
 
 def print_help():
 	print """Available commands:
@@ -746,9 +748,7 @@ try:
 		sys.exit('Error: unable to properly open %s' % slackroll_persistentlist_filename)
 
 	if needs_update:
-		print 'Updating persistent database...'
 		analyze_changes(local_list, remote_list, persistent_list)
-		touch_persistent_list(persistent_list)
 	
 	if operation == 'touch':
 		sys.exit()
@@ -887,7 +887,8 @@ try:
 				[x for x in persistent_list.iterkeys() if persistent_list[x] == slackroll_state_unavailable])
 
 	if operation == 'frozen':
-		from_states_to_state([slackroll_state_frozen, slackroll_state_installed], slackroll_state_frozen, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_frozen, slackroll_state_installed, slackroll_state_outdated],
+				slackroll_state_frozen, persistent_list, sys.argv[2:])
 
 	if operation == 'foreign':
 		from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_foreign, persistent_list, sys.argv[2:])
@@ -902,7 +903,10 @@ try:
 		from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_new, persistent_list, sys.argv[2:])
 
 	if operation == 'installed':
-		from_states_to_state([slackroll_state_installed, slackroll_state_frozen], slackroll_state_installed, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_installed, slackroll_state_frozen],
+				slackroll_state_installed, persistent_list, sys.argv[2:], exit_flag=False)
+		analyze_changes(local_list, remote_list, persistent_list) # Forced because it may need to be marked as outdated
+		sys.exit()
 
 	if operation == 'list-versions':
 		print 'Available versions:'
