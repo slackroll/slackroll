@@ -800,21 +800,13 @@ try:
 	
 	if operation == 'list-transient':
 		print 'Transient packages:'
-		transient = []
 		glibc_affected = False
 		for name in persistent_list.iterkeys():
-			is_transient = False
 			state = persistent_list[name]
-			if state == slackroll_state_new or state == slackroll_state_unavailable:
-				is_transient = True
-				transient.append((name, slackroll_state_strings[state]))
-			elif state == slackroll_state_installed and local_list[name] not in not_pasture(remote_list[name]):
-				is_transient = True
-				transient.append((name, 'outdated'))
-			if is_transient and slackroll_glibc_indicator in name:
-				glibc_affected = True
-		for (name, reason) in transient:
-			print '    %s (%s)' % (name, reason)
+			if state in [slackroll_state_new, slackroll_state_unavailable, slackroll_state_outdated]:
+				if slackroll_glibc_indicator in name:
+					glibc_affected = True
+				print '    %s (%s)' % (name, slackroll_state_strings[state])
 		print 'End of list.'
 		if glibc_affected:
 			print_glibc_warning()
