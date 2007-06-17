@@ -38,6 +38,7 @@ slackroll_testing_indicator = '/testing/'
 slackroll_extra_indicator = '/extra/'
 slackroll_glibc_indicator = 'glibc'
 
+slackroll_self_filename = 'self'
 slackroll_mirror_filename = 'mirror'
 slackroll_persistentlist_filename = 'persistent.db'
 slackroll_locallist_filename = 'local.db'
@@ -121,6 +122,19 @@ def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 
 def kibi(bytes):
 	return (bytes / 1024)
+
+def get_self_file_version():
+	try:
+		data = file(slackroll_self_filename, 'r').read()
+		return long(data)
+	except (OSError, IOError, ValueError):
+		sys.exit('Error: unable to read version from file %s' % slackroll_self_filename)
+
+def write_self_file_version():
+	try:
+		file(slackroll_self_filename, 'w').write('%s\n' % slackroll_version)
+	except (OSError, IOError):
+		sys.exit('Error: unable to write version to file %s' % slackroll_self_filename)
 
 def print_glibc_warning():
 	print '\n!!! WATCH OUT: ACTIVITY IN GLIBC PACKAGES !!!\n'
@@ -740,7 +754,8 @@ try:
 	remote_list = get_remote_list()
 
 	needs_update = (not newer_than(slackroll_persistentlist_filename, slackroll_remotelist_filename) or
-			not newer_than(slackroll_persistentlist_filename, slackroll_locallist_filename) or operation == 'touch')
+			not newer_than(slackroll_persistentlist_filename, slackroll_locallist_filename) or operation == 'touch'
+			or not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
 
 	try:
 		persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
@@ -749,7 +764,9 @@ try:
 
 	if needs_update:
 		analyze_changes(local_list, remote_list, persistent_list)
-	
+
+	write_self_file_version()
+
 	if operation == 'touch':
 		sys.exit()
 
