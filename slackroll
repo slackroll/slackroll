@@ -455,8 +455,7 @@ def print_urls(mirror, package):
 def choose_pkg(pkg_list): # Prompt user and return the package index or -1
 	print 'Choose package:'
 	print '    [0] None'
-	for x in xrange(len(pkg_list)):
-		print '    [%s] %s' % (x+1, pkg_list[x].fullname())
+	print '\n'.join(['    [%s] %s' % (x+1, pkg_list[x].fullname()) for x in xrange(len(pkg_list))])
 	while True:
 		try:
 			num = long(raw_input('You choose number... '))
@@ -486,8 +485,7 @@ def print_in_states(states, persistent_list, header): # Print package name if it
 	print header
 	keys = [x for x in persistent_list if persistent_list[x] in states]
 	keys.sort(cmp=pkg_cmp)
-	for name in keys:
-		print '    %s' % name
+	print '\n'.join(['    %s' % x for x in keys])
 	print 'End of list.'
 	sys.exit()
 
@@ -495,8 +493,7 @@ def print_keys(dictionary, header): # Print every package name in list
 	print header
 	keys = dictionary.keys()
 	keys.sort(cmp=pkg_cmp)
-	for key in keys:
-		print '    %s' % key
+	print '\n'.join(['    %s' % x for x in keys])
 	print 'End of list.'
 	sys.exit()
 
