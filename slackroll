@@ -37,6 +37,7 @@ slackroll_patch_indicator = '/patches/'
 slackroll_testing_indicator = '/testing/'
 slackroll_extra_indicator = '/extra/'
 slackroll_glibc_indicator = 'glibc'
+slackroll_prioritized_packages = ['glibc-solibs', 'glibc-zoneinfo', 'glibc', 'glibc-profile', 'glibc-i18n']
 
 slackroll_self_filename = 'self'
 slackroll_mirror_filename = 'mirror'
@@ -119,6 +120,25 @@ def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 	arch = matchobj.group(slackroll_pkg_re_arch_group)
 	build = matchobj.group(slackroll_pkg_re_build_group)
 	return SlackwarePackage(name, version, arch, build, path)
+
+def index_of(thelist, elem):
+	try:
+		return thelist.index(elem)
+	except ValueError:
+		return -1
+
+def pkg_cmp(name1, name2):
+	idx1 = index_of(slackroll_prioritized_packages, name1)
+	idx2 = index_of(slackroll_prioritized_packages, name2)
+
+	if idx1 == -1 and idx2 == -1:
+		return cmp(name1, name2)
+	if idx1 != -1 and idx2 != -1:
+		return (idx1 - idx2)
+	if idx1 == -1:
+		return 1
+	if idx2 == -1:
+		return -1
 
 def kibi(bytes):
 	return (bytes / 1024)
@@ -465,7 +485,7 @@ def not_main(pkg_list): # Returns packages not in the main tree
 def print_in_states(states, persistent_list, header): # Print package name if its state matches
 	print header
 	keys = [x for x in persistent_list if persistent_list[x] in states]
-	keys.sort()
+	keys.sort(cmp=pkg_cmp)
 	for name in keys:
 		print '    %s' % name
 	print 'End of list.'
@@ -474,7 +494,7 @@ def print_in_states(states, persistent_list, header): # Print package name if it
 def print_keys(dictionary, header): # Print every package name in list
 	print header
 	keys = dictionary.keys()
-	keys.sort()
+	keys.sort(cmp=pkg_cmp)
 	for key in keys:
 		print '    %s' % key
 	print 'End of list.'
@@ -771,7 +791,7 @@ try:
 	if operation == 'upgrade' or operation == 'download-upgrades' or operation == 'show-upgrade-urls':
 		mirror = get_mirror()
 		names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
-		names.sort()
+		names.sort(cmp=pkg_cmp)
 		chosen_pkgs = []
 		for name in names:
 			candidates = not_pasture(remote_list[name])
@@ -820,14 +840,14 @@ try:
 		else:
 			print 'Outdated packages:'
 			valid_states = [slackroll_state_outdated]
-		name_states = [(x, persistent_list[x]) for x in persistent_list if persistent_list[x] in valid_states]
-		name_states.sort()
+		names = [x for x in persistent_list if persistent_list[x] in valid_states]
+		names.sort(cmp=pkg_cmp)
 		glibc_affected = False
-		for (name, state) in name_states:
+		for name in names:
 			if slackroll_glibc_indicator in name:
 				glibc_affected = True
 			if operation == 'list-transient':
-				print '    %s (%s)' % (name, slackroll_state_strings[state])
+				print '    %s (%s)' % (name, slackroll_state_strings[persistent_list[name]])
 			else:
 				print '    %s' % name
 		print 'End of list.'
@@ -838,7 +858,7 @@ try:
 	if operation == 'list-upgrades':
 		print 'Available upgrades:'
 		names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
-		names.sort()
+		names.sort(cmp=pkg_cmp)
 		glibc_affected = False
 		for name in names:
 			candidates = not_pasture(remote_list[name])
@@ -859,8 +879,8 @@ try:
 
 	if operation == 'list-alternatives':
 		print 'Packages with alternatives:'
-		names = [x for x in persistent_list]
-		names.sort()
+		names = persistent_list.keys()
+		names.sort(cmp=pkg_cmp)
 		for name in names:
 			versions = []
 			if name in remote_list:
@@ -1025,7 +1045,7 @@ try:
 				sys.exit('Error: invalid regular expression: %s' % retxt)
 			print '    %s:' % retxt
 			names = [x for x in persistent_list if regexp.search(x) is not None]
-			names.sort()
+			names.sort(cmp=pkg_cmp)
 			for name in names:
 				results = True
 				print '\t%s (%s)' % (name, slackroll_state_strings[persistent_list[name]])
