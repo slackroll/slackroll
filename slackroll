@@ -583,12 +583,6 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 			continue
 		del persistent_list[name]
 		persistent_list.sync()
-	
-	# Always touch persistent list to force update in modification time
-	persistent_list[''] = True
-	persistent_list.sync()
-	del persistent_list['']
-	persistent_list.sync()
 
 def print_help():
 	print """Available commands:
@@ -767,6 +761,7 @@ try:
 
 	if needs_update:
 		analyze_changes(local_list, remote_list, persistent_list)
+		os.utime(slackroll_persistentlist_filename, None)
 
 	write_self_file_version()
 
@@ -935,6 +930,7 @@ try:
 		from_states_to_state([slackroll_state_installed, slackroll_state_frozen],
 				slackroll_state_installed, persistent_list, sys.argv[2:], exit_flag=False)
 		analyze_changes(local_list, remote_list, persistent_list) # Forced because it may need to be marked as outdated
+		os.utime(slackroll_persistentlist_filename, None)
 		sys.exit()
 
 	if operation == 'list-versions':
