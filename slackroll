@@ -602,6 +602,7 @@ def print_help():
   list-transient	Combined list of new, unavailable and outdated packages
   list-upgrades		List available upgrades
   list-alternatives	List packages with alternative versions
+  list-versions PKG...	List all known versions of given packages
   list-new		List new packages
   list-unavailable	List unavailable packages
   list-installed	List installed packages
@@ -614,13 +615,12 @@ def print_help():
   list-all		List every known package
   new-not-installed	Mark all new packages as not installed
   unavailable-foreign	Mark all unavailable packages as foreign
+  new PKG...		Mark packages as new
+  unavailable PKG...	Mark packages as unavailable
+  installed PKG...	Mark packages as installed
+  not-installed PKG...	Mark packages as not installed
   frozen PKG...		Mark packages as frozen
   foreign PKG...	Mark packages as foreign
-  not-installed PKG...	Mark packages as not installed
-  unavailable PKG...	Mark packages as unavailable
-  new PKG...		Mark packages as new
-  installed PKG...	Mark packages as installed
-  list-versions PKG...	List all known versions of given packages
   install PKG...	Install packages or specific package versions
   reinstall PKG...	Same as 'install' but reinstalls if needed
   download PKG...	Download packages or specific package versions
@@ -639,71 +639,71 @@ try:
 	persistent_list = None
 
 	all_ops = [
-		'help',
-		'version',
-		'update',
-		'import-key',
-		'upgrade',
-		'download-upgrades',
-		'show-upgrade-urls',
 		'clean-cache',
-		'touch',
-		'list-transient',
-		'list-upgrades',
-		'list-alternatives',
-		'list-new',
-		'list-unavailable',
-		'list-installed',
-		'list-not-installed',
-		'list-frozen',
-		'list-foreign',
-		'list-outdated',
-		'list-local',
-		'list-remote',
-		'list-all',
-		'new-not-installed',
-		'unavailable-foreign',
-		'frozen',
-		'foreign',
-		'not-installed',
-		'unavailable',
-		'new',
-		'installed',
-		'list-versions',
-		'install',
-		'reinstall',
 		'download',
+		'download-upgrades',
+		'foreign',
+		'frozen',
+		'help',
+		'import-key',
 		'info',
-		'urls',
-		'pb-search',
+		'install',
+		'installed',
+		'list-all',
+		'list-alternatives',
+		'list-foreign',
+		'list-frozen',
+		'list-installed',
+		'list-local',
+		'list-new',
+		'list-not-installed',
+		'list-outdated',
+		'list-remote',
+		'list-transient',
+		'list-unavailable',
+		'list-upgrades',
+		'list-versions',
 		'name-search',
+		'new',
+		'new-not-installed',
+		'not-installed',
+		'pb-search',
+		'reinstall',
+		'show-upgrade-urls',
+		'touch',
+		'unavailable',
+		'unavailable-foreign',
+		'update',
+		'upgrade',
+		'urls',
+		'version',
 	]
 
 	no_args_ops = [
-		'help',
-		'version',
-		'update',
-		'import-key',
-		'upgrade',
-		'download-upgrades',
-		'show-upgrade-urls',
 		'clean-cache',
-		'touch',
-		'list-transient',
-		'list-upgrades',
-		'list-alternatives',
-		'list-new',
-		'list-unavailable',
-		'list-installed',
-		'list-not-installed',
-		'list-frozen',
-		'list-foreign',
-		'list-outdated',
-		'list-local',
-		'list-remote',
+		'download-upgrades',
+		'help',
+		'import-key',
 		'list-all',
+		'list-alternatives',
+		'list-foreign',
+		'list-frozen',
+		'list-installed',
+		'list-local',
+		'list-new',
+		'list-not-installed',
+		'list-outdated',
+		'list-remote',
+		'list-transient',
+		'list-unavailable',
+		'list-upgrades',
 		'new-not-installed',
+		'show-upgrade-urls',
+		'touch',
 		'unavailable-foreign',
+		'update',
+		'upgrade',
+		'version',
 	]
 
 	operation = sys.argv[1]
