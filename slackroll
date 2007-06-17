@@ -464,15 +464,18 @@ def not_main(pkg_list): # Returns packages not in the main tree
 
 def print_in_states(states, persistent_list, header): # Print package name if its state matches
 	print header
-	for name in persistent_list.iterkeys():
-		if persistent_list[name] in states:
-			print '    %s' % name
+	keys = [x for x in persistent_list if persistent_list[x] in states]
+	keys.sort()
+	for name in keys:
+		print '    %s' % name
 	print 'End of list.'
 	sys.exit()
 
 def print_keys(dictionary, header): # Print every package name in list
 	print header
-	for key in dictionary.iterkeys():
+	keys = dictionary.keys()
+	keys.sort()
+	for key in keys:
 		print '    %s' % key
 	print 'End of list.'
 	sys.exit()
@@ -772,20 +775,21 @@ try:
 
 	if operation == 'upgrade' or operation == 'download-upgrades' or operation == 'show-upgrade-urls':
 		mirror = get_mirror()
+		names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
+		names.sort()
 		chosen_pkgs = []
-		for name in local_list:
-			if persistent_list[name] == slackroll_state_outdated:
-				candidates = not_pasture(remote_list[name])
-				if len(candidates) == 0:
-					print 'Warning: %s only present in /pasture/' % name
-					continue
-				if len(candidates) == 1:
-					chosen_pkgs.append(candidates[0])
-				else:
-					print 'Local version: %s' % local_list[name].shortname()
-					chosen = choose_pkg(candidates)
-					if chosen >= 0:
-						chosen_pkgs.append(candidates[chosen])
+		for name in names:
+			candidates = not_pasture(remote_list[name])
+			if len(candidates) == 0:
+				print 'Warning: %s only present in /pasture/' % name
+				continue
+			if len(candidates) == 1:
+				chosen_pkgs.append(candidates[0])
+			else:
+				print 'Local version: %s' % local_list[name].shortname()
+				chosen = choose_pkg(candidates)
+				if chosen >= 0:
+					chosen_pkgs.append(candidates[chosen])
 		
 		print 'Total size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
 		if operation == 'upgrade':
@@ -821,16 +825,16 @@ try:
 		else:
 			print 'Outdated packages:'
 			valid_states = [slackroll_state_outdated]
+		name_states = [(x, persistent_list[x]) for x in persistent_list if persistent_list[x] in valid_states]
+		name_states.sort()
 		glibc_affected = False
-		for name in persistent_list.iterkeys():
-			state = persistent_list[name]
-			if state in valid_states:
-				if slackroll_glibc_indicator in name:
-					glibc_affected = True
-				if operation == 'list-transient':
-					print '    %s (%s)' % (name, slackroll_state_strings[state])
-				else:
-					print '    %s' % name
+		for (name, state) in name_states:
+			if slackroll_glibc_indicator in name:
+				glibc_affected = True
+			if operation == 'list-transient':
+				print '    %s (%s)' % (name, slackroll_state_strings[state])
+			else:
+				print '    %s' % name
 		print 'End of list.'
 		if glibc_affected:
 			print_glibc_warning()
@@ -838,20 +842,21 @@ try:
 
 	if operation == 'list-upgrades':
 		print 'Available upgrades:'
+		names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
+		names.sort()
 		glibc_affected = False
-		for name in local_list:
-			if persistent_list[name] == slackroll_state_outdated:
-				candidates = not_pasture(remote_list[name])
-				if len(candidates) == 0:
-					print '    %s: Warning: only present in /pasture/\n' % name
-					continue
-				if slackroll_glibc_indicator in name:
-					glibc_affected = True
-				print '    %s:' % name
-				print '\tLocal:\t%s' % local_list[name].shortname()
-				for other in candidates:
-					print '\tRemote:\t%s' % other.fullname()
-				print
+		for name in names:
+			candidates = not_pasture(remote_list[name])
+			if len(candidates) == 0:
+				print '    %s: Warning: only present in /pasture/\n' % name
+				continue
+			if slackroll_glibc_indicator in name:
+				glibc_affected = True
+			print '    %s:' % name
+			print '\tLocal:\t%s' % local_list[name].shortname()
+			for other in candidates:
+				print '\tRemote:\t%s' % other.fullname()
+			print
 		print 'End of list.'
 		if glibc_affected:
 			print_glibc_warning()
@@ -859,7 +864,9 @@ try:
 
 	if operation == 'list-alternatives':
 		print 'Packages with alternatives:'
-		for name in persistent_list.iterkeys():
+		names = [x for x in persistent_list]
+		names.sort()
+		for name in names:
 			versions = []
 			if name in remote_list:
 				versions.extend(remote_list[name])
@@ -1021,10 +1028,11 @@ try:
 			except re.error:
 				sys.exit('Error: invalid regular expression: %s' % retxt)
 			print '    %s:' % retxt
-			for name in persistent_list.iterkeys():
-				if regexp.search(name) is not None:
-					results = True
-					print '\t%s (%s)' % (name, slackroll_state_strings[persistent_list[name]])
+			names = [x for x in persistent_list if regexp.search(x) is not None]
+			names.sort()
+			for name in names:
+				results = True
+				print '\t%s (%s)' % (name, slackroll_state_strings[persistent_list[name]])
 			if not results:
 				print '\t(No results)'
 			print
