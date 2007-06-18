@@ -469,6 +469,12 @@ def choose_pkg(pkg_list): # Prompt user and return the package index or -1
 			continue
 	return (num - 1)
 
+def confirm_continue():
+	try:
+		raw_input('Press Ctrl+C to cancel or Enter to continue... ')
+	except EOFError:
+		pass
+
 def not_pasture(pkg_list): # Returns packages not in pasture
 	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path()]
 
@@ -969,6 +975,11 @@ try:
 		sys.exit()
 
 	if operation == 'install' or operation == 'reinstall' or operation == 'download' or operation == 'info' or operation == 'urls':
+		if ((operation == 'install' or operation == 'reinstall') and
+		    len([x for x in persistent_list if persistent_list[x] == slackroll_state_outdated and slackroll_glibc_indicator in x]) > 0):
+			print 'Warning: it seems there are glibc upgrades pending'
+			confirm_continue()
+
 		mirror = get_mirror()
 		chosen_pkgs = []
 		for arg in sys.argv[2:]:
