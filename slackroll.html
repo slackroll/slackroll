@@ -117,8 +117,8 @@
 		common state, as you can suppose.</dd>
 
 		<dt>OUTDATED</dt> <dd>A package is outdated if it meets
-		the same conditions as for the installed state, but the
-		version of your copy doesn't exist in the remote tree.</dd>
+		the same conditions as for the installed state, but your
+		version doesn't exist in the remote tree.</dd>
 
 		<dt>NOT INSTALLED</dt> <dd>A package is not
 		installed if it's a known package which is not present
@@ -266,8 +266,8 @@
 
 		<h2>Normal operation</h2>
 
-		<p>You can run <code>slackroll help</code> to get a list of
-		commands and a brief description of each one. This program
+		<p>You can run <code>slackroll help</code> to get a full list
+		of commands and a brief description of each one. This program
 		is not a perfect tool. I think it can handle almost every
 		situation and be told to do exactly what you want, but
 		reading the change log and subscribing to the
@@ -283,7 +283,7 @@
 		the one with highest priority being <em>glibc-solibs</em>.
 		They should always be the first ones to be installed,
 		even before new packages. You can use the <em>install</em>
-		slackroll command to manually upgrade them first. Either
+		command to manually upgrade them first, either
 		by giving the package name only, which should work in
 		most cases, or a specific package version. Some commands,
 		like <em>install</em>, accept specific package versions
@@ -326,7 +326,8 @@
 		there's no easy way to decide which version should be
 		installed if a package has a version in the main tree,
 		another one in <em>/extra/</em> and another one
-		in <em>/testing/</em>, so it's always going to ask.</p>
+		in <em>/testing/</em>, so it's always going to need
+		user input.</p>
 
 		<p>If you have any questions or suggestions, my contact
 		information can be found at
