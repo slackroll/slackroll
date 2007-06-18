@@ -30,6 +30,7 @@ slackroll_packages_dir_glob = './packages/*'
 slackroll_packages_dir = os.path.dirname(slackroll_packages_dir_glob)
 slackroll_local_pkgs_glob = '/var/log/packages/*'
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
+slackroll_local_pkg_filelist_marker = 'FILE LIST:\n'
 slackroll_filelist_pkg_re = re.compile(r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\./.+/[^/]+-[^/-]+-[^/-]+-[^/-]+\.tgz)$')
 slackroll_source_indicator = '/source/'
 slackroll_pasture_indicator = '/pasture/'
@@ -649,6 +650,8 @@ def print_help():
   info PKG...		Show info about packages or specific package versions
   urls PKG...		Show package or specific package version URLs
   pb-search FILE...	Search for files in the Slackware Package Browser
+  remote-search FILE...	Alias for 'pb-search'
+  local-search REGEX...	Search for files in local system packages
   name-search REGEX...	Search for package names matching regular expressions
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
@@ -685,12 +688,14 @@ try:
 		'list-unavailable',
 		'list-upgrades',
 		'list-versions',
+		'local-search',
 		'name-search',
 		'new',
 		'new-not-installed',
 		'not-installed',
 		'pb-search',
 		'reinstall',
+		'remote-search',
 		'show-upgrade-urls',
 		'touch',
 		'unavailable',
@@ -761,7 +766,7 @@ try:
 		try_to_remove(slackroll_gpgkey_filename)
 		sys.exit()
 
-	if operation == 'pb-search':
+	if operation == 'pb-search' or operation == 'remote-search':
 		slackver = get_version_from_mirror(get_mirror())
 		(scheme, netloc, path, parameters, query, fragment) = urlparse.urlparse(slackroll_pb_template_url)
 		print 'Using the Slackware Package Browser at %s://%s' % (scheme, netloc)
@@ -1063,6 +1068,36 @@ try:
 				print '\t(No results)'
 			print
 		sys.exit()
+	
+	if operation == 'local-search':
+		filenames = glob.glob(slackroll_local_pkgs_glob)
+		for retxt in sys.argv[2:]:
+			results = False
+			try:
+				regexp = re.compile(retxt)
+			except re.error:
+				sys.exit('Error: invalid regular expression: %s' % retxt)
+			print 'Searching for "%s":' % retxt
+			for filename in filenames:
+				lines = file(filename, 'r').readlines()
+				try:
+					paths = lines[lines.index('FILE LIST:\n') + 1:]
+				except ValueError:
+					continue
+				name_printed = False
+				for path in paths:
+					if regexp.search(path) is not None:
+						if not name_printed:
+							print '    %s' % os.path.basename(filename)
+							name_printed = True
+						print '\t/%s' % path,
+						results = True
+				if name_printed:
+					print
+			if not results:
+				print '    (No results)\n'
+		sys.exit()
+
 
 except (KeyboardInterrupt, IOError), error:
 	if isinstance(error, KeyboardInterrupt):
