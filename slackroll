@@ -26,8 +26,8 @@ slackroll_pkg_re_version_group = 3
 slackroll_pkg_re_arch_group = 4
 slackroll_pkg_re_build_group = 5
 
-slackroll_packages_dir = './packages'
-slackroll_packages_dir_glob = os.path.join(slackroll_packages_dir, '*.tgz')
+slackroll_packages_dir_glob = './packages/*'
+slackroll_packages_dir = os.path.dirname(slackroll_packages_dir_glob)
 slackroll_local_pkgs_glob = '/var/log/packages/*'
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 slackroll_filelist_pkg_re = re.compile(r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\./.+/[^/]+-[^/-]+-[^/-]+-[^/-]+\.tgz)$')
@@ -823,7 +823,7 @@ try:
 			try:
 				cache_pkgs.append(pkg_from_str(elem))
 			except SlackRollError:
-				continue
+				print 'Warning: extraneous file %s' % elem
 		for pkg in cache_pkgs:
 			name = pkg.name()
 			if (name in local_list and local_list[name] == pkg) or (name in remote_list and pkg in remote_list[name]):
