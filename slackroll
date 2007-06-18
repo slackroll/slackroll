@@ -613,7 +613,7 @@ def print_help():
   upgrade		Upgrade system packages
   download-upgrades	Like 'upgrade' but without installing
   show-upgrade-urls	Like 'upgrade' but only printing URLs
-  clean-cache		Remove unknown packages from cache
+  clean-cache		Remove unknown package versions from packages cache
   touch			Force update on persistent database
   list-transient	Combined list of new, unavailable and outdated packages
   list-upgrades		List available upgrades
