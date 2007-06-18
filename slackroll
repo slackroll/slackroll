@@ -651,7 +651,7 @@ def print_help():
   urls PKG...		Show package or specific package version URLs
   pb-search FILE...	Search for files in the Slackware Package Browser
   remote-search FILE...	Alias for 'pb-search'
-  local-search REGEX...	Search for files in local system packages
+  local-search REGEX...	Search for files in local packages
   name-search REGEX...	Search for package names matching regular expressions
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
