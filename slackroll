@@ -1018,14 +1018,18 @@ try:
 		sys.exit()
 
 	if operation == 'install' or operation == 'reinstall' or operation == 'download' or operation == 'info' or operation == 'urls':
-		if ((operation == 'install' or operation == 'reinstall') and
-		    len([x for x in persistent_list if persistent_list[x] == slackroll_state_outdated and slackroll_glibc_indicator in x]) > 0):
-			print 'Warning: it seems there are glibc upgrades pending'
+		args = sys.argv[2:]
+
+		if ((operation == 'install' or operation == 'reinstall')
+		    and len([x for x in args if slackroll_glibc_indicator in x]) == 0
+		    and len([x for x in persistent_list if persistent_list[x] in [slackroll_state_new, slackroll_state_outdated]
+			    				   and slackroll_glibc_indicator in x]) > 0):
+			print 'Warning: it seems there is activity in glibc packages'
 			confirm_continue()
 
 		mirror = get_mirror()
 		chosen_pkgs = []
-		for arg in sys.argv[2:]:
+		for arg in args:
 			# Decide the type of argument
 			try:
 				pkg = pkg_from_str(arg)
