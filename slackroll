@@ -775,7 +775,7 @@ try:
 		sys.exit()
 
 	if operation == 'local-search':
-		print 'Reading contents of %s ...' % slackroll_local_pkgs_glob
+		print 'Reading contents of %s ...' % slackroll_local_pkgs_dir
 		try:
 			filenames = glob.glob(slackroll_local_pkgs_glob)
 		except (OSError, IOError):
