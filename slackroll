@@ -1081,7 +1081,7 @@ try:
 			for filename in filenames:
 				lines = file(filename, 'r').readlines()
 				try:
-					paths = lines[lines.index('FILE LIST:\n') + 1:]
+					paths = [x.strip() for x in lines[lines.index('FILE LIST:\n') + 1:]]
 				except ValueError:
 					continue
 				name_printed = False
@@ -1090,7 +1090,7 @@ try:
 						if not name_printed:
 							print '    %s' % os.path.basename(filename)
 							name_printed = True
-						print '\t/%s' % path,
+						print '\t/%s' % path
 						results = True
 				if name_printed:
 					print
