@@ -774,6 +774,44 @@ try:
 			query_package_browser(slackver, name)
 		sys.exit()
 
+	if operation == 'local-search':
+		try:
+			filenames = glob.glob(slackroll_local_pkgs_glob)
+		except (OSError, IOError):
+			sys.exit('Error: unable to get local package list')
+		filenames.sort()
+		contents = dict()
+		for filename in filenames:
+			try:
+				lines = file(filename, 'r').readlines()
+				paths = [x.strip() for x in lines[lines.index('FILE LIST:\n') + 1:]]
+				contents[filename] = paths
+			except ValueError:
+				continue
+			except (OSError, IOError):
+				sys.exit('Error: unable to read contents from %s' % filename)
+		for retxt in sys.argv[2:]:
+			results = False
+			try:
+				regexp = re.compile(retxt)
+			except re.error:
+				sys.exit('Error: invalid regular expression: %s' % retxt)
+			print 'Searching for "%s":' % retxt
+			for filename in filenames:
+				name_printed = False
+				for path in contents[filename]:
+					if regexp.search(path) is not None:
+						if not name_printed:
+							print '    %s' % os.path.basename(filename)
+							name_printed = True
+						print '\t/%s' % path
+						results = True
+				if name_printed:
+					print
+			if not results:
+				print '    (No results)\n'
+		sys.exit()
+
 	# Every operation below needs an updated persistent database
 	handle_writable_dir(slackroll_packages_dir)
 	print 'Initializing package lists...'
@@ -1069,36 +1107,6 @@ try:
 			print
 		sys.exit()
 	
-	if operation == 'local-search':
-		filenames = glob.glob(slackroll_local_pkgs_glob)
-		for retxt in sys.argv[2:]:
-			results = False
-			try:
-				regexp = re.compile(retxt)
-			except re.error:
-				sys.exit('Error: invalid regular expression: %s' % retxt)
-			print 'Searching for "%s":' % retxt
-			for filename in filenames:
-				lines = file(filename, 'r').readlines()
-				try:
-					paths = [x.strip() for x in lines[lines.index('FILE LIST:\n') + 1:]]
-				except ValueError:
-					continue
-				name_printed = False
-				for path in paths:
-					if regexp.search(path) is not None:
-						if not name_printed:
-							print '    %s' % os.path.basename(filename)
-							name_printed = True
-						print '\t/%s' % path
-						results = True
-				if name_printed:
-					print
-			if not results:
-				print '    (No results)\n'
-		sys.exit()
-
-
 except (KeyboardInterrupt, IOError), error:
 	if isinstance(error, KeyboardInterrupt):
 		print '\nProgram aborted by user'
