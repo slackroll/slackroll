@@ -766,7 +766,7 @@ try:
 		try_to_remove(slackroll_gpgkey_filename)
 		sys.exit()
 
-	if operation == 'pb-search' or operation == 'remote-search':
+	if operation in ['pb-search', 'remote-search']:
 		slackver = get_version_from_mirror(get_mirror())
 		(scheme, netloc, path, parameters, query, fragment) = urlparse.urlparse(slackroll_pb_template_url)
 		print 'Using the Slackware Package Browser at %s://%s' % (scheme, netloc)
@@ -836,7 +836,7 @@ try:
 	if operation == 'touch':
 		sys.exit()
 
-	if operation == 'upgrade' or operation == 'download-upgrades' or operation == 'show-upgrade-urls':
+	if operation in ['upgrade', 'download-upgrades', 'show-upgrade-urls']:
 		mirror = get_mirror()
 		names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
 		names.sort(cmp=pkg_cmp)
@@ -881,7 +881,7 @@ try:
 			try_to_remove(pkg.fullname())
 		sys.exit()
 	
-	if operation == 'list-transient' or operation == 'list-outdated':
+	if operation in ['list-transient', 'list-outdated']:
 		if operation == 'list-transient':
 			print 'Transient packages:'
 			valid_states = [slackroll_state_new, slackroll_state_unavailable, slackroll_state_outdated]
@@ -1017,10 +1017,10 @@ try:
 		print 'End of list.'
 		sys.exit()
 
-	if operation == 'install' or operation == 'reinstall' or operation == 'download' or operation == 'info' or operation == 'urls':
+	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
 		args = sys.argv[2:]
 
-		if ((operation == 'install' or operation == 'reinstall')
+		if ((operation in ['install', 'reinstall'])
 		    and len([x for x in args if slackroll_glibc_indicator in x]) == 0
 		    and len([x for x in persistent_list if persistent_list[x] in [slackroll_state_new, slackroll_state_outdated]
 			    				   and slackroll_glibc_indicator in x]) > 0):
@@ -1068,7 +1068,7 @@ try:
 							chosen_pkgs.append(candidates[chosen])
 	
 		# After selecting the packages, run the requested operation on them
-		if operation == 'install' or operation == 'reinstall' or operation == 'download' or operation == 'urls':
+		if operation in ['install', 'reinstall', 'download', 'urls']:
 			print 'Total size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
 			if operation == 'install':
 				action = lambda x: download_verify_install(mirror, x)
