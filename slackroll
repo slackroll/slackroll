@@ -1021,7 +1021,8 @@ try:
 	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
 		args = sys.argv[2:]
 
-		if ((operation in ['install', 'reinstall'])
+		# Warn the user on install and reinstall operations if there is glibc activity and they have not indicated glibc packages
+		if (operation in ['install', 'reinstall']
 		    and len([x for x in args if slackroll_glibc_indicator in x]) == 0
 		    and len([x for x in persistent_list if persistent_list[x] in [slackroll_state_new, slackroll_state_outdated]
 			    				   and slackroll_glibc_indicator in x]) > 0):
