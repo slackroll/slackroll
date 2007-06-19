@@ -869,24 +869,27 @@ try:
 
 	if operation == 'clean-cache':
 		cache_files = glob.glob(slackroll_packages_dir_glob)
-		cache_files.sort()
-
 		extraneous_files = [x for x in glob.glob(slackroll_packages_dir_all_glob) if x not in cache_files]
-		for elem in extraneous_files:
-			print 'Warning: extraneous file %s' % elem
 
+		cache_files.sort()
 		cache_pkgs = []
 		for elem in cache_files:
 			try:
 				cache_pkgs.append(pkg_from_str(elem))
 			except SlackRollError:
-				print 'Warning: extraneous file %s' % elem
+				extraneous_files.append(elem) # Incorrect .tgz files are also extraneous
+
 		for pkg in cache_pkgs:
 			name = pkg.name()
 			if (name in local_list and local_list[name] == pkg) or (name in remote_list and pkg in remote_list[name]):
 				continue
 			print 'Removing %s ...' % pkg.fullname()
 			try_to_remove(pkg.fullname())
+
+		extraneous_files.sort()
+		for elem in extraneous_files:
+			print 'Warning: extraneous file %s' % elem
+
 		sys.exit()
 	
 	if operation in ['list-transient', 'list-outdated']:
