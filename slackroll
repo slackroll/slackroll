@@ -26,7 +26,8 @@ slackroll_pkg_re_version_group = 3
 slackroll_pkg_re_arch_group = 4
 slackroll_pkg_re_build_group = 5
 
-slackroll_packages_dir_glob = './packages/*'
+slackroll_packages_dir_all_glob = './packages/*'
+slackroll_packages_dir_glob = './packages/*.tgz'
 slackroll_packages_dir = os.path.dirname(slackroll_packages_dir_glob)
 slackroll_local_pkgs_glob = '/var/log/packages/*'
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
@@ -868,6 +869,12 @@ try:
 
 	if operation == 'clean-cache':
 		cache_files = glob.glob(slackroll_packages_dir_glob)
+		cache_files.sort()
+
+		extraneous_files = [x for x in glob.glob(slackroll_packages_dir_all_glob) if x not in cache_files]
+		for elem in extraneous_files:
+			print 'Warning: extraneous file %s' % elem
+
 		cache_pkgs = []
 		for elem in cache_files:
 			try:
