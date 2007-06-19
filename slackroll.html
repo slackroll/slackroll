@@ -107,18 +107,23 @@
 		or mark them as foreign packages. This state lets you
 		see which packages are being removed from the remote
 		tree.</dd>
+
+		<dt>OUTDATED</dt> <dd>A package is outdated if it's
+		present in your system and in the remote tree, but
+		the local version does not match any relevant one in
+		the remote tree. The program will try to upgrade
+		these packages.</dd>
+
 		</dl>
 
 		<h3>Normal states</h3>
 
 		<dl>
-		<dt>INSTALLED</dt> <dd>A package is installed if
-		it's present in your system and in the remote tree. Very
-		common state, as you can suppose.</dd>
 
-		<dt>OUTDATED</dt> <dd>A package is outdated if it meets
-		the same conditions as for the installed state, but your
-		version doesn't exist in the remote tree.</dd>
+		<dt>INSTALLED</dt> <dd>A package is installed if it's
+		present in your system and in the remote tree, and
+		the local version is not outdated. Very common state,
+		as you can suppose.</dd>
 
 		<dt>NOT INSTALLED</dt> <dd>A package is not
 		installed if it's a known package which is not present
