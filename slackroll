@@ -36,8 +36,7 @@ slackroll_filelist_pkg_re = re.compile(r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+\d+\s+\
 slackroll_source_indicator = '/source/'
 slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
-slackroll_testing_indicator = '/testing/'
-slackroll_extra_indicator = '/extra/'
+slackroll_main_indicator = '/slackware/'
 slackroll_glibc_indicator = 'glibc'
 slackroll_prioritized_packages = ['glibc-solibs', 'glibc-zoneinfo', 'glibc', 'glibc-profile', 'glibc-i18n']
 
@@ -481,13 +480,7 @@ def not_pasture(pkg_list): # Returns packages not in pasture
 	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path()]
 
 def not_main(pkg_list): # Returns packages not in the main tree
-	new_list = []
-	for pkg in pkg_list:
-		path = pkg.path()
-		if (slackroll_patch_indicator in path or slackroll_extra_indicator in path or
-		    slackroll_testing_indicator in path or slackroll_pasture_indicator in path):
-			new_list.append(pkg)
-	return new_list
+	return [x for x in pkg_list if slackroll_main_indicator not in x.path()]
 
 def print_in_states(states, persistent_list, header): # Print package name if its state matches
 	print header
