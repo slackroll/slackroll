@@ -27,7 +27,7 @@ slackroll_pkg_re_arch_group = 4
 slackroll_pkg_re_build_group = 5
 
 slackroll_packages_dir_all_glob = './packages/*'
-slackroll_packages_dir_glob = './packages/*.tgz'
+slackroll_packages_dir_glob = '%s.tgz' % slackroll_packages_dir_all_glob
 slackroll_packages_dir = os.path.dirname(slackroll_packages_dir_glob)
 slackroll_local_pkgs_glob = '/var/log/packages/*'
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
