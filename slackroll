@@ -1128,12 +1128,12 @@ try:
 			except re.error:
 				sys.exit('Error: invalid regular expression: %s' % retxt)
 			print 'Searching for "%s":' % retxt
-			matching_paths = [x.fullname() for x in all_remotes if regexp.search(x.path()) is not None]
-			matching_paths.sort()
-			if len(matching_paths) == 0:
+			matching_fullnames = [x.fullname() for x in all_remotes if regexp.search(x.path()) is not None]
+			matching_fullnames.sort()
+			if len(matching_fullnames) == 0:
 				print '    (No results)\n'
 				continue
-			print ''.join(['    %s\n' % x for x in matching_paths])
+			print ''.join(['    %s\n' % x for x in matching_fullnames])
 		sys.exit()
 	
 except (KeyboardInterrupt, IOError), error:
