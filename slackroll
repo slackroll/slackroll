@@ -647,6 +647,7 @@ def print_help():
   remote-search FILE...	Alias for 'pb-search'
   local-search REGEX...	Search for files in local packages
   name-search REGEX...	Search for package names matching regular expressions
+  path-search REGEX...	Search for remote packages having matching path
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
@@ -687,6 +688,7 @@ try:
 		'new',
 		'new-not-installed',
 		'not-installed',
+		'path-search',
 		'pb-search',
 		'reinstall',
 		'remote-search',
@@ -1114,6 +1116,24 @@ try:
 			if not results:
 				print '\t(No results)'
 			print
+		sys.exit()
+	
+	if operation == 'path-search':
+		all_remotes = []
+		for key in remote_list.iterkeys():
+			all_remotes.extend(remote_list[key])
+		for retxt in sys.argv[2:]:
+			try:
+				regexp = re.compile(retxt)
+			except re.error:
+				sys.exit('Error: invalid regular expression: %s' % retxt)
+			print 'Searching for "%s":' % retxt
+			matching_paths = [x.fullname() for x in all_remotes if regexp.search(x.path()) is not None]
+			matching_paths.sort()
+			if len(matching_paths) == 0:
+				print '    (No results)\n'
+				continue
+			print ''.join(['    %s\n' % x for x in matching_paths])
 		sys.exit()
 	
 except (KeyboardInterrupt, IOError), error:
