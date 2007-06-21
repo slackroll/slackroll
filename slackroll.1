@@ -1,0 +1,254 @@
+.TH "slackroll" "1" "v7" "Ricardo Garcia Gonzalez" ""
+.SH "NAME"
+.LP 
+slackroll \- Package or update manager for Slackware Linux
+.SH "SYNTAX"
+.LP 
+slackroll \fIcommand\fR [args]
+.SH "DESCRIPTION"
+.LP 
+\fBslackroll\fR is a package or update manager for Slackware systems. It does not provide dependency checking and uses \fBpkgtools\fR to install or upgrade packages. It's designed to work with official mirrors. If you have a Slackware system mainly composed of official packages and a handful of unofficial packages, \fBslackroll\fR can help you manage it and keep in touch with the remote tree. It tries to know when new packages appear, when packages are removed and when packages are upgraded.
+.SH "GENERAL CONCEPTS"
+.LP 
+(Note: if you already know how \fBslackroll\fR works, skip this section)
+.LP 
+\fBslackroll\fR works with the current directory. It doesn't work with a fixed system directory like, let's say, \fB/var/slackroll\fR. You can use \fB/var/slackroll\fR if you want. You have to choose a directory and cd to it before running the program. Want to use something inside \fB/var\fR? Inside \fB/root\fR? Inside \fB/media\fR? Whatever floats your boat.
+.LP 
+In the following text I'm going to be talking about packages. For package, we are going to understand a named piece of software, without having any specific version unless I explicitly mention it. A package can be \fIbash\fR or \fIkdewebdev\fR or \fIgcc\-gfortran\fR, for example.
+.LP 
+Each package is in one of several possible states. The program tries to keep a persistent "database" that associates each package with its state. When it runs, it analyzes the list of packages present in your system, the list of remote packages, and tries to keep the persistent database updated by introducing new entries, deleting old ones and changing the state of some of those entries.
+.SH "PACKAGE STATES"
+.LP 
+\fBStates to avoid\fR
+.IP 
+\fBNEW\fR:
+A package is in this state when it's present in the remote tree and it wasn't present before. If you detect you have packages in this state you should decide if you want to install them or mark them as not installed. This state lets you see which packages are being added to the remote tree.
+.IP 
+\fBUNAVAILABLE\fR:
+Sorry if this name is somehow confusing. A package is in this state when it's present in your system, but not in the remote tree. You should decide if you want to remove them from your system or mark them as foreign packages. This state lets you see which packages are being removed from the remote tree.
+.IP 
+\fBOUTDATED\fR:
+A package is outdated if it's present in your system and in the remote tree, but the local version does not match any relevant one in the remote tree. The program will try to upgrade these packages.
+.LP 
+\fBNormal states\fR
+.IP 
+\fBINSTALLED\fR:
+A package is installed if it's present in your system and in the remote tree, and the local version is not outdated. Very common state, as you can suppose.
+.IP 
+\fBNOT INSTALLED\fR:
+A package is not installed if it's a known package which is not present in your system but exists in the remote tree. It's also a very common state.
+.IP 
+\fBFROZEN\fR:
+No package will enter the frozen state unless you mark it so. It should be used for packages present in your system and in the remote tree, but that you don't want to upgrade automatically. This state can be used for packages which are not meant to be upgraded automatically or ever, like aaa_elflibs and others, and probably for customized versions of official packages. For example, my custom build of freetype is marked as frozen. You must pay attention to these packages, as upgrades to them will be silently ignored. You may find the list\-versions command useful to detect version mismatches between your local copy and the ones in the remote tree. Having a package in the frozen state does not prevent you from using the install command to download and install a different version. If the package ever disappears from the remote tree, it will be marked as unavailable and you will probably see it. You could continue to use it by marking it as foreign if you wish.
+.IP 
+\fBFOREIGN\fR:
+No package will enter the foreign state unless you mark it so. It should be used for packages that do not exist in the remote tree but that, unlike unavailable packages, are present in your system on purpose. For example, the mplayer package in my system is marked as foreign. A foreign package will be marked as installed or outdated if it ever appears in the remote tree, becoming a candidate for upgrading. Hopefully, you'll notice this fact. You could still use your own version instead of the remote (official) one by marking it as frozen.
+.SH "GETTING STARTED"
+.LP 
+(Note: this section is intended as a help guide to configure \fBslackroll\fR the first time)
+.LP 
+\fBslackroll\fR requires \fIpython\fR, \fIpkgtools\fR, \fIgnupg\fR and \fIless\fR to operate properly.
+.LP 
+It should be noted that you can start using \fBslackroll\fR whenever you want, but my advice is to do it when your system is under control and there are no upgrades pending. This will give you a chance of configuring the program and setting the package states properly without making serious mistakes.
+.LP 
+You should first choose a working directory and a Slackware mirror. Create the directory, change to it and echo the mirror name to a file named mirror.
+.LP 
+\fIecho 'http://slackware.osuosl.org/slackware\-current/' >mirror\fR
+.LP 
+\fBDo not forget the trailing slash!\fR Great. You are ready to start. Retrieve the remote GPG key from the mirror to add it to your keyring. Having the GPG key is required, and it's safe to do this step even if the key is already in your keyring, supposing you trust the mirror you chose. If you don't, get the GPG key by other means and add it to your keyring, skipping this step.
+.LP 
+\fIslackroll import\-key\fR
+.LP 
+Retrieve information about the remote packages. You'll have to perform this step every time Patrick Volkerding changes the remote tree.
+.LP 
+\fIslackroll update\fR
+.LP 
+Finally, you could start checking if there are new packages, unavailable packages or upgrades. However, the first time you use \fBslackroll\fR, any package not installed in your system will be marked as new, every foreign package will be marked as unavailable, and every customized package will probably be a candidate for upgrading if you try to do so. If you have your system under control (and I hope you do!), you can in most cases blindly mark all new packages as not installed. There's a command to do it, being a common first operation.
+.LP 
+\fIslackroll new\-not\-installed\fR
+.LP 
+In most cases, you can also mark any unavailable packages as foreign. However, the number of foreign packages is usually quite low, and forgetting to uninstall a package which has been removed is a very common mistake, so my advice is to review the list of unavailable packages by hand, detecting which ones may not be foreign packages and need to be uninstalled.
+.LP 
+\fIslackroll list\-unavailable\fR
+.LP 
+Once you've got rid of old packages (using removepkg, of course!), mark the rest as foreign packages.
+.LP 
+\fIslackroll unavailable\-foreign\fR
+.LP 
+Some people like to "blacklist" packages so they are not upgraded normally. Almost always, you want to do this with the package aaa_elflibs if it's present in your system, and maybe with some other packages. If you don't want them to be upgraded normally, they belong to the frozen state. Mark them as frozen. The same applies to customized builds of official packages.
+.LP 
+\fIslackroll frozen aaa_elflibs\fR
+.LP 
+The frozen command accepts a list of packages as its arguments. You don't need to issue a separate command for each one of them.
+.LP 
+Regarding customized versions of official packages, some people prefer to give them version names that match the official ones, despite being customized builds, and keep them in the installed state. The program will want to upgrade them automatically in that case, and maybe the official version will overwrite the custom one after an upgrade, before you rebuild it. Some other people prefer to give them custom version names, normally via personalized build numbers that usually include some packager initials, and mark them as frozen. In that case, list\-versions can help you see if your local copy needs to be rebuilt for a new version.
+.SH "NORMAL OPERATION"
+.LP 
+(Note: this section describes the typical \fBslackroll\fR day\-to\-day usage)
+.LP 
+You can run \fIslackroll help\fR to get a full list of commands and a brief description of each one. This program is not a perfect tool. I think it can handle almost every situation and be told to do exactly what you want, but reading the change log and subscribing to the \fIslackware\-security\fR mailing list is highly recommended.
+.LP 
+In every case you should \fIupdate\fR whenever the remote tree is changed. Then, the \fIlist\-transient\fR command will provide a summary of activity. It should output an empty list once you have sorted out any changes.
+.LP 
+Watch out for upgrades in \fIglibc\fR packages, the one with highest priority being \fIglibc\-solibs\fR. They should always be the first ones to be installed, even before new packages. You can use the \fIinstall\fR command to manually upgrade them first, either by giving the package name only, which should work in most cases, or a specific package version. Some commands, like \fIinstall\fR, accept specific package versions and are copy/paste friendly. Specifying the package version is optional but will make sure you are installing the glibc version you really want.
+.LP 
+\fBRolling tree (slackware\-current)\fR
+.IP 
+Check for new packages with \fIlist\-new\fR. Decide to download and install them with \fIinstall\fR or mark them as not installed with \fInot\-installed\fR. List possible upgrades with \fIlist\-upgrades\fR and upgrade to new versions with \fIupgrade\fR. Finally, list unavailable packages with \fIlist\-unavailable\fR and remove them or mark them as foreign if a new foreign package is present in the list (which may happen if you had forgotten to mark it as foreign when you installed it).
+.LP 
+\fBStable tree\fR
+.IP 
+Mostly the same, but in the stable tree it's extremely rare to see packages being removed or being added to the tree, so you probably won't need to run \fIlist\-new\fR or \fIlist\-unavailable\fR, but you never know. The \fIlist\-transient\fR command may be useful to detect these rare cases.
+.SH "COMMANDS REFERENCE"
+.LP 
+\fBInformation about slackroll\fR
+.IP 
+.IP 
+    \fIhelp\fR
+.br 
+    \fIversion\fR
+.br 
+.IP 
+They will print a list of commands with a description of each one and the program version, respectively.
+.LP 
+\fBUpgrading your system\fR
+.IP 
+    \fIupdate\fR
+.br 
+    \fIlist\-transient\fR
+.br 
+    \fIlist\-new\fR
+.br 
+    \fInot\-installed PKG...\fR
+.br 
+    \fInew\-not\-installed\fR
+.br 
+    \fIinstall PKG...\fR
+.br 
+    \fIupgrade\fR
+.br 
+    \fIlist\-upgrades\fR
+.br 
+    \fIdownload\-upgrades\fR
+.br 
+    \fIshow\-upgrade\-urls\fR
+.br 
+    \fIlist\-unavailable\fR
+.br 
+    \fIforeign PKG...\fR
+.IP 
+When upgrading your system, you should always run the \fIupdate\fR command to retrieve the remote list of packages and the new change log entries. The \fIlist\-transient\fR command provides a good summary of activity, including new packages, removed packages and outdated packages. New packages can be listed alone with the \fIlist\-new\fR command. They can be installed using the \fIinstall\fR command, or be moved to the "not installed" state individually with the \fInot\-installed\fR command or all at the same time with the \fInew\-not\-installed\fR command.
+.IP 
+The \fIinstall\fR command accepts either a package or a specific package version. This means that if there are several versions available, you can tell \fIinstall\fR to install a specific one directly without asking you first. Specific package versions are indicated by an optional path followed by the package name, version, architecture and build code (all of them required) and an optional \fItgz\fR suffix. Examples:
+.IP 
+    ./slackware/d/bison\-2.3\-i486\-1.tgz
+.br 
+    bison\-2.3\-i486\-1
+.IP 
+Upgrades can be listed with \fIlist\-upgrades\fR or downloaded and installed with the \fIupgrade\fR command. Other commands like \fIdownload\-upgrades\fR and \fIshow\-upgrade\-urls\fR can be used to avoid direct installation or downloading anything, respectively.
+.IP 
+If a package is removed from the remote tree, it will enter the unavailable state. Unavailable packages can be listed alone with the \fIlist\-unavailable\fR command. Sometimes you want to continue to use them as foreign packages, maybe because they're real foreign packages that you had forgotten to mark when you installed them. This can be done with the \fIforeign\fR command. Real unavailable packages should be removed from your system using \fBremovepkg(8)\fR.
+.LP 
+\fBListing different versions of packages\fR
+.IP 
+    \fIlist\-alternatives\fR
+.br 
+    \fIlist\-versions PKG...\fR
+.IP 
+The first command will list every package for which there are alternative versions, along with a list of unique alternatives. The second one will list every know version of the given packages. It lists the local version if there is one as well as the remote versions. The list items are not unique. The local version may or may not match one of the remote versions.
+.LP 
+\fBListing packages by state\fR
+.IP 
+    \fIlist\-new\fR
+.br 
+    \fIlist\-unavailable\fR
+.br 
+    \fIlist\-outdated\fR
+.br 
+    \fIlist\-installed\fR
+.br 
+    \fIlist\-not\-installed\fR
+.br 
+    \fIlist\-frozen\fR
+.br 
+    \fIlist\-foreign\fR
+.LP 
+\fBOther listing commands\fR
+.IP 
+    \fIlist\-local\fR
+.br 
+    \fIlist\-remote\fR
+.br 
+    \fIlist\-all\fR
+.LP 
+\fBSetting package states\fR
+.IP 
+    \fInew\-not\-installed\fR
+.br 
+    \fIunavailable\-foreign\fR
+.br 
+    \fInew PKG...\fR
+.br 
+    \fIunavailable PKG...\fR
+.br 
+    \fIinstalled PKG...\fR
+.br 
+    \fInot\-installed PKG...\fR
+.br 
+    \fIfrozen PKG...\fR
+.br 
+    \fIforeign PKG...\fR
+.IP 
+The first two commands move every package in the first state to the second state. The rest of commands need a list of packages to be marked as being in the state equivalent to the command name. It must be noted that you can't randomly put any package in any state. For example, you can't put an "installed" package in the state "new", but you can do it if the package is in the "not\-installed" state.
+.LP 
+\fBOperating with individual packages\fR
+.IP 
+    \fIinstall PKG...\fR
+.br 
+    \fIreinstall PKG...\fR
+.br 
+    \fIdownload PKG...\fR
+.br 
+    \fIinfo PKG...\fR
+.br 
+    \fIurls PKG...\fR
+.IP 
+These commands let you download, upgrade, install or display information about specific packages. The package information is obtained from the small \fItxt\fR files in the remote tree or the local file in \fI/var/log/packages\fR if the package is installed. The \fIreinstall\fR command is equivalent to the \fIinstall\fR command. The only difference is that \fIreinstall\fR will reinstall the package if needed, but you can also use it with packages which are not present in your system. I know it doesn't sound very intuitive, but the \fIinstall\fR command can also be used to upgrade individual packages. If you give it a package name, it will search for remote versions of that package to download and install it. If there's only one remote version of the package, it will be downloaded and installed, upgrading an existing version if needed. If there is more than one remote version, it will ask which one you want.
+.IP 
+Please note that all these commands accept specific package versions as their arguments.
+.LP 
+\fBSearching files and packages\fR
+.IP 
+    \fIpb\-search FILE...\fR
+.br 
+    \fIremote\-search FILE...\fR
+.br 
+    \fIlocal\-search REGEX...\fR
+.br 
+    \fIname\-search REGEX...\fR
+.br 
+    \fIpath\-search REGEX...\fR
+.IP 
+The \fIpb\-search\fR and \fIremote\-search\fR commands do the same. They query the online Slackware Package Browser using the quoted files you give as the query terms. You don't have to use full file names. A common case is searching for a library which you are missing using only the name before the period, like \fIlibxine\fR.
+.IP 
+On the other hand, \fIlocal\-search\fR will let you search for files in the contents of \fI/var/log/packages\fR. You can use any Python regular expression (identical to Grep or Perl regular expressions for the most basic cases) as its argument and it will be applied to the full file path. You are recommended, when using regular expressions, to put them inside single quotes to prevent the shell from interpreting its contents.
+.IP 
+\fIname\-search\fR tries to apply the regular expression to package names only, and \fIpath\-search\fR applies them to the paths of remote packages. With this last command you can easily view which packages are present in sets like \fI/extra/\fR or \fI/slackware/kde/\fR, for example.
+.LP 
+\fBOther commands\fR
+.IP 
+    \fIimport\-key\fR
+.br 
+    \fIclean\-cache\fI
+.br 
+    \fItouch\fR
+.IP 
+\fIimport\-key\fR will probably be needed only once or never. It retrieves the remote GPG key and adds it to your keyring. This is used to verify the integrity of downloaded packages. The \fItouch\fR command should be used almost never. It forces updating the persistent database, but you probably will never use it, because it's only needed in very weird cases when you've been fiddling with the modification time of some files.
+.IP 
+\fIclean\-cache\fR is designed as a maintenance command you should run from time to time. When \fBslackroll\fR downloads packages, it stores them in the \fIpackages\fR directory inside the working directory. This is useful to cache packages and download them only once. After some time, however, you will see that the \fIpackages\fR directory stores old versions of many packages, or packages which have already been removed from the remote tree. This command will remove those files, leaving only the files corresponding to known package versions.
+.SH "AUTHORS"
+.LP 
+Ricardo Garcia Gonzalez: http://sourceforge.net/users/rg3/
+.SH "SEE ALSO"
+.LP 
+installpkg(8), upgradepkg(8), removepkg(8), pkgtool(8), makepkg(8), explodepkg(8)
