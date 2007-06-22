@@ -109,6 +109,10 @@ class SlackwarePackage:
 	def path(self):
 		return self.__path
 
+class SlackRollURLopener(urllib.FancyURLopener):
+	def http_error_default(self, url, fp, errcode, errmsg, headers):
+		raise IOError('%s: %s' % (errcode, errmsg))
+
 def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 	matchobj = slackroll_pkg_re.match(path_or_name)
 
@@ -659,6 +663,7 @@ try:
 	local_list = None
 	remote_list = None
 	persistent_list = None
+	urllib._urlopener = SlackRollURLopener()
 
 	all_ops = [
 		'clean-cache',
