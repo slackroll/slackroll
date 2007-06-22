@@ -352,6 +352,8 @@ def verify_signature(filename):	# Does not exit on errors
 		if retcode == 1:
 			sys.stderr.write('Error: signature not valid\n')
 			raise SlackRollError('GnuPG exited with status code 1')
+		sys.stderr.write('Error: could not verify signature\n')
+		raise SlackRollError('GnuPG exited with status code %s' % retcode)
 	except OSError:
 		sys.stderr.write('Error: unable to verify signature in %s\n' % filename)
 		raise SlackRollError('OSError running GnuPG to verify signature')
