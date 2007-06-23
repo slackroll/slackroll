@@ -403,6 +403,8 @@ def download_verify(mirror, package): # Download package, signature and verify i
 			try_to_remove(local_sig)
 			return None
 		try_to_remove(local_sig)
+	else:
+		print 'Package %s found in cache' % package.shortname()
 	
 	return local_name
 
