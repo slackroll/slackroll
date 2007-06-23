@@ -91,6 +91,9 @@ class SlackwarePackage:
 	def shortname(self):
 		return '%s-%s-%s-%s' % (self.__name, self.__version, self.__arch, self.__build)
 
+	def archivename(self):
+		return '%s.tgz' % self.shortname()
+
 	def fullname(self):
 		return '%s%s-%s-%s-%s%s' % (self.__path, self.__name, self.__version, self.__arch, self.__build, self.__suffix)
 
@@ -377,13 +380,13 @@ def upgrade_or_install(filename, reinstall):
 		sys.exit('Error: unable to install %s' % filename)
 
 def package_in_cache(package): # Check if package is in ./packages
-	filepath = os.path.join(slackroll_packages_dir, os.path.basename(package.fullname()))
+	filepath = os.path.join(slackroll_packages_dir, package.archivename())
 	return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
 
 def download_verify(mirror, package): # Download package, signature and verify it
 	remote_name = package.fullname()
 	remote_sig = '%s%s' % (remote_name, slackroll_signature_suffix)
-	local_name = os.path.join(slackroll_packages_dir, os.path.basename(package.fullname()))
+	local_name = os.path.join(slackroll_packages_dir, package.archivename())
 	local_sig = '%s%s' % (local_name, slackroll_signature_suffix)
 
 	if not package_in_cache(package):
@@ -1105,7 +1108,7 @@ try:
 				name = pkg.name()
 				if name in local_list and local_list[name] == pkg:
 					try:
-						info_file = os.path.join(pkg.path(), pkg.shortname())
+						info_file = local_list[name].fullname()
 						run_pager_on(info_file)
 					except SlackRollError:
 						sys.exit('Error: unable to run pager on %s' % info_file)
