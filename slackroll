@@ -14,17 +14,18 @@ import sys
 import urllib
 import urlparse
 
-slackroll_version = 8
+slackroll_version = 9
 
 slackroll_exit_failure = 1
 slackroll_exit_success = 0
 
-slackroll_pkg_re = re.compile(r'^(\.?/.+/)?([^/]+)-([^/-]+)-([^/-]+)-([^/-]+?)(?:\.tgz)?$')
+slackroll_pkg_re = re.compile(r'^(\.?/.+/)?([^/]+)-([^/-]+)-([^/-]+)-([^/-]+?)(\.tgz)?$')
 slackroll_pkg_re_path_group = 1
 slackroll_pkg_re_name_group = 2
 slackroll_pkg_re_version_group = 3
 slackroll_pkg_re_arch_group = 4
 slackroll_pkg_re_build_group = 5
+slackroll_pkg_re_suffix_group = 6
 
 slackroll_packages_dir_all_glob = './packages/*'
 slackroll_packages_dir_glob = '%s.tgz' % slackroll_packages_dir_all_glob
@@ -74,16 +75,15 @@ class SlackwarePackage:
 	__arch = None
 	__build = None
 	__path = None
+	__suffix = None
 
-	def __init__(self, name, version, arch, build, path):
+	def __init__(self, name, version, arch, build, path, suffix):
 		self.__name = name
 		self.__version = version
 		self.__arch = arch
 		self.__build = build
-		if path is None:
-			self.__path = ''
-		else:
-			self.__path = path
+		self.__path = (path is not None and path or '')
+		self.__suffix = (suffix is not None and suffix or '')
 
 	def __eq__(self, other):
 		return self.__name == other.__name and self.__version == other.__version and self.__arch == other.__arch and self.__build == other.__build
@@ -92,7 +92,7 @@ class SlackwarePackage:
 		return '%s-%s-%s-%s' % (self.__name, self.__version, self.__arch, self.__build)
 
 	def fullname(self):
-		return '%s%s-%s-%s-%s.tgz' % (self.__path, self.__name, self.__version, self.__arch, self.__build)
+		return '%s%s-%s-%s-%s%s' % (self.__path, self.__name, self.__version, self.__arch, self.__build, self.__suffix)
 
 	def name(self):
 		return self.__name
@@ -109,6 +109,9 @@ class SlackwarePackage:
 	def path(self):
 		return self.__path
 
+	def suffix(self):
+		return self.__suffix
+
 class SlackRollURLopener(urllib.FancyURLopener):
 	def http_error_default(self, url, fp, errcode, errmsg, headers):
 		raise IOError('%s: %s' % (errcode, errmsg))
@@ -124,7 +127,8 @@ def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 	version = matchobj.group(slackroll_pkg_re_version_group)
 	arch = matchobj.group(slackroll_pkg_re_arch_group)
 	build = matchobj.group(slackroll_pkg_re_build_group)
-	return SlackwarePackage(name, version, arch, build, path)
+	suffix = matchobj.group(slackroll_pkg_re_suffix_group)
+	return SlackwarePackage(name, version, arch, build, path, suffix)
 
 def index_of(thelist, elem):
 	try:
@@ -192,8 +196,8 @@ def get_local_pkgs(): # Return a list of packages from /var/log/packages
 		sys.exit('Error: %s' % err)
 	return local_pkgs
 
-def get_local_list(): # Return list of local packages from cache, updating it if needed
-	if not newer_than(slackroll_locallist_filename, slackroll_local_pkgs_dir):
+def get_local_list(forced_rebuild): # Return list of local packages from cache, updating it if needed
+	if not newer_than(slackroll_locallist_filename, slackroll_local_pkgs_dir) or forced_rebuild:
 		print 'Rebuilding local package cache...'
 		local_list = dict()
 		for pkg in get_local_pkgs():
@@ -210,8 +214,8 @@ def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
 	except IOError:
 		sys.exit('Error: could not read %s' % slackroll_filelist_filename)
 
-def get_remote_list(): # Return list of remote packages from cache, updating if needed
-	if not newer_than(slackroll_remotelist_filename, slackroll_filelist_filename):
+def get_remote_list(forced_rebuild): # Return list of remote packages from cache, updating if needed
+	if not newer_than(slackroll_remotelist_filename, slackroll_filelist_filename) or forced_rebuild:
 		print 'Rebuilding remote packages cache...'
 		remote_list = dict()
 		has_patch = dict()
@@ -819,12 +823,13 @@ try:
 	# Every operation below needs an updated persistent database
 	handle_writable_dir(slackroll_packages_dir)
 	print 'Initializing package lists...'
-	local_list = get_local_list()
-	remote_list = get_remote_list()
 
+	needs_rebuild = (not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
 	needs_update = (not newer_than(slackroll_persistentlist_filename, slackroll_remotelist_filename) or
-			not newer_than(slackroll_persistentlist_filename, slackroll_locallist_filename) or operation == 'touch'
-			or not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
+			not newer_than(slackroll_persistentlist_filename, slackroll_locallist_filename) or operation == 'touch' or needs_rebuild)
+
+	local_list = get_local_list(needs_rebuild)
+	remote_list = get_remote_list(needs_rebuild)
 
 	try:
 		persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
@@ -951,7 +956,7 @@ try:
 			if len(versions) > 1:
 				print '    %s:' % name
 				for ver in versions:
-					print '\t%s %s' % (ver.path(), ver.shortname())
+					print '\t%s' % ver.fullname()
 				print
 		print 'End of list.'
 		sys.exit()
