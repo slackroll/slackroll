@@ -825,11 +825,11 @@ try:
 	print 'Initializing package lists...'
 
 	needs_rebuild = (not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
-	needs_update = (not newer_than(slackroll_persistentlist_filename, slackroll_remotelist_filename) or
-			not newer_than(slackroll_persistentlist_filename, slackroll_locallist_filename) or operation == 'touch' or needs_rebuild)
-
 	local_list = get_local_list(needs_rebuild)
 	remote_list = get_remote_list(needs_rebuild)
+
+	needs_update = (not newer_than(slackroll_persistentlist_filename, slackroll_remotelist_filename) or
+			not newer_than(slackroll_persistentlist_filename, slackroll_locallist_filename) or operation == 'touch' or needs_rebuild)
 
 	try:
 		persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
