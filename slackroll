@@ -669,6 +669,7 @@ def print_help():
   list-upgrades		List available upgrades
   list-alternatives	List packages with alternative versions
   list-versions PKG...	List all known versions of given packages
+  state PKG...		Show state of given packages
   list-new		List new packages
   list-unavailable	List unavailable packages
   list-installed	List installed packages
@@ -743,6 +744,7 @@ try:
 		'reinstall',
 		'remote-search',
 		'show-upgrade-urls',
+		'state',
 		'touch',
 		'unavailable',
 		'unavailable-foreign',
@@ -876,6 +878,16 @@ try:
 	write_self_file_version()
 
 	if operation == 'touch':
+		sys.exit()
+
+	if operation == 'state':
+		print 'Package states:'
+		for name in sys.argv[2:]:
+			if name not in persistent_list:
+				print '    %s: unknown package' % name
+				continue
+			print '    %s: %s' % (name, slackroll_state_strings[persistent_list[name]])
+		print 'End of list.'
 		sys.exit()
 
 	if operation in ['upgrade', 'download-upgrades', 'show-upgrade-urls']:
