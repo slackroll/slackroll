@@ -96,6 +96,7 @@ class SlackwarePackage:
 		return '%s.tgz' % self.shortname()
 
 	def fullname(self):
+		return os.path.join(self.__path, '%s-%s-%s-%s%s' % (self.__name, self.__version, self.__arch, self.__build, self.__suffix))
 		return '%s%s-%s-%s-%s%s' % (self.__path, self.__name, self.__version, self.__arch, self.__build, self.__suffix)
 
 	def name(self):
@@ -571,6 +572,7 @@ def new_files_report(package_list): # Prints a report on .new files
 	new_files = []
 	for filename in local_files:
 		new_files.extend([x for x in extract_file_list(filename) if x.endswith(slackroll_new_suffix)])
+	new_files.sort()
 	print 'Files with %s suffix:' % slackroll_new_suffix
 	for filename in new_files:
 		try:
