@@ -573,6 +573,9 @@ def new_files_report(package_list): # Prints a report on .new files
 	for filename in local_files:
 		new_files.extend([x for x in extract_file_list(filename) if x.endswith(slackroll_new_suffix)])
 	new_files.sort()
+	
+	if len(new_files) == 0:
+		return
 
 	presence = ' *'
 	print 'Files with %s suffix:' % slackroll_new_suffix
