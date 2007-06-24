@@ -52,6 +52,7 @@ slackroll_gpgkey_filename = 'GPG-KEY'
 slackroll_temp_suffix = '.part'
 slackroll_signature_suffix = '.asc'
 slackroll_info_suffix = '.txt'
+slackroll_new_suffix = '.new'
 
 slackroll_state_new = 0
 slackroll_state_unavailable = 1
@@ -555,12 +556,39 @@ def query_package_browser(version, name): # Query package browser on given file 
 def extract_file_list(filename):
 	try:
 		lines = file(filename, 'r').readlines()
-		paths = ['/%s' % x.strip() for x in lines[lines.index('FILE LIST:\n') + 1:]]
+		paths = ['/%s' % x.strip() for x in lines[lines.index(slackroll_local_pkg_filelist_marker) + 1:]]
 		return paths
 	except ValueError:
 		sys.exit('Error: unable to find file list marker in %s' % filename)
 	except (OSError, IOError):
 		sys.exit('Error: unable to read contents from %s' % filename)
+
+def equiv_local_pkg(pkg): # Converts a package to the equivalent local package
+	return SlackwarePackage(pkg.name(), pkg.version(), pkg.arch(), pkg.build(), slackroll_local_pkgs_dir, '')
+
+def new_files_report(package_list): # Prints a report on .new files
+	local_files = [equiv_local_pkg(x).fullname() for x in package_list]
+	new_files = []
+	for filename in local_files:
+		new_files.extend([x for x in extract_file_list(filename) if x.endswith(slackroll_new_suffix)])
+	print 'Files with %s suffix:' % slackroll_new_suffix
+	for filename in new_files:
+		try:
+			without_suffix = filename[:-(len(slackroll_new_suffix))]
+			if os.path.exists(filename):
+				if os.path.exists(without_suffix):
+					detail = ''
+				else:
+					detail = ' (file without suffix does not exist)'
+			else:
+				if os.path.exists(without_suffix):
+					detail = ' (suffix has apparently been removed)'
+				else:
+					detail = ' (normal and suffixed files seem to be missing)'
+			print '   %s%s' % (filename, detail)
+		except (OSError, IOError):
+			sys.exit('Error: unable to check if %s exists' % filename)
+	print 'End of list.'
 
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	print 'Updating persistent database...'
@@ -877,6 +905,8 @@ try:
 			action = lambda x: print_urls(mirror, x)
 		for pkg in chosen_pkgs:
 			action(pkg)
+		if operation == 'upgrade':
+			new_files_report(chosen_pkgs)
 		sys.exit()
 
 	if operation == 'clean-cache':
@@ -1104,6 +1134,8 @@ try:
 				action = lambda x: print_urls(mirror, x)
 			for pkg in chosen_pkgs:
 				action(pkg)
+			if operation in ['install', 'reinstall']:
+				new_files_report(chosen_pkgs)
 		else:	# info operation
 			for pkg in chosen_pkgs:
 				name = pkg.name()
