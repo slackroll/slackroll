@@ -573,24 +573,20 @@ def new_files_report(package_list): # Prints a report on .new files
 	for filename in local_files:
 		new_files.extend([x for x in extract_file_list(filename) if x.endswith(slackroll_new_suffix)])
 	new_files.sort()
+
+	presence = ' *'
 	print 'Files with %s suffix:' % slackroll_new_suffix
 	for filename in new_files:
 		try:
 			without_suffix = filename[:-(len(slackroll_new_suffix))]
-			if os.path.exists(filename):
-				if os.path.exists(without_suffix):
-					detail = ''
-				else:
-					detail = ' (file without suffix does not exist)'
-			else:
-				if os.path.exists(without_suffix):
-					detail = ' (suffix has apparently been removed)'
-				else:
-					detail = ' (normal and suffixed files seem to be missing)'
-			print '   %s%s' % (filename, detail)
+			suffix_presence = presence[os.path.exists(filename)]
+			nosuffix_presence = presence[os.path.exists(without_suffix)]
+			print '    [%s%s] %s' % (nosuffix_presence, suffix_presence, filename)
 		except (OSError, IOError):
 			sys.exit('Error: unable to check if %s exists' % filename)
 	print 'End of list.'
+	print 'Left asterisk indicates OLD file (without suffix) exists.'
+	print 'Right asterisk indicates NEW file (with suffix) exists.'
 
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	print 'Updating persistent database...'
