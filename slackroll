@@ -465,15 +465,14 @@ def print_urls(mirror, package):
 	print url
 	print '%s%s' % (url, slackroll_signature_suffix)
 
-def choose_pkg(pkg_list): # Prompt user and return the package index or -1
-	print 'Choose package:'
-	print '    [0] None'
-	for x in xrange(len(pkg_list)):
-		print '    [%s] %s' % (x+1, pkg_list[x].fullname())
+def choose_option(option_list): # Prompt user and return option index
+	print 'Choose option:'
+	for x in xrange(len(option_list)):
+		print '    [%s] %s' % (x, option_list[x])
 	while True:
 		try:
 			num = long(raw_input('You choose number... '))
-			if num < 0 or num > len(pkg_list):
+			if num < 0 or num >= len(option_list):
 				raise ValueError
 			break
 		except EOFError:
@@ -481,7 +480,13 @@ def choose_pkg(pkg_list): # Prompt user and return the package index or -1
 			continue
 		except ValueError:
 			continue
-	return (num - 1)
+	return num
+
+def choose_pkg(pkg_list): # Returns chosen package or None
+	options_pkg = [None] + pkg_list
+	options_text = ['None'] + [x.fullname() for x in pkg_list]
+	chosen = choose_option(options_text)
+	return options_pkg[chosen]
 
 def confirm_continue():
 	try:
@@ -905,8 +910,8 @@ try:
 			else:
 				print 'Local: %s' % local_list[name].shortname()
 				chosen = choose_pkg(candidates)
-				if chosen >= 0:
-					chosen_pkgs.append(candidates[chosen])
+				if chosen is not None:
+					chosen_pkgs.append(chosen)
 		
 		print 'Total size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
 		if operation == 'upgrade':
@@ -1130,8 +1135,8 @@ try:
 						if name in local_list:
 							print 'Local: %s' % local_list[name].shortname()
 						chosen = choose_pkg(candidates)
-						if chosen >= 0:
-							chosen_pkgs.append(candidates[chosen])
+						if chosen is not None:
+							chosen_pkgs.append(chosen)
 	
 		# After selecting the packages, run the requested operation on them
 		if operation in ['install', 'reinstall', 'download', 'urls']:
