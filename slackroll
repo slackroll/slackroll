@@ -620,8 +620,7 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 		visual_new = '$VISUAL %s' % basenew
 		visual_old = '$VISUAL %s' % baseold
 
-		# Work on the same pair until user tells us to break
-		while True:
+		while True: # Repeating options menu (break when user chooses to review next file)
 			try:
 				new_exists = os.path.exists(newfile)
 				old_exists = os.path.exists(oldfile)
