@@ -612,7 +612,7 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 		basenew = os.path.basename(filename)
 		baseold = os.path.basename(without_suffix)
 
-		next = 'Next, please'
+		next = 'Review next pair'
 		remove_new = 'rm %s' % basenew
 		rename_new = 'mv %s %s' % (basenew, baseold)
 		vimdiff = 'vimdiff %s %s' % (baseold, basenew)
