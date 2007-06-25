@@ -606,69 +606,72 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 	if len(new_files) == 0:
 		return
 
-	existence_text = ['[ ]', '[*]']
-	for filename in new_files:
-		without_suffix = filename[:-(len(slackroll_new_suffix))]
-		basenew = os.path.basename(filename)
-		baseold = os.path.basename(without_suffix)
+	existence_text = ' *'
+	for newfile in new_files:
+		oldfile = newfile[:-(len(slackroll_new_suffix))]
+		basenew = os.path.basename(newfile)
+		baseold = os.path.basename(oldfile)
 
-		next = 'Review next pair'
+		# Option texts
+		go_next = 'Review next pair'
 		remove_new = 'rm %s' % basenew
 		rename_new = 'mv %s %s' % (basenew, baseold)
-		vimdiff = 'vimdiff %s %s' % (baseold, basenew)
+		run_vimdiff = 'vimdiff %s %s' % (baseold, basenew)
 		visual_new = '$VISUAL %s' % basenew
 		visual_old = '$VISUAL %s' % baseold
 
-		# Different options depending on which files exist
+		# Work on the same pair until user tells us to break
 		while True:
 			try:
-				new_exists = os.path.exists(filename)
-				old_exists = os.path.exists(without_suffix)
+				new_exists = os.path.exists(newfile)
+				old_exists = os.path.exists(oldfile)
 			except (OSError, IOError):
-				sys.stderr.write('Error: unable to review state of %s\n' % filename)
+				sys.stderr.write('Error: unable to review state of %s\n' % newfile)
 				break
 
-			print '\nReviewing %s' % filename
-			print '    %s %s' % (existence_text[old_exists], baseold)
-			print '    %s %s' % (existence_text[new_exists], basenew)
+			print '\nReviewing %s' % newfile
+			print '    [%s] %s' % (existence_text[old_exists], baseold)
+			print '    [%s] %s' % (existence_text[new_exists], basenew)
+
+			# Different options depending on which files exist
 			if new_exists:
 				if old_exists:
 					# Both exist
-					options = [next, remove_new, rename_new, vimdiff]
+					options = [go_next, remove_new, rename_new, run_vimdiff]
 					chosen = choose_option(options)
 					if chosen == 0:
 						break
 					elif chosen == 1:
-						print 'Removing %s ...' % filename
-						try_to_remove(filename, fatal=False)
+						print 'Removing %s ...' % newfile
+						try_to_remove(newfile, fatal=False)
 					elif chosen == 2:
-						print 'Renaming %s ...' % filename
-						try_to_rename(filename, without_suffix, fatal=False)
+						print 'Renaming %s ...' % newfile
+						try_to_rename(newfile, oldfile, fatal=False)
 					else:
-						run_vimdiff_on(without_suffix, filename)
+						run_vimdiff_on(oldfile, newfile)
 				else:
 					# Only .new file exists
-					options = [next, rename_new, visual_new]
+					options = [go_next, rename_new, visual_new]
 					chosen = choose_option(options)
 					if chosen == 0:
 						break
 					if chosen == 1:
-						print 'Renaming %s ...' % filename
-						try_to_rename(filename, without_suffix, fatal=False)
+						print 'Renaming %s ...' % newfile
+						try_to_rename(newfile, oldfile, fatal=False)
 					else:
-						run_visual_on(filename)
+						run_visual_on(newfile)
 			else:
 				if old_exists:
 					# Only old file exists
-					options = [next, visual_old]
+					options = [go_next, visual_old]
 					chosen = choose_option(options)
 					if chosen == 0:
 						break
 					else:
-						run_visual_on(without_suffix)
+						run_visual_on(oldfile)
 				else:
 					# None exists
-					options = [next]
+					options = [go_next]
 					chosen = choose_option(options)
 					break
 
