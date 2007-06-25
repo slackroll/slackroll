@@ -612,25 +612,35 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 	if len(new_files) == 0:
 		return
 
-	existence_text = ['DOES NOT EXIST', 'EXISTS']
+	existence_text = ['[ ]', '[*]']
 	for filename in new_files:
+		without_suffix = filename[:-(len(slackroll_new_suffix))]
+		basenew = os.path.basename(filename)
+		baseold = os.path.basename(without_suffix)
+
+		next = 'Next, please'
+		remove_new = 'rm %s' % basenew
+		rename_new = 'mv %s %s' % (basenew, baseold)
+		vimdiff = 'vimdiff %s %s' % (baseold, basenew)
+		visual_new = '$VISUAL %s' % basenew
+		visual_old = '$VISUAL %s' % baseold
+
 		# Different options depending on which files exist
 		while True:
 			try:
-				without_suffix = filename[:-(len(slackroll_new_suffix))]
 				new_exists = os.path.exists(filename)
 				old_exists = os.path.exists(without_suffix)
 			except (OSError, IOError):
 				sys.stderr.write('Error: unable to review state of %s\n' % filename)
 				break
 
-			print '\nReviewing pair of files:'
-			print '    %s %s' % (without_suffix, existence_text[old_exists])
-			print '    %s %s' % (filename, existence_text[new_exists])
+			print '\nReviewing %s' % filename
+			print '    %s %s' % (existence_text[old_exists], baseold)
+			print '    %s %s' % (existence_text[new_exists], basenew)
 			if new_exists:
 				if old_exists:
 					# Both exist
-					options = ['Be done and review next pair', 'Remove .new file', 'Rename .new as old', 'Edit both in vimdiff']
+					options = [next, remove_new, rename_new, vimdiff]
 					chosen = choose_option(options)
 					if chosen == 0:
 						break
@@ -644,7 +654,7 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 						run_vimdiff_on(without_suffix, filename)
 				else:
 					# Only .new file exists
-					options = ['Be done and review next pair', 'Strip .new suffix', 'Edit existing file in $VISUAL']
+					options = [next, rename_new, visual_new]
 					chosen = choose_option(options)
 					if chosen == 0:
 						break
@@ -656,7 +666,7 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 			else:
 				if old_exists:
 					# Only old file exists
-					options = ['Be done and review next pair', 'Edit existing file in $VISUAL']
+					options = [next, visual_old]
 					chosen = choose_option(options)
 					if chosen == 0:
 						break
@@ -664,11 +674,11 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 						run_visual_on(without_suffix)
 				else:
 					# None exists
-					options = ['Be done and review next pair']
+					options = [next]
 					chosen = choose_option(options)
 					break
 
-	print '\nNo more pairs to review'
+	print '\nNo more files to review'
 
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	print 'Updating persistent database...'
