@@ -258,8 +258,7 @@ def get_version_from_mirror(mirror): # Extract slackware version from mirror URL
 
 def run_pager_on(file_path): # Does not exit on errors
 	try:
-		proc = subprocess.Popen(['less', file_path])
-		proc.wait()
+		subprocess.call(['less', file_path])
 	except OSError:
 		sys.stderr.write('Error: unable to run "less" on %s\n' % file_path)
 		raise SlackRollError('OSError running pager on %s' % file_path)
@@ -270,15 +269,13 @@ def run_visual_on(file_path): # Does not exit on errors
 		sys.stderr.write('Error: VISUAL environment variable not set\n')
 		return
 	try:
-		proc = subprocess.Popen([visual, file_path])
-		proc.wait()
+		subprocess.call([visual, file_path])
 	except OSError:
 		sys.stderr.write('Error: unable to run %s on %s\n' % (visual, file_path))
 
 def run_vimdiff_on(oldfile, newfile): # Does not exit on errors
 	try:
-		proc = subprocess.Popen(['vimdiff', oldfile, newfile])
-		proc.wait()
+		subprocess.call(['vimdiff', oldfile, newfile])
 	except OSError:
 		sys.stderr.write('Error: unable to run vimdiff on %s and %s\n' % (oldfile, newfile))
 
