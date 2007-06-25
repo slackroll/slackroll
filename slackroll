@@ -1289,9 +1289,9 @@ try:
 	
 except (KeyboardInterrupt, IOError), error:
 	if isinstance(error, KeyboardInterrupt):
-		print '\nProgram aborted by user'
+		sys.stderr.write('\nProgram aborted by user\n')
 	else:
-		print '\nIOError: Broken pipe?'
+		sys.stderr.write('\nIOError: Broken pipe?\n')
 	if persistent_list is not None:
 		persistent_list.close()
 	sys.exit(slackroll_exit_failure)
