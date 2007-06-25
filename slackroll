@@ -264,6 +264,24 @@ def run_pager_on(file_path): # Does not exit on errors
 		sys.stderr.write('Error: unable to run "less" on %s\n' % file_path)
 		raise SlackRollError('OSError running pager on %s' % file_path)
 
+def run_visual_on(file_path): # Does not exit on errors
+	visual = os.getenv('VISUAL')
+	if visual is None:
+		sys.stderr.write('Error: VISUAL environment variable not set\n')
+		return
+	try:
+		proc = subprocess.Popen([visual, file_path])
+		proc.wait()
+	except OSError:
+		sys.stderr.write('Error: unable to run %s on %s\n' % (visual, file_path))
+
+def run_vimdiff_on(oldfile, newfile): # Does not exit on errors
+	try:
+		proc = subprocess.Popen(['vimdiff', oldfile, newfile])
+		proc.wait()
+	except OSError:
+		sys.stderr.write('Error: unable to run vimdiff on %s and %s\n' % (oldfile, newfile))
+
 def filelist_total_size(path_list): # Examine FILELIST.TXT and sum file sizes
 	try:
 		total = 0
@@ -278,13 +296,25 @@ def filelist_total_size(path_list): # Examine FILELIST.TXT and sum file sizes
 	except IOError:
 		sys.exit('Error: could not read %s' % slackroll_filelist_filename)
 
-def try_to_remove(file_path):
+def try_to_remove(file_path, fatal=True):
 	if not os.path.exists(file_path):
 		return
 	try:
 		os.remove(file_path)
 	except OSError:
-		sys.exit('Error: unable to remove %s' % file_path)
+		sys.stderr.write('Error: unable to remove %s\n' % file_path)
+		if fatal:
+			sys.exit(slackroll_exit_failure)
+
+def try_to_rename(src, dest, fatal=True):
+	if not os.path.exists(src):
+		return
+	try:
+		os.rename(src, dest)
+	except OSError:
+		sys.stderr.write('Error: unable to rename %s to %s\n' % (src, dest))
+		if fatal:
+			sys.exit(slackroll_exit_failure)
 
 def download_report_hook(filename, numblocks, blocksize, totalsize): # Callback for urllib.urlretrieve()
 	if totalsize == -1:
@@ -572,7 +602,7 @@ def extract_file_list(filename):
 def equiv_local_pkg(pkg): # Converts a package to the equivalent local package
 	return SlackwarePackage(pkg.name(), pkg.version(), pkg.arch(), pkg.build(), slackroll_local_pkgs_dir, '')
 
-def new_files_report(package_list): # Prints a report on .new files
+def handle_dotnew_files(package_list): # Handles .new files present in packages
 	local_files = [equiv_local_pkg(x).fullname() for x in package_list]
 	new_files = []
 	for filename in local_files:
@@ -582,18 +612,63 @@ def new_files_report(package_list): # Prints a report on .new files
 	if len(new_files) == 0:
 		return
 
-	presence = ' *'
-	print 'Files with %s suffix:' % slackroll_new_suffix
+	existence_text = ['DOES NOT EXIST', 'EXISTS']
 	for filename in new_files:
-		try:
-			without_suffix = filename[:-(len(slackroll_new_suffix))]
-			suffix_presence = presence[os.path.exists(filename)]
-			nosuffix_presence = presence[os.path.exists(without_suffix)]
-			print '    [%s%s] %s' % (nosuffix_presence, suffix_presence, filename)
-		except (OSError, IOError):
-			sys.exit('Error: unable to check if %s exists' % filename)
-	print 'End of list.'
-	print 'Asterisks indicate existence of old and new files.'
+		# Different options depending on which files exist
+		while True:
+			try:
+				without_suffix = filename[:-(len(slackroll_new_suffix))]
+				new_exists = os.path.exists(filename)
+				old_exists = os.path.exists(without_suffix)
+			except (OSError, IOError):
+				sys.stderr.write('Error: unable to review state of %s\n' % filename)
+				break
+
+			print '\nReviewing pair of files:'
+			print '    %s %s' % (without_suffix, existence_text[old_exists])
+			print '    %s %s' % (filename, existence_text[new_exists])
+			if new_exists:
+				if old_exists:
+					# Both exist
+					options = ['Be done and review next pair', 'Remove .new file', 'Rename .new as old', 'Edit both in vimdiff']
+					chosen = choose_option(options)
+					if chosen == 0:
+						break
+					elif chosen == 1:
+						print 'Removing %s ...' % filename
+						try_to_remove(filename, fatal=False)
+					elif chosen == 2:
+						print 'Renaming %s ...' % filename
+						try_to_rename(filename, without_suffix, fatal=False)
+					else:
+						run_vimdiff_on(without_suffix, filename)
+				else:
+					# Only .new file exists
+					options = ['Be done and review next pair', 'Strip .new suffix', 'Edit existing file in $VISUAL']
+					chosen = choose_option(options)
+					if chosen == 0:
+						break
+					if chosen == 1:
+						print 'Renaming %s ...' % filename
+						try_to_rename(filename, without_suffix, fatal=False)
+					else:
+						run_visual_on(filename)
+			else:
+				if old_exists:
+					# Only old file exists
+					options = ['Be done and review next pair', 'Edit existing file in $VISUAL']
+					chosen = choose_option(options)
+					if chosen == 0:
+						break
+					else:
+						run_visual_on(without_suffix)
+				else:
+					# None exists
+					options = ['Be done and review next pair']
+					chosen = choose_option(options)
+					break
+
+	print '\nNo more pairs to review'
 
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	print 'Updating persistent database...'
@@ -923,7 +998,7 @@ try:
 		for pkg in chosen_pkgs:
 			action(pkg)
 		if operation == 'upgrade':
-			new_files_report(chosen_pkgs)
+			handle_dotnew_files(chosen_pkgs)
 		sys.exit()
 
 	if operation == 'clean-cache':
@@ -1152,7 +1227,7 @@ try:
 			for pkg in chosen_pkgs:
 				action(pkg)
 			if operation in ['install', 'reinstall']:
-				new_files_report(chosen_pkgs)
+				handle_dotnew_files(chosen_pkgs)
 		else:	# info operation
 			for pkg in chosen_pkgs:
 				name = pkg.name()
