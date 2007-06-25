@@ -375,8 +375,7 @@ def get_mtime_or_exit(path):
 def import_key(filename):
 	try:
 		print 'Importing keys from %s ...' % filename
-		proc = subprocess.Popen(['gpg', '--import', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
-		retcode = proc.wait()
+		retcode = subprocess.call(['gpg', '--import', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
 		if retcode != 0:
 			raise OSError
 	except OSError:
@@ -385,8 +384,7 @@ def import_key(filename):
 def verify_signature(filename):	# Does not exit on errors
 	try:
 		print 'Verifying signature %s ... ' % filename
-		proc = subprocess.Popen(['gpg', '--verify', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
-		retcode = proc.wait()
+		retcode = subprocess.call(['gpg', '--verify', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
 		if retcode != 0:
 			sys.stderr.write('Error: bad signature\n')
 			raise SlackRollError('GnuPG exited with status code %s' % retcode)
@@ -397,8 +395,7 @@ def verify_signature(filename):	# Does not exit on errors
 def upgrade_or_install(filename, reinstall):
 	try:
 		print 'Installing %s ...' % filename
-		proc = subprocess.Popen(['/sbin/upgradepkg', '--install-new'] + (reinstall and ['--reinstall'] or []) + [filename])
-		retcode = proc.wait()
+		retcode = subprocess.call(['/sbin/upgradepkg', '--install-new'] + (reinstall and ['--reinstall'] or []) + [filename])
 		if retcode != 0:
 			sys.exit('Error: installation failed: %s' % filename)
 	except OSError:
