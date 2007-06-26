@@ -605,7 +605,7 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 	if len(new_files) == 0:
 		return
 
-	existence_text = ' *'
+	existence_text = ['MISSING', 'FOUND  ']
 	for newfile in new_files:
 		oldfile = newfile[:-(len(slackroll_new_suffix))]
 		basenew = os.path.basename(newfile)
@@ -629,8 +629,8 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 				break
 
 			print '\nReviewing %s' % newfile
-			print '    [%s] %s' % (existence_text[old_exists], baseold)
-			print '    [%s] %s' % (existence_text[new_exists], basenew)
+			print '    %s  %s' % (existence_text[old_exists], baseold)
+			print '    %s  %s' % (existence_text[new_exists], basenew)
 
 			# Different options depending on which files exist
 			if new_exists:
