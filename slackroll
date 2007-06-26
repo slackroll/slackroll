@@ -288,6 +288,8 @@ def filelist_total_size(path_list): # Examine FILELIST.TXT and sum file sizes
 					total += long(line.split()[4])
 					del plist[pos]
 					break
+		if len(plist) > 0:
+			sys.exit('Error: unable to get size for every package')
 		return total
 	except IOError:
 		sys.exit('Error: could not read %s' % slackroll_filelist_filename)
