@@ -384,7 +384,7 @@ def import_key(filename):
 
 def verify_signature(filename):	# Does not exit on errors
 	try:
-		print 'Verifying signature %s ... ' % filename
+		print 'Verifying signature %s ... ' % os.path.basename(filename)
 		retcode = subprocess.call(['gpg', '--verify', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
 		if retcode != 0:
 			sys.stderr.write('Error: bad signature\n')
@@ -395,7 +395,7 @@ def verify_signature(filename):	# Does not exit on errors
 
 def upgrade_or_install(filename, reinstall):
 	try:
-		print 'Installing %s ...' % filename
+		print 'Installing %s ...' % os.path.basename(filename)
 		retcode = subprocess.call(['/sbin/upgradepkg', '--install-new'] + (reinstall and ['--reinstall'] or []) + [filename])
 		if retcode != 0:
 			sys.exit('Error: installation failed: %s' % filename)
