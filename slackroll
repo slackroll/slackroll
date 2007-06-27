@@ -1256,15 +1256,13 @@ try:
 				regexp = re.compile(retxt)
 			except re.error:
 				sys.exit('Error: invalid regular expression: %s' % retxt)
-			print '    %s:' % retxt
+			print 'Searching for "%s":' % retxt
 			names = [x for x in persistent_list if regexp.search(x) is not None]
 			names.sort(cmp=pkg_cmp)
-			for name in names:
-				results = True
-				print '\t%s (%s)' % (name, slackroll_state_strings[persistent_list[name]])
-			if not results:
-				print '\t(No results)'
-			print
+			if len(names) == 0:
+				print '    (No results)\n'
+				continue
+			print ''.join(['    %s (%s)\n' % (x, slackroll_state_strings[persistent_list[x]]) for x in names])
 		sys.exit()
 	
 	if operation == 'path-search':
