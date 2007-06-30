@@ -945,6 +945,7 @@ try:
 				print '    (No results)\n'
 		sys.exit()
 	
+	# Some operations below need to have the temporary directory available to download stuff
 	handle_writable_dir(get_temp_dir())
 
 	if operation == 'update':
