@@ -27,7 +27,7 @@ slackroll_pkg_re_arch_group = 4
 slackroll_pkg_re_build_group = 5
 slackroll_pkg_re_suffix_group = 6
 
-slackroll_default_temp_dir = '/tmp'
+slackroll_default_temp_dir = './tmp'
 slackroll_packages_dir_all_glob = './packages/*'
 slackroll_packages_dir_glob = '%s.tgz' % slackroll_packages_dir_all_glob
 slackroll_packages_dir = os.path.dirname(slackroll_packages_dir_glob)
@@ -378,7 +378,7 @@ def handle_writable_dir(dirname): # Make sure dirname is available and writable
 			sys.exit('Error: cannot create directory %s' % dirname)
 	if not os.path.isdir(dirname):
 		sys.exit('Error: %s exists but is not a directory' % dirname)
-	if not os.access(dirname, os.R_OK | os.W_OK | os.X_OK):
+	if not os.access(dirname, os.R_OK | os.W_OK):
 		sys.exit('Error: wrong permissions for directory %s' % dirname)
 
 def get_mtime_or_exit(path):
@@ -905,18 +905,6 @@ try:
 		print 'SlackRoll v%s' % slackroll_version
 		sys.exit()
 
-	if operation == 'update':
-		mirror = get_mirror()
-		download_or_exit(mirror, slackroll_filelist_filename, '.')
-		update_changelog(mirror)
-		sys.exit()
-
-	if operation == 'import-key':
-		download_or_exit(get_mirror(), slackroll_gpgkey_filename, '.')
-		import_key(slackroll_gpgkey_filename)
-		try_to_remove(slackroll_gpgkey_filename)
-		sys.exit()
-
 	if operation in ['pb-search', 'remote-search']:
 		slackver = get_version_from_mirror(get_mirror())
 		(scheme, netloc, path, parameters, query, fragment) = urlparse.urlparse(slackroll_pb_template_url)
@@ -955,6 +943,20 @@ try:
 					print
 			if not results:
 				print '    (No results)\n'
+		sys.exit()
+	
+	handle_writable_dir(get_temp_dir())
+
+	if operation == 'update':
+		mirror = get_mirror()
+		download_or_exit(mirror, slackroll_filelist_filename, '.')
+		update_changelog(mirror)
+		sys.exit()
+
+	if operation == 'import-key':
+		download_or_exit(get_mirror(), slackroll_gpgkey_filename, '.')
+		import_key(slackroll_gpgkey_filename)
+		try_to_remove(slackroll_gpgkey_filename)
 		sys.exit()
 
 	# Every operation below needs an updated persistent database
