@@ -595,7 +595,7 @@ def extract_file_list(filename):
 		sys.exit('Error: unable to read contents from %s' % filename)
 
 def equiv_local_pkg(pkg): # Converts a package to the equivalent local package
-	return SlackwarePackage(pkg.name(), pkg.version(), pkg.arch(), pkg.build(), slackroll_local_pkgs_dir, '')
+	return SlackwarePackage(pkg.name(), pkg.version(), pkg.arch(), pkg.build(), slackroll_local_pkgs_dir, None)
 
 def handle_dotnew_files(package_list): # Handles .new files present in packages
 	local_files = [equiv_local_pkg(x).fullname() for x in package_list]
