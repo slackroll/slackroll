@@ -114,12 +114,12 @@ class SlackwarePackage(object):
 		return self.__suffix
 
 	@property
-	def shortname(self):
+	def idname(self):
 		return '%s-%s-%s-%s' % (self.name, self.version, self.arch, self.build)
 
 	@property
 	def archivename(self):
-		return '%s.tgz' % self.shortname
+		return '%s.tgz' % self.idname
 
 	@property
 	def fullname(self):
@@ -436,7 +436,7 @@ def download_verify(mirror, package): # Download package, signature and verify i
 			return None
 		try_to_remove(local_sig)
 	else:
-		print 'Package %s found in cache' % package.shortname
+		print 'Package %s found in cache' % package.idname
 	
 	return local_name
 
@@ -1002,7 +1002,7 @@ try:
 			if len(candidates) == 1:
 				chosen_pkgs.append(candidates[0])
 			else:
-				print 'Local: %s' % local_list[name].shortname
+				print 'Local: %s' % local_list[name].idname
 				chosen = choose_pkg(candidates)
 				if chosen is not None:
 					chosen_pkgs.append(chosen)
@@ -1080,7 +1080,7 @@ try:
 			if slackroll_glibc_indicator in name:
 				glibc_affected = True
 			print '    %s:' % name
-			print '\tLocal:\t%s' % local_list[name].shortname
+			print '\tLocal:\t%s' % local_list[name].idname
 			for other in candidates:
 				print '\tRemote:\t%s' % other.fullname
 			print
@@ -1173,7 +1173,7 @@ try:
 				continue
 			print '    %s:' % name
 			if name in local_list:
-				print '\tLocal:\t%s' % local_list[name].shortname
+				print '\tLocal:\t%s' % local_list[name].idname
 			if name in remote_list:
 				for ver in remote_list[name]:
 					print '\tRemote:\t%s' % ver.fullname
@@ -1213,7 +1213,7 @@ try:
 					chosen_pkgs.append(local_list[name])
 				else:
 					if name not in remote_list or pkg not in remote_list[name]:
-						sys.exit('Error: unable to find remote package %s' % pkg.shortname)
+						sys.exit('Error: unable to find remote package %s' % pkg.idname)
 					chosen_pkgs.append([x for x in remote_list[name] if x == pkg][0])
 			else:
 				# Only generic name given
@@ -1227,7 +1227,7 @@ try:
 						chosen_pkgs.append(candidates[0])
 					else:
 						if name in local_list:
-							print 'Local: %s' % local_list[name].shortname
+							print 'Local: %s' % local_list[name].idname
 						chosen = choose_pkg(candidates)
 						if chosen is not None:
 							chosen_pkgs.append(chosen)
