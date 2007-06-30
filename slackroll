@@ -14,7 +14,7 @@ import sys
 import urllib
 import urlparse
 
-slackroll_version = 9
+slackroll_version = 10
 
 slackroll_exit_failure = 1
 slackroll_exit_success = 0
@@ -70,7 +70,7 @@ slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?
 class SlackRollError(Exception):
 	pass
 
-class SlackwarePackage:
+class SlackwarePackage(object):
 	__name = None
 	__version = None
 	__arch = None
@@ -89,32 +89,41 @@ class SlackwarePackage:
 	def __eq__(self, other):
 		return self.__name == other.__name and self.__version == other.__version and self.__arch == other.__arch and self.__build == other.__build
 
-	def shortname(self):
-		return '%s-%s-%s-%s' % (self.__name, self.__version, self.__arch, self.__build)
-
-	def archivename(self):
-		return '%s.tgz' % self.shortname()
-
-	def fullname(self):
-		return os.path.join(self.__path, '%s-%s-%s-%s%s' % (self.__name, self.__version, self.__arch, self.__build, self.__suffix))
-
+	@property
 	def name(self):
 		return self.__name
 
+	@property
 	def version(self):
 		return self.__version
 
+	@property
 	def arch(self):
 		return self.__arch
 
+	@property
 	def build(self):
 		return self.__build
 
+	@property
 	def path(self):
 		return self.__path
 
+	@property
 	def suffix(self):
 		return self.__suffix
+
+	@property
+	def shortname(self):
+		return '%s-%s-%s-%s' % (self.name, self.version, self.arch, self.build)
+
+	@property
+	def archivename(self):
+		return '%s.tgz' % self.shortname
+
+	@property
+	def fullname(self):
+		return os.path.join(self.path, '%s-%s-%s-%s%s' % (self.name, self.version, self.arch, self.build, self.suffix))
 
 class SlackRollURLopener(urllib.FancyURLopener):
 	def http_error_default(self, url, fp, errcode, errmsg, headers):
@@ -205,7 +214,7 @@ def get_local_list(forced_rebuild): # Return list of local packages from cache, 
 		print 'Rebuilding local package cache...'
 		local_list = dict()
 		for pkg in get_local_pkgs():
-			local_list[pkg.name()] = pkg
+			local_list[pkg.name] = pkg
 		try_dump(local_list, slackroll_locallist_filename)
 	return try_load(slackroll_locallist_filename)
 
@@ -225,8 +234,8 @@ def get_remote_list(forced_rebuild): # Return list of remote packages from cache
 		has_patch = dict()
 		for pkg in get_remote_pkgs():
 			# Mark packages with patches
-			name = pkg.name()
-			if slackroll_patch_indicator in pkg.path():
+			name = pkg.name
+			if slackroll_patch_indicator in pkg.path:
 				has_patch[name] = True
 			value = remote_list.get(name, [])
 			value.append(pkg)
@@ -403,13 +412,13 @@ def upgrade_or_install(filename, reinstall):
 		sys.exit('Error: unable to install %s' % filename)
 
 def package_in_cache(package): # Check if package is in ./packages
-	filepath = os.path.join(slackroll_packages_dir, package.archivename())
+	filepath = os.path.join(slackroll_packages_dir, package.archivename)
 	return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
 
 def download_verify(mirror, package): # Download package, signature and verify it
-	remote_name = package.fullname()
+	remote_name = package.fullname
 	remote_sig = '%s%s' % (remote_name, slackroll_signature_suffix)
-	local_name = os.path.join(slackroll_packages_dir, package.archivename())
+	local_name = os.path.join(slackroll_packages_dir, package.archivename)
 	local_sig = '%s%s' % (local_name, slackroll_signature_suffix)
 
 	if not package_in_cache(package):
@@ -427,7 +436,7 @@ def download_verify(mirror, package): # Download package, signature and verify i
 			return None
 		try_to_remove(local_sig)
 	else:
-		print 'Package %s found in cache' % package.shortname()
+		print 'Package %s found in cache' % package.shortname
 	
 	return local_name
 
@@ -439,7 +448,7 @@ def download_verify_install(mirror, package, reinstall=False):
 
 def download_display_info(mirror, package): # Downloads info file and sends it to the pager
 	suffix_len = len(slackroll_info_suffix)
-	remote_file = package.fullname()[:-suffix_len] + slackroll_info_suffix
+	remote_file = package.fullname[:-suffix_len] + slackroll_info_suffix
 	local_file = os.path.basename(remote_file)
 	download_or_exit(mirror, remote_file, '.')
 	try:
@@ -486,7 +495,7 @@ def update_changelog(mirror):
 
 
 def print_urls(mirror, package):
-	url = urlparse.urljoin(mirror, package.fullname())
+	url = urlparse.urljoin(mirror, package.fullname)
 	print url
 	print '%s%s' % (url, slackroll_signature_suffix)
 
@@ -509,7 +518,7 @@ def choose_option(option_list): # Prompt user and return option index
 
 def choose_pkg(pkg_list): # Returns chosen package or None
 	options_pkg = [None] + pkg_list
-	options_text = ['None'] + [x.fullname() for x in pkg_list]
+	options_text = ['None'] + [x.fullname for x in pkg_list]
 	chosen = choose_option(options_text)
 	return options_pkg[chosen]
 
@@ -520,10 +529,10 @@ def confirm_continue():
 		pass
 
 def not_pasture(pkg_list): # Returns packages not in pasture
-	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path()]
+	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path]
 
 def not_main(pkg_list): # Returns packages not in the main tree
-	return [x for x in pkg_list if slackroll_main_indicator not in x.path()]
+	return [x for x in pkg_list if slackroll_main_indicator not in x.path]
 
 def print_in_states(states, persistent_list, header): # Print package name if its state matches
 	print header
@@ -595,10 +604,10 @@ def extract_file_list(filename):
 		sys.exit('Error: unable to read contents from %s' % filename)
 
 def equiv_local_pkg(pkg): # Converts a package to the equivalent local package
-	return SlackwarePackage(pkg.name(), pkg.version(), pkg.arch(), pkg.build(), slackroll_local_pkgs_dir, None)
+	return SlackwarePackage(pkg.name, pkg.version, pkg.arch, pkg.build, slackroll_local_pkgs_dir, None)
 
 def handle_dotnew_files(package_list): # Handles .new files present in packages
-	local_files = [equiv_local_pkg(x).fullname() for x in package_list]
+	local_files = [equiv_local_pkg(x).fullname for x in package_list]
 	new_files = []
 	for filename in local_files:
 		new_files.extend([x for x in extract_file_list(filename) if x.endswith(slackroll_new_suffix)])
@@ -993,12 +1002,12 @@ try:
 			if len(candidates) == 1:
 				chosen_pkgs.append(candidates[0])
 			else:
-				print 'Local: %s' % local_list[name].shortname()
+				print 'Local: %s' % local_list[name].shortname
 				chosen = choose_pkg(candidates)
 				if chosen is not None:
 					chosen_pkgs.append(chosen)
 		
-		print 'Total size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
+		print 'Total size: %sk' % kibi(filelist_total_size([x.fullname for x in chosen_pkgs]))
 		if operation == 'upgrade':
 			action = lambda x: download_verify_install(mirror, x)
 		elif operation == 'download-upgrades':
@@ -1024,11 +1033,11 @@ try:
 				extraneous_files.append(elem) # Incorrect .tgz files are also extraneous
 
 		for pkg in cache_pkgs:
-			name = pkg.name()
+			name = pkg.name
 			if (name in local_list and local_list[name] == pkg) or (name in remote_list and pkg in remote_list[name]):
 				continue
-			print 'Removing %s ...' % pkg.fullname()
-			try_to_remove(pkg.fullname())
+			print 'Removing %s ...' % pkg.fullname
+			try_to_remove(pkg.fullname)
 
 		extraneous_files.sort()
 		for elem in extraneous_files:
@@ -1071,9 +1080,9 @@ try:
 			if slackroll_glibc_indicator in name:
 				glibc_affected = True
 			print '    %s:' % name
-			print '\tLocal:\t%s' % local_list[name].shortname()
+			print '\tLocal:\t%s' % local_list[name].shortname
 			for other in candidates:
-				print '\tRemote:\t%s' % other.fullname()
+				print '\tRemote:\t%s' % other.fullname
 			print
 		print 'End of list.'
 		if glibc_affected:
@@ -1093,7 +1102,7 @@ try:
 			if len(versions) > 1:
 				print '    %s:' % name
 				for ver in versions:
-					print '\t%s' % ver.fullname()
+					print '\t%s' % ver.fullname
 				print
 		print 'End of list.'
 		sys.exit()
@@ -1164,10 +1173,10 @@ try:
 				continue
 			print '    %s:' % name
 			if name in local_list:
-				print '\tLocal:\t%s' % local_list[name].shortname()
+				print '\tLocal:\t%s' % local_list[name].shortname
 			if name in remote_list:
 				for ver in remote_list[name]:
-					print '\tRemote:\t%s' % ver.fullname()
+					print '\tRemote:\t%s' % ver.fullname
 			print
 		print 'End of list.'
 		sys.exit()
@@ -1189,7 +1198,7 @@ try:
 			# Decide the type of argument
 			try:
 				pkg = pkg_from_str(arg)
-				name = pkg.name()
+				name = pkg.name
 				is_full = True
 			except SlackRollError:
 				name = arg
@@ -1204,7 +1213,7 @@ try:
 					chosen_pkgs.append(local_list[name])
 				else:
 					if name not in remote_list or pkg not in remote_list[name]:
-						sys.exit('Error: unable to find remote package %s' % pkg.shortname())
+						sys.exit('Error: unable to find remote package %s' % pkg.shortname)
 					chosen_pkgs.append([x for x in remote_list[name] if x == pkg][0])
 			else:
 				# Only generic name given
@@ -1218,14 +1227,14 @@ try:
 						chosen_pkgs.append(candidates[0])
 					else:
 						if name in local_list:
-							print 'Local: %s' % local_list[name].shortname()
+							print 'Local: %s' % local_list[name].shortname
 						chosen = choose_pkg(candidates)
 						if chosen is not None:
 							chosen_pkgs.append(chosen)
 	
 		# After selecting the packages, run the requested operation on them
 		if operation in ['install', 'reinstall', 'download', 'urls']:
-			print 'Total size: %sk' % kibi(filelist_total_size([x.fullname() for x in chosen_pkgs]))
+			print 'Total size: %sk' % kibi(filelist_total_size([x.fullname for x in chosen_pkgs]))
 			if operation == 'install':
 				action = lambda x: download_verify_install(mirror, x)
 			elif operation == 'reinstall':
@@ -1240,10 +1249,10 @@ try:
 				handle_dotnew_files(chosen_pkgs)
 		else:	# info operation
 			for pkg in chosen_pkgs:
-				name = pkg.name()
+				name = pkg.name
 				if name in local_list and local_list[name] == pkg:
 					try:
-						info_file = local_list[name].fullname()
+						info_file = local_list[name].fullname
 						run_pager_on(info_file)
 					except SlackRollError:
 						sys.exit('Error: unable to run pager on %s' % info_file)
@@ -1277,7 +1286,7 @@ try:
 			except re.error:
 				sys.exit('Error: invalid regular expression: %s' % retxt)
 			print 'Searching for "%s":' % retxt
-			matching_fullnames = [x.fullname() for x in all_remotes if regexp.search(x.path()) is not None]
+			matching_fullnames = [x.fullname for x in all_remotes if regexp.search(x.path) is not None]
 			matching_fullnames.sort()
 			if len(matching_fullnames) == 0:
 				print '    (No results)\n'
