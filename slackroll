@@ -27,6 +27,7 @@ slackroll_pkg_re_arch_group = 4
 slackroll_pkg_re_build_group = 5
 slackroll_pkg_re_suffix_group = 6
 
+slackroll_default_temp_dir = '/tmp'
 slackroll_packages_dir_all_glob = './packages/*'
 slackroll_packages_dir_glob = '%s.tgz' % slackroll_packages_dir_all_glob
 slackroll_packages_dir = os.path.dirname(slackroll_packages_dir_glob)
@@ -160,6 +161,10 @@ def pkg_cmp(name1, name2):
 	if idx2 == -1:
 		return -1
 	return (idx1 - idx2)
+
+def get_temp_dir():
+	tempdir = os.getenv('TMPDIR')
+	return (tempdir is None and slackroll_default_temp_dir or tempdir)
 
 def kibi(bytes):
 	return (bytes / 1024)
@@ -355,7 +360,7 @@ def download_file(mirror, filepath, local_temp, local_final): # Does not exit on
 
 def download(mirror, filepath, localdir): # Wrapper that does NOT exit on errors
 	name = os.path.basename(filepath)
-	localtemp = os.path.join(localdir, '%s%s' % (name, slackroll_temp_suffix))
+	localtemp = os.path.join(get_temp_dir(), '%s%s' % (name, slackroll_temp_suffix))
 	localfinal = os.path.join(localdir, name)
 	download_file(mirror, filepath, localtemp, localfinal)
 
@@ -416,29 +421,28 @@ def package_in_cache(package): # Check if package is in ./packages
 	return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
 
 def download_verify(mirror, package): # Download package, signature and verify it
+	tempdir = get_temp_dir()
 	remote_name = package.fullname
 	remote_sig = '%s%s' % (remote_name, slackroll_signature_suffix)
-	local_name = os.path.join(slackroll_packages_dir, package.archivename)
+	local_name = os.path.join(tempdir, package.archivename)
 	local_sig = '%s%s' % (local_name, slackroll_signature_suffix)
+	local_final = os.path.join(slackroll_packages_dir, package.archivename)
 
 	if not package_in_cache(package):
 		try:
-			download(mirror, remote_name, slackroll_packages_dir)
-			download(mirror, remote_sig, slackroll_packages_dir)
+			download(mirror, remote_name, tempdir)
+			download(mirror, remote_sig, tempdir)
 			verify_signature(local_sig)
-		except KeyboardInterrupt: # Watch out! We can't be sure the package is safe
-			try_to_remove(local_name)
-			try_to_remove(local_sig)
-			raise KeyboardInterrupt
 		except SlackRollError:
 			try_to_remove(local_name)
 			try_to_remove(local_sig)
 			return None
 		try_to_remove(local_sig)
+		try_to_rename(local_name, local_final)
 	else:
 		print 'Package %s found in cache' % package.idname
 	
-	return local_name
+	return local_final
 
 def download_verify_install(mirror, package, reinstall=False):
 	local_name = download_verify(mirror, package)
