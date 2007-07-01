@@ -509,7 +509,9 @@ def choose_option(option_list): # Prompt user and return option index
 		print '    [%s] %s' % (x, option_list[x])
 	while True:
 		try:
-			num = long(raw_input('You choose number... '))
+			sys.stdout.write('You choose number... ')
+			sys.stdout.flush()
+			num = long(raw_input())
 			if num < 0 or num >= len(option_list):
 				raise ValueError
 			break
