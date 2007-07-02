@@ -505,27 +505,28 @@ def print_urls(mirror, package):
 
 def choose_option(option_list): # Prompt user and return option index
 	print 'Choose option:'
-	for x in xrange(len(option_list)):
-		print '    [%s] %s' % (x, option_list[x])
+	for (code, text) in option_list:
+		print '    (%s) %s' % (code, text)
+	codes = [x[0].lower() for x in option_list]
 	while True:
 		try:
-			sys.stdout.write('You choose number... ')
+			sys.stdout.write('You choose option... ')
 			sys.stdout.flush()
-			num = long(raw_input())
-			if num < 0 or num >= len(option_list):
-				raise ValueError
+			chosen = raw_input().lower()
+			if chosen not in codes:
+				continue
 			break
 		except EOFError:
 			print
 			continue
-		except ValueError:
-			continue
-	return num
+	return codes.index(chosen)
 
 def choose_pkg(pkg_list): # Returns chosen package or None
 	options_pkg = [None] + pkg_list
-	options_text = ['None'] + [x.fullname for x in pkg_list]
-	chosen = choose_option(options_text)
+	options = [('0', 'None')]
+	for x in xrange(len(pkg_list)):
+		options.append((str(x + 1), pkg_list[x].fullname))
+	chosen = choose_option(options)
 	return options_pkg[chosen]
 
 def confirm_continue():
@@ -629,12 +630,12 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 		baseold = os.path.basename(oldfile)
 
 		# Option texts
-		go_next = 'Review next pair'
-		remove_new = 'rm %s' % basenew
-		rename_new = 'mv %s %s' % (basenew, baseold)
-		run_vimdiff = 'vimdiff %s %s' % (baseold, basenew)
-		visual_new = '$VISUAL %s' % basenew
-		visual_old = '$VISUAL %s' % baseold
+		go_next = ('X', 'Review next pair')
+		remove_new = ('R', 'rm %s' % basenew)
+		rename_new = ('M', 'mv %s %s' % (basenew, baseold))
+		run_vimdiff = ('V', 'vimdiff %s %s' % (baseold, basenew))
+		visual_new = ('V', '$VISUAL %s' % basenew)
+		visual_old = ('V', '$VISUAL %s' % baseold)
 
 		# Repeating options menu (break when user chooses to review next file)
 		pair_iterations = 0
