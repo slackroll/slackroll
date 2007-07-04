@@ -434,8 +434,8 @@ def download_verify(mirror, package): # Download package, signature and verify i
 			download(mirror, remote_sig, tempdir)
 			verify_signature(local_sig)
 		except SlackRollError:
-			try_to_remove(local_name)
 			try_to_remove(local_sig)
+			try_to_remove(local_name)
 			return None
 		try_to_remove(local_sig)
 		try_to_rename(local_name, local_final)
