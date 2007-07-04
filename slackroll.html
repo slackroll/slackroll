@@ -191,7 +191,11 @@
 		properly without making serious mistakes.</p>
 
 		<p>You should first choose a working directory and a
-		Slackware mirror. Create the directory, change to it and
+		Slackware mirror. Take into account
+		<strong>slackroll</strong> will store downloaded
+		packages in a subdirectory of the chosen one, so you will
+		probably need to have a good amount of space available for
+		them in there. Create the directory, change to it and
 		echo the mirror name to a file named <em>mirror</em>.</p>
 
 		<p><code>echo 'http://slackware.osuosl.org/slackware-current/'
@@ -295,6 +299,10 @@
 		and are copy/paste friendly. Specifying the package
 		version is optional but will make sure you are installing
 		the <em>glibc</em> version you really want.</p>
+
+		<p>Also, remember to run the <em>clean-cache</em> command
+		from time to time to get rid of old and outdated package
+		archives stored in the package cache.</p>
 		
 		<h3>Rolling tree (slackware-current)</h3>
 
