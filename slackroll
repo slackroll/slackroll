@@ -1227,20 +1227,22 @@ try:
 					chosen_pkgs.append([x for x in remote_list[name] if x == pkg][0])
 			else:
 				# Only generic name given
+				if name not in remote_list and operation != 'info':
+					sys.exit('Error: unable to find remote package %s' % name)
+
+				candidates = []
 				if name in local_list and operation == 'info':
-					chosen_pkgs.append(local_list[name])
+					candidates.append(local_list[name])
+				if name in remote_list:
+					candidates.extend([x for x in remote_list[name] if x not in candidates])
+				if len(candidates) == 1:
+					chosen_pkgs.append(candidates[0])
 				else:
-					if name not in remote_list:
-						sys.exit('Error: unable to find remote package %s' % name)
-					candidates = remote_list[name]
-					if len(candidates) == 1:
-						chosen_pkgs.append(candidates[0])
-					else:
-						if name in local_list:
-							print 'Local: %s' % local_list[name].idname
-						chosen = choose_pkg(candidates)
-						if chosen is not None:
-							chosen_pkgs.append(chosen)
+					if name in local_list and operation != 'info':
+						print 'Local: %s' % local_list[name].idname
+					chosen = choose_pkg(candidates)
+					if chosen is not None:
+						chosen_pkgs.append(chosen)
 	
 		# After selecting the packages, run the requested operation on them
 		if operation in ['install', 'reinstall', 'download', 'urls']:
