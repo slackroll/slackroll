@@ -28,9 +28,9 @@ slackroll_pkg_re_build_group = 5
 slackroll_pkg_re_suffix_group = 6
 
 slackroll_default_temp_dir = './tmp'
-slackroll_packages_dir_all_glob = './packages/*'
-slackroll_packages_dir_glob = '%s.tgz' % slackroll_packages_dir_all_glob
-slackroll_packages_dir = os.path.dirname(slackroll_packages_dir_glob)
+slackroll_pkgs_dir_all_glob = './packages/*'
+slackroll_pkgs_dir_glob = '%s.tgz' % slackroll_pkgs_dir_all_glob
+slackroll_pkgs_dir = os.path.dirname(slackroll_pkgs_dir_glob)
 slackroll_local_pkgs_glob = '/var/log/packages/*'
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 slackroll_local_pkg_filelist_marker = 'FILE LIST:\n'
@@ -40,7 +40,7 @@ slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
 slackroll_main_indicator = '/slackware/'
 slackroll_glibc_indicator = 'glibc'
-slackroll_prioritized_packages = ['glibc-solibs', 'glibc-zoneinfo', 'glibc', 'glibc-profile', 'glibc-i18n']
+slackroll_prioritized_pkgs = ['glibc-solibs', 'glibc-zoneinfo', 'glibc', 'glibc-profile', 'glibc-i18n']
 
 slackroll_self_filename = 'self'
 slackroll_mirror_filename = 'mirror'
@@ -151,8 +151,8 @@ def index_of(thelist, elem):
 		return -1
 
 def pkg_cmp(name1, name2):
-	idx1 = index_of(slackroll_prioritized_packages, name1)
-	idx2 = index_of(slackroll_prioritized_packages, name2)
+	idx1 = index_of(slackroll_prioritized_pkgs, name1)
+	idx2 = index_of(slackroll_prioritized_pkgs, name2)
 
 	if idx1 == -1:
 		if idx2 == -1:
@@ -417,7 +417,7 @@ def upgrade_or_install(filename, reinstall):
 		sys.exit('Error: unable to install %s' % filename)
 
 def package_in_cache(package): # Check if package is in ./packages
-	filepath = os.path.join(slackroll_packages_dir, package.archivename)
+	filepath = os.path.join(slackroll_pkgs_dir, package.archivename)
 	return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
 
 def download_verify(mirror, package): # Download package, signature and verify it
@@ -426,7 +426,7 @@ def download_verify(mirror, package): # Download package, signature and verify i
 	remote_sig = '%s%s' % (remote_name, slackroll_signature_suffix)
 	local_name = os.path.join(tempdir, package.archivename)
 	local_sig = '%s%s' % (local_name, slackroll_signature_suffix)
-	local_final = os.path.join(slackroll_packages_dir, package.archivename)
+	local_final = os.path.join(slackroll_pkgs_dir, package.archivename)
 
 	if not package_in_cache(package):
 		try:
@@ -576,7 +576,7 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names, ex
 	if exit_flag:
 		sys.exit()
 
-def query_package_browser(version, name): # Query package browser on given file with given slackware version
+def query_pkg_browser(version, name): # Query package browser on given file with given slackware version
 	searchstr = '"%s"' % name
 	print 'Searching for %s:' % searchstr
 	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
@@ -913,7 +913,7 @@ try:
 		(scheme, netloc, path, parameters, query, fragment) = urlparse.urlparse(slackroll_pb_template_url)
 		print 'Using the Slackware Package Browser at %s://%s' % (scheme, netloc)
 		for name in sys.argv[2:]:
-			query_package_browser(slackver, name)
+			query_pkg_browser(slackver, name)
 		sys.exit()
 
 	if operation == 'local-search':
@@ -964,7 +964,7 @@ try:
 		sys.exit()
 
 	# Every operation below needs an updated persistent database
-	handle_writable_dir(slackroll_packages_dir)
+	handle_writable_dir(slackroll_pkgs_dir)
 	print 'Initializing package lists...'
 
 	needs_forced_rebuild = (not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
@@ -1031,8 +1031,8 @@ try:
 		sys.exit()
 
 	if operation == 'clean-cache':
-		cache_files = glob.glob(slackroll_packages_dir_glob)
-		extraneous_files = [x for x in glob.glob(slackroll_packages_dir_all_glob) if x not in cache_files]
+		cache_files = glob.glob(slackroll_pkgs_dir_glob)
+		extraneous_files = [x for x in glob.glob(slackroll_pkgs_dir_all_glob) if x not in cache_files]
 
 		cache_files.sort()
 		cache_pkgs = []
