@@ -134,7 +134,7 @@ def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 	matchobj = slackroll_pkg_re.match(path_or_name)
 
 	if matchobj is None:
-		raise SlackRollError('No match parsing package name: %s' % path_or_name)
+		raise SlackRollError('Nonstandard package name: %s' % path_or_name)
 
 	path = matchobj.group(slackroll_pkg_re_path_group)
 	name = matchobj.group(slackroll_pkg_re_name_group)
