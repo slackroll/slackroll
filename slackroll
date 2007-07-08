@@ -416,14 +416,14 @@ def upgrade_or_install(filename, reinstall):
 	except OSError:
 		sys.exit('Error: unable to install %s' % filename)
 
-def remove_pkg(name_for_removepkg):
+def remove_pkg(removepkg_arg):
 	try:
-		print 'Removing %s ...' % name_for_removepkg
-		retcode = subprocess.call(['/sbin/removepkg', name_for_removepkg])
+		print 'Removing %s ...' % removepkg_arg
+		retcode = subprocess.call(['/sbin/removepkg', removepkg_arg])
 		if retcode != 0:
-			sys.exit('Error: removal failed: %s' % name_for_removepkg)
+			sys.exit('Error: removal failed: %s' % removepkg_arg)
 	except OSError:
-		sys.exit('Error: unable to remove %s' % name_for_removepkg)
+		sys.exit('Error: unable to remove %s' % removepkg_arg)
 
 def package_in_cache(package): # Check if package is in ./packages
 	filepath = os.path.join(slackroll_pkgs_dir, package.archivename)
