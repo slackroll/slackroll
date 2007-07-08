@@ -140,10 +140,10 @@
 		example, my custom build of <em>freetype</em> is marked as
 		frozen. You must pay attention to these packages, as upgrades
 		to them will be silently ignored. You may find the
-		<em>list-versions</em> command useful to detect version
+		<em>list-versions</em> operation useful to detect version
 		mismatches between your local copy and the ones in the remote
 		tree. Having a package in the frozen state does not
-		prevent you from using the <em>install</em> command to
+		prevent you from using the <em>install</em> operation to
 		download and install a different version. If the package
 		ever disappears from the remote tree, it will be marked
 		as unavailable and you will probably see it. You could
@@ -256,7 +256,7 @@
 
 		<p><code>slackroll frozen aaa_elflibs</code></p>
 
-		<p>The <em>frozen</em> command accepts a list of packages
+		<p>The <em>frozen</em> operation accepts a list of packages
 		as its arguments. You don't need to issue a separate command
 		for each one of them.</p>
 
@@ -276,7 +276,7 @@
 		<h2>Normal operation</h2>
 
 		<p>You can run <code>slackroll help</code> to get a full list
-		of commands and a brief description of each one. This program
+		of operations and a brief description of each one. This program
 		is not a perfect tool. I think it can handle almost every
 		situation and be told to do exactly what you want, but
 		reading the change log and subscribing to the
@@ -285,22 +285,22 @@
 
 		<p>In every case you should <em>update</em> whenever the
 		remote tree is changed. Then, the <em>list-transient</em>
-		command will provide a summary of activity. It should output
+		operation will provide a summary of activity. It should output
 		an empty list once you have sorted out any changes.</p>
 
 		<p>Watch out for upgrades in <em>glibc</em> packages,
 		the one with highest priority being <em>glibc-solibs</em>.
 		They should always be the first ones to be installed,
 		even before new packages. You can use the <em>install</em>
-		command to manually upgrade them first, either
+		operation to manually upgrade them first, either
 		by giving the package name only, which should work in
-		most cases, or a specific package version. Some commands,
+		most cases, or a specific package version. Some operations,
 		like <em>install</em>, accept specific package versions
 		and are copy/paste friendly. Specifying the package
 		version is optional but will make sure you are installing
 		the <em>glibc</em> version you really want.</p>
 
-		<p>Also, remember to run the <em>clean-cache</em> command
+		<p>Also, remember to run the <em>clean-cache</em> operation
 		from time to time to get rid of old and outdated package
 		archives stored in the package cache.</p>
 		
@@ -323,7 +323,7 @@
 		rare to see packages being removed or being added to the
 		tree, so you probably won't need to run <em>list-new</em>
 		or <em>list-unavailable</em>, but you never know. The
-		<em>list-transient</em> command may be useful to detect
+		<em>list-transient</em> operation may be useful to detect
 		these rare cases.</p>
 
 		<h2>Feedback, questions, bug reports</h2>

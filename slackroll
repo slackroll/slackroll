@@ -849,7 +849,7 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 		persistent_list.sync()
 
 def print_help():
-	print """Available commands:
+	print """Available operations:
 
   help			Print this help
   version		Print the program version
@@ -996,15 +996,15 @@ try:
 	operation = sys.argv[1]
 	
 	if operation not in all_ops:
-		sys.stderr.write('Error: unknown command: %s\n' % operation)
+		sys.stderr.write('Error: unknown operation: %s\n' % operation)
 		print_help()
 		sys.exit(slackroll_exit_failure)
 
 	if operation in no_args_ops and len(sys.argv[2:]) != 0:
-		sys.exit('Error: too many arguments for command %s' % operation)
+		sys.exit('Error: too many arguments for operation %s' % operation)
 
 	if operation not in no_args_ops and len(sys.argv[2:]) == 0:
-		sys.exit('Error: not enough arguments for command %s' % operation)
+		sys.exit('Error: not enough arguments for operation %s' % operation)
 
 	if operation == 'help':
 		print_help()
