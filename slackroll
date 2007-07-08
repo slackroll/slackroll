@@ -696,8 +696,9 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 
 	print '\nNo more files to review'
 
-def install_operations_family(operation, args):
-	# Warn the user on install and reinstall operations if there is glibc activity and they have not indicated glibc packages
+def install_operations_family(operation, args, local_list, remote_list, persistent_list):
+	# Warn the user on install and reinstall operations if there is glibc
+	# activity and they have not indicated glibc packages
 	if (operation in ['install', 'reinstall']
 	    and len([x for x in args if slackroll_glibc_indicator in x]) == 0
 	    and len([x for x in persistent_list if persistent_list[x] in [slackroll_state_new, slackroll_state_outdated]
@@ -1283,13 +1284,13 @@ try:
 		sys.exit()
 
 	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
-		install_operations_family(operation, sys.argv[2:])
+		install_operations_family(operation, sys.argv[2:], local_list, remote_list, persistent_list)
 	
 	if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
 		names = [x for x in persistent_list if persistent_list[x] == slackroll_state_new]
 		names.sort(cmp=pkg_cmp)
 		opname = operation.replace('-new', '')
-		install_operations_family(opname, names)
+		install_operations_family(opname, names, local_list, remote_list, persistent_list)
 
 	if operation == 'name-search':
 		for retxt in sys.argv[2:]:
