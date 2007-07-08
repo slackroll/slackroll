@@ -696,6 +696,85 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 
 	print '\nNo more files to review'
 
+def install_operations_family(operation, args):
+	# Warn the user on install and reinstall operations if there is glibc activity and they have not indicated glibc packages
+	if (operation in ['install', 'reinstall']
+	    and len([x for x in args if slackroll_glibc_indicator in x]) == 0
+	    and len([x for x in persistent_list if persistent_list[x] in [slackroll_state_new, slackroll_state_outdated]
+		    				   and slackroll_glibc_indicator in x]) > 0):
+		print 'Warning: it seems there is activity in glibc packages'
+		confirm_continue()
+
+	mirror = get_mirror()
+	chosen_pkgs = []
+	for arg in args:
+		# Decide the type of argument
+		try:
+			pkg = pkg_from_str(arg)
+			name = pkg.name
+			is_full = True
+		except SlackRollError:
+			name = arg
+			is_full = False
+
+		if name not in persistent_list:
+			sys.exit('Error: unknown package %s' % name)
+
+		if is_full:
+			# Specific version given
+			if name in local_list and local_list[name] == pkg and operation == 'info':
+				chosen_pkgs.append(local_list[name])
+			else:
+				if name not in remote_list or pkg not in remote_list[name]:
+					sys.exit('Error: unable to find remote package %s' % pkg.idname)
+				chosen_pkgs.append([x for x in remote_list[name] if x == pkg][0])
+		else:
+			# Only generic name given
+			if name not in remote_list and operation != 'info':
+				sys.exit('Error: unable to find remote package %s' % name)
+
+			candidates = []
+			if name in local_list and operation == 'info':
+				candidates.append(local_list[name])
+			if name in remote_list:
+				candidates.extend([x for x in remote_list[name] if x not in candidates])
+			if len(candidates) == 1:
+				chosen_pkgs.append(candidates[0])
+			else:
+				if name in local_list and operation != 'info':
+					print 'Local: %s' % local_list[name].idname
+				chosen = choose_pkg(candidates)
+				if chosen is not None:
+					chosen_pkgs.append(chosen)
+
+	# After selecting the packages, run the requested operation on them
+	if operation in ['install', 'reinstall', 'download', 'urls']:
+		print 'Total size: %sk' % kibi(filelist_total_size([x.fullname for x in chosen_pkgs]))
+		if operation == 'install':
+			action = lambda x: download_verify_install(mirror, x)
+		elif operation == 'reinstall':
+			action = lambda x: download_verify_install(mirror, x, reinstall=True)
+		elif operation == 'download':
+			action = lambda x: download_verify(mirror, x) is None and sys.exit(slackroll_exit_failure)
+		else:
+			action = lambda x: print_urls(mirror, x)
+		for pkg in chosen_pkgs:
+			action(pkg)
+		if operation in ['install', 'reinstall']:
+			handle_dotnew_files(chosen_pkgs)
+	else:	# info operation
+		for pkg in chosen_pkgs:
+			name = pkg.name
+			if name in local_list and local_list[name] == pkg:
+				try:
+					info_file = local_list[name].fullname
+					run_pager_on(info_file)
+				except SlackRollError:
+					sys.exit('Error: unable to run pager on %s' % info_file)
+			else:
+				download_display_info(mirror, pkg)
+	sys.exit()
+
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	print 'Updating persistent database...'
 	already_analyzed = dict()
@@ -795,10 +874,14 @@ def print_help():
   frozen PKG...		Mark packages as frozen
   foreign PKG...	Mark packages as foreign
   install PKG...	Install packages or specific package versions
+  install-new		Install all new packages
   reinstall PKG...	Same as 'install' but reinstalls if needed
   download PKG...	Download packages or specific package versions
+  download-new		Download all new packages
   info PKG...		Show info about packages or specific package versions
+  info-new		Show info about all new packages
   urls PKG...		Show package or specific package version URLs
+  urls-new		Show URLs for all new packages
   pb-search FILE...	Search for files in the Slackware Package Browser
   remote-search FILE...	Alias for 'pb-search'
   local-search REGEX...	Search for files in local packages
@@ -818,13 +901,16 @@ try:
 	all_ops = [
 		'clean-cache',
 		'download',
+		'download-new'
 		'download-upgrades',
 		'foreign',
 		'frozen',
 		'help',
 		'import-key',
 		'info',
+		'info-new',
 		'install',
+		'install-new',
 		'installed',
 		'list-all',
 		'list-alternatives',
@@ -857,14 +943,18 @@ try:
 		'update',
 		'upgrade',
 		'urls',
+		'urls-new',
 		'version',
 	]
 
 	no_args_ops = [
 		'clean-cache',
+		'download-new',
 		'download-upgrades',
 		'help',
 		'import-key',
+		'info-new',
+		'install-new',
 		'list-all',
 		'list-alternatives',
 		'list-foreign',
@@ -884,6 +974,7 @@ try:
 		'unavailable-foreign',
 		'update',
 		'upgrade',
+		'urls-new',
 		'version',
 	]
 
@@ -1192,85 +1283,13 @@ try:
 		sys.exit()
 
 	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
-		args = sys.argv[2:]
-
-		# Warn the user on install and reinstall operations if there is glibc activity and they have not indicated glibc packages
-		if (operation in ['install', 'reinstall']
-		    and len([x for x in args if slackroll_glibc_indicator in x]) == 0
-		    and len([x for x in persistent_list if persistent_list[x] in [slackroll_state_new, slackroll_state_outdated]
-			    				   and slackroll_glibc_indicator in x]) > 0):
-			print 'Warning: it seems there is activity in glibc packages'
-			confirm_continue()
-
-		mirror = get_mirror()
-		chosen_pkgs = []
-		for arg in args:
-			# Decide the type of argument
-			try:
-				pkg = pkg_from_str(arg)
-				name = pkg.name
-				is_full = True
-			except SlackRollError:
-				name = arg
-				is_full = False
-
-			if name not in persistent_list:
-				sys.exit('Error: unknown package %s' % name)
-
-			if is_full:
-				# Specific version given
-				if name in local_list and local_list[name] == pkg and operation == 'info':
-					chosen_pkgs.append(local_list[name])
-				else:
-					if name not in remote_list or pkg not in remote_list[name]:
-						sys.exit('Error: unable to find remote package %s' % pkg.idname)
-					chosen_pkgs.append([x for x in remote_list[name] if x == pkg][0])
-			else:
-				# Only generic name given
-				if name not in remote_list and operation != 'info':
-					sys.exit('Error: unable to find remote package %s' % name)
-
-				candidates = []
-				if name in local_list and operation == 'info':
-					candidates.append(local_list[name])
-				if name in remote_list:
-					candidates.extend([x for x in remote_list[name] if x not in candidates])
-				if len(candidates) == 1:
-					chosen_pkgs.append(candidates[0])
-				else:
-					if name in local_list and operation != 'info':
-						print 'Local: %s' % local_list[name].idname
-					chosen = choose_pkg(candidates)
-					if chosen is not None:
-						chosen_pkgs.append(chosen)
+		install_operations_family(operation, sys.argv[2:])
 	
-		# After selecting the packages, run the requested operation on them
-		if operation in ['install', 'reinstall', 'download', 'urls']:
-			print 'Total size: %sk' % kibi(filelist_total_size([x.fullname for x in chosen_pkgs]))
-			if operation == 'install':
-				action = lambda x: download_verify_install(mirror, x)
-			elif operation == 'reinstall':
-				action = lambda x: download_verify_install(mirror, x, reinstall=True)
-			elif operation == 'download':
-				action = lambda x: download_verify(mirror, x) is None and sys.exit(slackroll_exit_failure)
-			else:
-				action = lambda x: print_urls(mirror, x)
-			for pkg in chosen_pkgs:
-				action(pkg)
-			if operation in ['install', 'reinstall']:
-				handle_dotnew_files(chosen_pkgs)
-		else:	# info operation
-			for pkg in chosen_pkgs:
-				name = pkg.name
-				if name in local_list and local_list[name] == pkg:
-					try:
-						info_file = local_list[name].fullname
-						run_pager_on(info_file)
-					except SlackRollError:
-						sys.exit('Error: unable to run pager on %s' % info_file)
-				else:
-					download_display_info(mirror, pkg)
-		sys.exit()
+	if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
+		names = [x for x in persistent_list if persistent_list[x] == slackroll_state_new]
+		names.sort(cmp=pkg_cmp)
+		opname = operation.replace('-new', '')
+		install_operations_family(opname, names)
 
 	if operation == 'name-search':
 		for retxt in sys.argv[2:]:
