@@ -892,6 +892,8 @@ def print_help():
   info-new		Show info about all new packages
   urls PKG...		Show package or specific package version URLs
   urls-new		Show URLs for all new packages
+  remove PKG...		Remove packages
+  remove-unavailable	Remove every unavailable package
   pb-search FILE...	Search for files in the Slackware Package Browser
   remote-search FILE...	Alias for 'pb-search'
   local-search REGEX...	Search for files in local packages
@@ -945,6 +947,8 @@ try:
 		'pb-search',
 		'reinstall',
 		'remote-search',
+		'remove',
+		'remove-unavailable',
 		'show-upgrade-urls',
 		'state',
 		'touch',
@@ -979,6 +983,7 @@ try:
 		'list-unavailable',
 		'list-upgrades',
 		'new-not-installed',
+		'remove-unavailable',
 		'show-upgrade-urls',
 		'touch',
 		'unavailable-foreign',
@@ -1300,6 +1305,17 @@ try:
 		names.sort(cmp=pkg_cmp)
 		opname = operation.replace('-new', '')
 		install_operations_family(opname, names, local_list, remote_list, persistent_list)
+
+	if operation in ['remove', 'remove-unavailable']:
+		if operation == 'remove':
+			args = sys.argv[2:]
+		else: # remove-unavailable
+			args = [x for x in persistent_list if persistent_list[x] == slackroll_state_unavailable]
+		for name in args:
+			if name not in local_list:
+				sys.exit('Error: %s not present in local system' % name)
+			remove_pkg(local_list[name].idname)
+		sys.exit()
 
 	if operation == 'name-search':
 		for retxt in sys.argv[2:]:
