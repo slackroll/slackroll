@@ -214,9 +214,9 @@ def get_local_pkgs(): # Return a list of packages from /var/log/packages
 		sys.exit('Error: %s' % err)
 	return local_pkgs
 
-def get_local_list(forced_rebuild): # Return list of local packages from cache, updating it if needed
+def get_local_list(forced_rebuild): # Return list of local packages from cached list, updating it if needed
 	if not newer_than(slackroll_locallist_filename, slackroll_local_pkgs_dir) or forced_rebuild:
-		print 'Rebuilding local package cache...'
+		print 'Rebuilding local package list...'
 		local_list = dict()
 		for pkg in get_local_pkgs():
 			local_list[pkg.name] = pkg
@@ -232,9 +232,9 @@ def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
 	except IOError:
 		sys.exit('Error: could not read %s' % slackroll_filelist_filename)
 
-def get_remote_list(forced_rebuild): # Return list of remote packages from cache, updating if needed
+def get_remote_list(forced_rebuild): # Return list of remote packages from cached list, updating if needed
 	if not newer_than(slackroll_remotelist_filename, slackroll_filelist_filename) or forced_rebuild:
-		print 'Rebuilding remote packages cache...'
+		print 'Rebuilding remote packages list...'
 		remote_list = dict()
 		has_patch = dict()
 		for pkg in get_remote_pkgs():
