@@ -556,7 +556,7 @@ def print_in_states(states, persistent_list, header): # Print package name if it
 	keys.sort(cmp=pkg_cmp)
 	for name in keys:
 		print '    %s' % name
-	print 'End of list.'
+	print 'End of list'
 	sys.exit()
 
 def print_keys(dictionary, header): # Print every package name in list
@@ -565,7 +565,7 @@ def print_keys(dictionary, header): # Print every package name in list
 	keys.sort(cmp=pkg_cmp)
 	for key in keys:
 		print '    %s' % key
-	print 'End of list.'
+	print 'End of list'
 	sys.exit()
 
 def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names, exit_flag=True): # Changes state if it matches
@@ -1102,7 +1102,7 @@ try:
 				print '    %s: unknown package' % name
 				continue
 			print '    %s: %s' % (name, slackroll_state_strings[persistent_list[name]])
-		print 'End of list.'
+		print 'End of list'
 		sys.exit()
 
 	if operation in ['upgrade', 'download-upgrades', 'show-upgrade-urls']:
@@ -1188,7 +1188,7 @@ try:
 				print '    %s (%s)' % (name, slackroll_state_strings[persistent_list[name]])
 			else:
 				print '    %s' % name
-		print 'End of list.'
+		print 'End of list'
 		if glibc_affected:
 			print_glibc_warning()
 		sys.exit()
@@ -1210,7 +1210,7 @@ try:
 			for other in candidates:
 				print '\tRemote:\t%s' % other.fullname
 			print
-		print 'End of list.'
+		print 'End of list'
 		if glibc_affected:
 			print_glibc_warning()
 		sys.exit()
@@ -1230,7 +1230,7 @@ try:
 				for ver in versions:
 					print '\t%s' % ver.fullname
 				print
-		print 'End of list.'
+		print 'End of list'
 		sys.exit()
 
 	if operation == 'list-new':
@@ -1304,7 +1304,7 @@ try:
 				for ver in remote_list[name]:
 					print '\tRemote:\t%s' % ver.fullname
 			print
-		print 'End of list.'
+		print 'End of list'
 		sys.exit()
 
 	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
