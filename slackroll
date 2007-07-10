@@ -1313,6 +1313,9 @@ try:
 	if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
 		names = [x for x in persistent_list if persistent_list[x] == slackroll_state_new]
 		names.sort(cmp=pkg_cmp)
+		if len(names) == 0:
+			print 'No new packages'
+			sys.exit()
 		opname = operation.replace('-new', '')
 		install_operations_family(opname, names, local_list, remote_list, persistent_list)
 
