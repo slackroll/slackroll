@@ -1324,6 +1324,9 @@ try:
 			args = sys.argv[2:]
 		else: # remove-unavailable
 			args = [x for x in persistent_list if persistent_list[x] == slackroll_state_unavailable]
+		if len(args) == 0:
+			print 'No unavailable packages'
+			sys.exit()
 		for name in args:
 			if name not in local_list:
 				sys.exit('Error: %s not present in local system' % name)
