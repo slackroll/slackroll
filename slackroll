@@ -1109,6 +1109,11 @@ try:
 		mirror = get_mirror()
 		names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
 		names.sort(cmp=pkg_cmp)
+
+		if len(names) == 0:
+			print 'No outdated packages'
+			sys.exit()
+
 		chosen_pkgs = []
 		for name in names:
 			candidates = not_pasture(remote_list[name])
@@ -1148,16 +1153,21 @@ try:
 			except SlackRollError:
 				extraneous_files.append(elem) # Incorrect .tgz files are also extraneous
 
+		no_files = True
 		for pkg in cache_pkgs:
 			name = pkg.name
 			if (name in local_list and local_list[name] == pkg) or (name in remote_list and pkg in remote_list[name]):
 				continue
 			print 'Removing %s ...' % pkg.fullname
 			try_to_remove(pkg.fullname)
+			no_files = False
 
 		extraneous_files.sort()
 		for elem in extraneous_files:
 			print 'Warning: extraneous file %s' % elem
+
+		if no_files:
+			print 'No package files to remove'
 
 		sys.exit()
 	
