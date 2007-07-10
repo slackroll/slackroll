@@ -913,7 +913,7 @@ try:
 	all_ops = [
 		'clean-cache',
 		'download',
-		'download-new'
+		'download-new',
 		'download-upgrades',
 		'foreign',
 		'frozen',
