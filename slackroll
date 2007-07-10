@@ -1001,10 +1001,10 @@ try:
 		sys.exit(slackroll_exit_failure)
 
 	if operation in no_args_ops and len(sys.argv[2:]) != 0:
-		sys.exit('Error: too many arguments for operation %s' % operation)
+		sys.exit('Error: too many arguments for %s operation' % operation)
 
 	if operation not in no_args_ops and len(sys.argv[2:]) == 0:
-		sys.exit('Error: not enough arguments for operation %s' % operation)
+		sys.exit('Error: not enough arguments for %s operation' % operation)
 
 	if operation == 'help':
 		print_help()
