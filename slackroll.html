@@ -43,12 +43,38 @@
 				color: red;
 				background: white;
 			}
+			#index {
+				padding: 1ex 1ex 1ex 1ex;
+				color: white;
+				background-color: #009966;
+				text-align: center;
+				font-size: small;
+			}
+			#index li {
+				display: inline;
+				margin-left: 2ex;
+				margin-right: 2ex;
+			}
+			#index li a {
+				font-weight: bold;
+				color: white;
+				background-color: #009966;
+			}
 			--></style>
 	</head>
 	<body>
 		<h1>SlackRoll: Manage a Slackware system</h1>
 
-		<h2>Target audience</h2>
+		<ul id="index">
+			<li><a href="#target_audience">Target&nbsp;audience</a></li>
+			<li><a href="#before_start">Before&nbsp;you&nbsp;start</a></li>
+			<li><a href="#get">Get&nbsp;SlackRoll</a></li>
+			<li><a href="#getting_started">Getting&nbsp;started</a></li>
+			<li><a href="#normal_operation">Normal&nbsp;operation</a></li>
+			<li><a href="#feedback">Feedback</a></li>
+		</ul>
+
+		<h2><a name="target_audience" />Target audience</h2>
 
 		<p><strong>slackroll</strong> is a package or update manager
 		for Slackware systems. It does not provide dependency
@@ -61,7 +87,7 @@
 		tree. It tries to know when new packages appear, when
 		packages are removed and when packages are upgraded.</p>
 
-		<h2>Before you start</h2>
+		<h2><a name="before_start" />Before you start</h2>
 
 		<p>So you have decided to try <strong>slackroll</strong>. Let
 		me introduce a few concepts so you don't get lost.</p>
@@ -164,7 +190,7 @@
 
 		</dl>
 
-		<h2>Get SlackRoll</h2>
+		<h2><a name="get" />Get SlackRoll</h2>
 
 		<p><a href="http://sourceforge.net/project/showfiles.php?group_id=197236">slackroll</a>
 		is a self-contained Python script released to the public
@@ -177,7 +203,7 @@
 		the version number in its name. If you'd prefer another
 		distribution method just drop me an email message.</p>
 
-		<h2>Getting started</h2>
+		<h2><a name="getting_started" />Getting started</h2>
 
 		<p><strong>slackroll</strong> requires <em>python</em>,
 		<em>pkgtools</em>, <em>gnupg</em>, <em>less</em> and
@@ -273,7 +299,7 @@
 		case, <em>list-versions</em> can help you see if your
 		local copy needs to be rebuilt for a new version.</p>
 
-		<h2>Normal operation</h2>
+		<h2><a name="normal_operation" />Normal operation</h2>
 
 		<p>You can run <code>slackroll help</code> to get a full list
 		of operations and a brief description of each one. This program
@@ -326,7 +352,7 @@
 		<em>list-transient</em> operation may be useful to detect
 		these rare cases.</p>
 
-		<h2>Feedback, questions, bug reports</h2>
+		<h2><a name="feedback" />Feedback, questions, bug reports</h2>
 
 		<p>I'm all open for good bug reports and general feedback
 		but I'm, as always, reluctant to change the main program
