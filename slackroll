@@ -862,6 +862,7 @@ def print_help():
   touch			Force update on persistent database
   list-transient	Combined list of new, unavailable and outdated packages
   list-upgrades		List available upgrades
+  list-outdated-frozen	List frozen packages that would be outdated otherwise
   list-alternatives	List packages with alternative versions
   list-versions PKG...	List all known versions of given packages
   state PKG...		Show state of given packages
@@ -933,6 +934,7 @@ try:
 		'list-new',
 		'list-not-installed',
 		'list-outdated',
+		'list-outdated-frozen',
 		'list-remote',
 		'list-transient',
 		'list-unavailable',
@@ -978,6 +980,7 @@ try:
 		'list-new',
 		'list-not-installed',
 		'list-outdated',
+		'list-outdated-frozen',
 		'list-remote',
 		'list-transient',
 		'list-unavailable',
@@ -1193,9 +1196,14 @@ try:
 			print_glibc_warning()
 		sys.exit()
 
-	if operation == 'list-upgrades':
-		print 'Available upgrades:'
-		names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
+	if operation in ['list-upgrades', 'list-outdated-frozen']:
+		if operation == 'list-upgrades':
+			print 'Available upgrades:'
+			names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
+		else: # list-outdated-frozen
+			print 'Would be outdated:'
+			names = [x for x in local_list if persistent_list[x] == slackroll_state_frozen and local_list[x] not in remote_list[x]]
+
 		names.sort(cmp=pkg_cmp)
 		glibc_affected = False
 		for name in names:
