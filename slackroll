@@ -733,9 +733,10 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			if name in local_list and local_list[name] == pkg and operation == 'info':
 				chosen_pkgs.append(local_list[name])
 			else:
-				if name not in remote_list or pkg not in remote_list[name]:
+				try:
+					chosen_pkgs.append(remote_list[name][remote_list[name].index(pkg)])
+				except (KeyError, ValueError):
 					sys.exit('Error: unable to find remote package %s' % pkg.idname)
-				chosen_pkgs.append([x for x in remote_list[name] if x == pkg][0])
 		else:
 			# Only generic name given
 			if name not in remote_list and operation != 'info':
