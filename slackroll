@@ -34,7 +34,9 @@ slackroll_pkgs_dir = os.path.dirname(slackroll_pkgs_dir_glob)
 slackroll_local_pkgs_glob = '/var/log/packages/*'
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 slackroll_local_pkg_filelist_marker = 'FILE LIST:\n'
-slackroll_filelist_pkg_re = re.compile(r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\./.+/[^/]+-[^/-]+-[^/-]+-[^/-]+\.tgz)$')
+slackroll_filelist_pkg_re = re.compile(r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+(\d+)\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\./.+/[^/]+-[^/-]+-[^/-]+-[^/-]+\.tgz)$')
+slackroll_filelist_pkg_size = 1
+slackroll_filelist_pkg_str = 2
 slackroll_source_indicator = '/source/'
 slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
@@ -80,14 +82,16 @@ class SlackwarePackage(object):
 	__build = None
 	__path = None
 	__suffix = None
+	__size = None
 
-	def __init__(self, name, version, arch, build, path, suffix):
+	def __init__(self, name, version, arch, build, path, suffix, size):
 		self.__name = name
 		self.__version = version
 		self.__arch = arch
 		self.__build = build
 		self.__path = (path is not None and path or '')
 		self.__suffix = (suffix is not None and suffix or '')
+		self.__size = size
 
 	def __eq__(self, other):
 		return self.__name == other.__name and self.__version == other.__version and self.__arch == other.__arch and self.__build == other.__build
@@ -117,6 +121,10 @@ class SlackwarePackage(object):
 		return self.__suffix
 
 	@property
+	def size(self):
+		return self.__size
+
+	@property
 	def idname(self):
 		return '%s-%s-%s-%s' % (self.name, self.version, self.arch, self.build)
 
@@ -133,6 +141,9 @@ class SlackRollURLopener(urllib.FancyURLopener):
 		raise IOError('%s: %s' % (errcode, errmsg))
 
 def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
+	return pkg_from_name_and_size(path_or_name, None)
+
+def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage object from a name string and a size string
 	matchobj = slackroll_pkg_re.match(path_or_name)
 
 	if matchobj is None:
@@ -144,10 +155,11 @@ def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 	arch = matchobj.group(slackroll_pkg_re_arch_group)
 	build = matchobj.group(slackroll_pkg_re_build_group)
 	suffix = matchobj.group(slackroll_pkg_re_suffix_group)
-	return SlackwarePackage(name, version, arch, build, path, suffix)
+	size = (size_str is not None and long(size_str) or None)
+	return SlackwarePackage(name, version, arch, build, path, suffix, size)
 
 def equiv_local_pkg(pkg): # Converts a package to the equivalent local package
-	return SlackwarePackage(pkg.name, pkg.version, pkg.arch, pkg.build, slackroll_local_pkgs_dir, None)
+	return SlackwarePackage(pkg.name, pkg.version, pkg.arch, pkg.build, slackroll_local_pkgs_dir, None, None)
 
 def index_of(thelist, elem):
 	try:
@@ -232,8 +244,8 @@ def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
 	try:
 		lines = file(slackroll_filelist_filename, 'r').readlines()
 		matches = [slackroll_filelist_pkg_re.match(x) for x in lines]
-		pkgs = [x.group(1) for x in matches if x is not None]
-		return [pkg_from_str(x) for x in pkgs if slackroll_source_indicator not in x]
+		nm_sz = [(x.group(slackroll_filelist_pkg_str), x.group(slackroll_filelist_pkg_size)) for x in matches if x is not None]
+		return [pkg_from_name_and_size(nm, sz) for (nm, sz) in nm_sz if slackroll_source_indicator not in nm]
 	except IOError:
 		sys.exit('Error: could not read %s' % slackroll_filelist_filename)
 
@@ -296,22 +308,6 @@ def run_vimdiff_on(oldfile, newfile): # Does not exit on errors
 		subprocess.call(['vimdiff', oldfile, newfile])
 	except OSError:
 		sys.stderr.write('Error: unable to run vimdiff on %s and %s\n' % (oldfile, newfile))
-
-def filelist_total_size(path_list): # Examine FILELIST.TXT and sum file sizes
-	try:
-		total = 0
-		plist = path_list[:]
-		for line in file(slackroll_filelist_filename, 'r'):
-			for pos in xrange(len(plist)):
-				if line.endswith('%s\n' % plist[pos]):
-					total += long(line.split()[4])
-					del plist[pos]
-					break
-		if len(plist) > 0:
-			sys.exit('Error: unable to get size for every package')
-		return total
-	except IOError:
-		sys.exit('Error: could not read %s' % slackroll_filelist_filename)
 
 def try_to_remove(file_path, fatal=True):
 	if not os.path.exists(file_path):
@@ -758,7 +754,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
 	# After selecting the packages, run the requested operation on them
 	if operation in ['install', 'reinstall', 'download', 'urls']:
-		print 'Total size: %sk' % kibi(filelist_total_size([x.fullname for x in chosen_pkgs]))
+		print 'Total size: %sk' % kibi(sum([x.size for x in chosen_pkgs]))
 		if operation == 'install':
 			action = lambda x: download_verify_install(mirror, x)
 		elif operation == 'reinstall':
@@ -1137,7 +1133,7 @@ try:
 				if chosen is not None:
 					chosen_pkgs.append(chosen)
 		
-		print 'Total size: %sk' % kibi(filelist_total_size([x.fullname for x in chosen_pkgs]))
+		print 'Total size: %sk' % kibi(sum([x.size for x in chosen_pkgs]))
 		if operation == 'upgrade':
 			action = lambda x: download_verify_install(mirror, x)
 		elif operation == 'download-upgrades':
