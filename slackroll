@@ -67,6 +67,8 @@ slackroll_state_strings = ['new', 'unavailable', 'installed', 'not-installed', '
 slackroll_mirror_version_re = re.compile(r'/slackware-([^/]+)/')
 slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=%s'
 slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?<a[^>]*>(.+?)</a>.*?</div>.*?<div class="pkgdescr">(.+?)</div>.*?</div>'
+slackroll_pb_result_idname = 1
+slackroll_pb_result_files = 2
 
 class SlackRollError(Exception):
 	pass
@@ -143,6 +145,9 @@ def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 	build = matchobj.group(slackroll_pkg_re_build_group)
 	suffix = matchobj.group(slackroll_pkg_re_suffix_group)
 	return SlackwarePackage(name, version, arch, build, path, suffix)
+
+def equiv_local_pkg(pkg): # Converts a package to the equivalent local package
+	return SlackwarePackage(pkg.name, pkg.version, pkg.arch, pkg.build, slackroll_local_pkgs_dir, None)
 
 def index_of(thelist, elem):
 	try:
@@ -557,7 +562,6 @@ def print_in_states(states, persistent_list, header): # Print package name if it
 	for name in keys:
 		print '    %s' % name
 	print 'End of list'
-	sys.exit()
 
 def print_keys(dictionary, header): # Print every package name in list
 	print header
@@ -566,9 +570,8 @@ def print_keys(dictionary, header): # Print every package name in list
 	for key in keys:
 		print '    %s' % key
 	print 'End of list'
-	sys.exit()
 
-def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names, exit_flag=True): # Changes state if it matches
+def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): # Changes state if it matches
 	dest_st_name = slackroll_state_strings[dest_state]
 	print 'Marking packages as %s...' % dest_st_name
 	for name in pkg_names:
@@ -582,8 +585,6 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names, ex
 			continue
 		persistent_list[name] = dest_state
 		persistent_list.sync()
-	if exit_flag:
-		sys.exit()
 
 def query_pkg_browser(version, name): # Query package browser on given file with given slackware version
 	searchstr = '"%s"' % name
@@ -600,8 +601,8 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 	
 	for match in re.finditer(slackroll_pb_result_re, data):
 		has_results = True
-		pkgstr = match.group(1)
-		pkgcontents = match.group(2)
+		pkgstr = match.group(slackroll_pb_result_idname)
+		pkgcontents = match.group(slackroll_pb_result_files)
 
 		print '    %s' % re.sub(r'\s', '', pkgstr)
 		print ''.join(['\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
@@ -609,7 +610,7 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 	if not has_results:
 		print '    (No results)\n'
 
-def extract_file_list(filename):
+def extract_file_list(filename): # Extracts the file list from a local info file (FILE LIST:\n etc)
 	try:
 		lines = file(filename, 'r').readlines()
 		paths = ['/%s' % x.strip() for x in lines[lines.index(slackroll_local_pkg_filelist_marker) + 1:]]
@@ -618,9 +619,6 @@ def extract_file_list(filename):
 		sys.exit('Error: unable to find file list marker in %s' % filename)
 	except (OSError, IOError):
 		sys.exit('Error: unable to read contents from %s' % filename)
-
-def equiv_local_pkg(pkg): # Converts a package to the equivalent local package
-	return SlackwarePackage(pkg.name, pkg.version, pkg.arch, pkg.build, slackroll_local_pkgs_dir, None)
 
 def handle_dotnew_files(package_list): # Handles .new files present in packages
 	local_files = [equiv_local_pkg(x).fullname for x in package_list]
@@ -783,7 +781,6 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 					sys.exit('Error: unable to run pager on %s' % info_file)
 			else:
 				download_display_info(mirror, pkg)
-	sys.exit()
 
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	print 'Updating persistent database...'
@@ -1243,58 +1240,73 @@ try:
 
 	if operation == 'list-new':
 		print_in_states([slackroll_state_new], persistent_list, 'New packages:')
+		sys.exit()
 
 	if operation == 'list-unavailable':
 		print_in_states([slackroll_state_unavailable], persistent_list, 'Unavailable packages:')
+		sys.exit()
 
 	if operation == 'list-installed':
 		print_in_states([slackroll_state_installed], persistent_list, 'Installed packages:')
+		sys.exit()
 
 	if operation == 'list-not-installed':
 		print_in_states([slackroll_state_notinstalled], persistent_list, 'Not installed packages:')
+		sys.exit()
 
 	if operation == 'list-frozen':
 		print_in_states([slackroll_state_frozen], persistent_list, 'Frozen packages:')
+		sys.exit()
 
 	if operation == 'list-foreign':
 		print_in_states([slackroll_state_foreign], persistent_list, 'Foreign packages:')
+		sys.exit()
 	
 	if operation == 'list-local':
 		print_keys(local_list, 'Local packages:')
+		sys.exit()
 
 	if operation == 'list-remote':
 		print_keys(remote_list, 'Remote packages:')
+		sys.exit()
 
 	if operation == 'list-all':
 		print_keys(persistent_list, 'All packages:')
+		sys.exit()
 
 	if operation == 'new-not-installed':
 		from_states_to_state([slackroll_state_new], slackroll_state_notinstalled, persistent_list,
 				[x for x in persistent_list.iterkeys() if persistent_list[x] == slackroll_state_new])
+		sys.exit()
 
 	if operation == 'unavailable-foreign':
 		from_states_to_state([slackroll_state_unavailable], slackroll_state_foreign, persistent_list,
 				[x for x in persistent_list.iterkeys() if persistent_list[x] == slackroll_state_unavailable])
+		sys.exit()
 
 	if operation == 'frozen':
 		from_states_to_state([slackroll_state_frozen, slackroll_state_installed, slackroll_state_outdated],
 				slackroll_state_frozen, persistent_list, sys.argv[2:])
+		sys.exit()
 
 	if operation == 'foreign':
 		from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_foreign, persistent_list, sys.argv[2:])
+		sys.exit()
 	
 	if operation == 'not-installed':
 		from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_notinstalled, persistent_list, sys.argv[2:])
+		sys.exit()
 
 	if operation == 'unavailable':
 		from_states_to_state([slackroll_state_unavailable, slackroll_state_foreign], slackroll_state_unavailable, persistent_list, sys.argv[2:])
+		sys.exit()
 
 	if operation == 'new':
 		from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_new, persistent_list, sys.argv[2:])
+		sys.exit()
 
 	if operation == 'installed':
-		from_states_to_state([slackroll_state_installed, slackroll_state_frozen],
-				slackroll_state_installed, persistent_list, sys.argv[2:], exit_flag=False)
+		from_states_to_state([slackroll_state_installed, slackroll_state_frozen], slackroll_state_installed, persistent_list, sys.argv[2:])
 		analyze_changes(local_list, remote_list, persistent_list) # Forced because it may need to be marked as outdated
 		os.utime(slackroll_persistentlist_filename, None)
 		sys.exit()
@@ -1317,6 +1329,7 @@ try:
 
 	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
 		install_operations_family(operation, sys.argv[2:], local_list, remote_list, persistent_list)
+		sys.exit()
 	
 	if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
 		names = [x for x in persistent_list if persistent_list[x] == slackroll_state_new]
@@ -1326,6 +1339,7 @@ try:
 			sys.exit()
 		opname = operation.replace('-new', '')
 		install_operations_family(opname, names, local_list, remote_list, persistent_list)
+		sys.exit()
 
 	if operation in ['remove', 'remove-unavailable']:
 		if operation == 'remove':
