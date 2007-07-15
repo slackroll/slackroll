@@ -848,55 +848,59 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 def print_help():
 	print """Available operations:
 
-  help			Print this help
-  version		Print the program version
-  update		Download remote tree information
-  import-key		Download and import the GPG key
-  upgrade		Upgrade system packages
-  download-upgrades	Like 'upgrade' but without installing
-  show-upgrade-urls	Like 'upgrade' but only printing URLs
-  clean-cache		Remove unknown package versions from package cache
-  touch			Force update on persistent database
-  list-transient	Combined list of new, unavailable and outdated packages
-  list-upgrades		List available upgrades
-  list-outdated-frozen	List frozen packages that would be outdated otherwise
-  list-alternatives	List packages with alternative versions
-  list-versions PKG...	List all known versions of given packages
-  state PKG...		Show state of given packages
-  list-new		List new packages
-  list-unavailable	List unavailable packages
-  list-installed	List installed packages
-  list-not-installed	List not installed packages
-  list-frozen		List frozen packages
-  list-foreign		List foreign packages
-  list-outdated		List outdated packages
-  list-local		List all local packages (present in system)
-  list-remote		List all remote packages (present in remote tree)
-  list-all		List every known package
-  new-not-installed	Mark all new packages as not installed
-  unavailable-foreign	Mark all unavailable packages as foreign
-  new PKG...		Mark packages as new
-  unavailable PKG...	Mark packages as unavailable
-  installed PKG...	Mark packages as installed
-  not-installed PKG...	Mark packages as not installed
-  frozen PKG...		Mark packages as frozen
-  foreign PKG...	Mark packages as foreign
-  install PKG...	Install packages or specific package versions
-  install-new		Install all new packages
-  reinstall PKG...	Same as 'install' but reinstalls if needed
-  download PKG...	Download packages or specific package versions
-  download-new		Download all new packages
-  info PKG...		Show info about packages or specific package versions
-  info-new		Show info about all new packages
-  urls PKG...		Show package or specific package version URLs
-  urls-new		Show URLs for all new packages
-  remove PKG...		Remove packages
-  remove-unavailable	Remove every unavailable package
-  pb-search FILE...	Search for files in the Slackware Package Browser
-  remote-search FILE...	Alias for 'pb-search'
-  local-search REGEX...	Search for files in local packages
-  name-search REGEX...	Search for package names matching regular expressions
-  path-search REGEX...	Search for remote packages having matching path
+help			Print this help
+version			Print the program version
+update			Download remote tree information
+import-key		Download and import the GPG key
+upgrade			Upgrade system packages
+download-upgrades	Like 'upgrade' but without installing
+show-upgrade-urls	Like 'upgrade' but only printing URLs
+clean-cache		Remove unknown package versions from package cache
+touch			Force update on persistent database
+list-transient		Combined list of new, unavailable and outdated packages
+list-upgrades		List available upgrades
+list-outdated-frozen	List frozen packages that would be outdated otherwise
+list-alternatives	List packages with alternative versions
+list-versions PKG...	List all known versions of given packages
+state PKG...		Show state of given packages
+list-new		List new packages
+list-unavailable	List unavailable packages
+list-installed		List installed packages
+list-not-installed	List not installed packages
+list-frozen		List frozen packages
+list-foreign		List foreign packages
+list-outdated		List outdated packages
+list-local		List all local packages (present in system)
+list-remote		List all remote packages (present in remote tree)
+list-all		List every known package
+new-not-installed	Mark all new packages as not installed
+unavailable-foreign	Mark all unavailable packages as foreign
+new PKG...		Mark packages as new
+unavailable PKG...	Mark packages as unavailable
+installed PKG...	Mark packages as installed
+not-installed PKG...	Mark packages as not installed
+frozen PKG...		Mark packages as frozen
+foreign PKG...		Mark packages as foreign
+install PKG...		Install packages or specific package versions
+install-new		Install all new packages
+install-path REGEX...	Install all packages with matching path
+reinstall PKG...	Same as 'install' but reinstalls if needed
+download PKG...		Download packages or specific package versions
+download-new		Download all new packages
+download-path REGEX...	Download all packages with matching path
+info PKG...		Show info about packages or specific package versions
+info-new		Show info about all new packages
+info-path REGEX...	Show info about all packages with matching path
+urls PKG...		Show package or specific package version URLs
+urls-new		Show URLs for all new packages
+urls-path REGEX...	Show URLs for all packages with matching path
+remove PKG...		Remove packages
+remove-unavailable	Remove every unavailable package
+pb-search FILE...	Search for files in the Slackware Package Browser
+remote-search FILE...	Alias for 'pb-search'
+local-search REGEX...	Search for files in local packages
+name-search REGEX...	Search for package names matching regular expressions
+path-search REGEX...	Search for remote packages having matching path
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
@@ -912,6 +916,7 @@ try:
 		'clean-cache',
 		'download',
 		'download-new',
+		'download-path',
 		'download-upgrades',
 		'foreign',
 		'frozen',
@@ -919,8 +924,10 @@ try:
 		'import-key',
 		'info',
 		'info-new',
+		'info-path',
 		'install',
 		'install-new',
+		'install-path',
 		'installed',
 		'list-all',
 		'list-alternatives',
@@ -957,6 +964,7 @@ try:
 		'upgrade',
 		'urls',
 		'urls-new',
+		'urls-path',
 		'version',
 	]
 
@@ -1339,6 +1347,34 @@ try:
 			sys.exit()
 		opname = operation.replace('-new', '')
 		install_operations_family(opname, names, local_list, remote_list, persistent_list)
+		sys.exit()
+	
+	if operation in ['install-path', 'download-path', 'info-path', 'urls-path']:
+		regexes = []
+		for retxt in sys.argv[2:]:
+			try:
+				regexes.append(re.compile(retxt))
+			except re.error:
+				sys.exit('Error: invalid regular expression: %s' % retxt)
+
+		all_remotes = []
+		for name in remote_list.iterkeys():
+			all_remotes.extend(remote_list[name])
+
+		matching_pkgs = []
+		for pkg in all_remotes:
+			for regex in regexes:
+				if regex.search(pkg.path) is not None:
+					matching_pkgs.append(pkg)
+					break
+
+		if len(matching_pkgs) == 0:
+			print 'No matching packages'
+			sys.exit()
+
+		opname = operation.replace('-path', '')
+		fullnames = [x.fullname for x in matching_pkgs]
+		install_operations_family(opname, fullnames, local_list, remote_list, persistent_list)
 		sys.exit()
 
 	if operation in ['remove', 'remove-unavailable']:
