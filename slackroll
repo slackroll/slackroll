@@ -5,7 +5,6 @@ import anydbm
 import cPickle
 import glob
 import os
-import os.path
 import re
 import shelve
 import socket
@@ -167,7 +166,7 @@ def index_of(thelist, elem):
 	except ValueError:
 		return -1
 
-def pkg_name_cmp(name1, name2):
+def pkg_name_cmp(name1, name2): # To be used for sorting functions
 	idx1 = index_of(slackroll_prioritized_pkgs, name1)
 	idx2 = index_of(slackroll_prioritized_pkgs, name2)
 
@@ -182,21 +181,21 @@ def pkg_name_cmp(name1, name2):
 def pkg_cmp(pkg1, pkg2):
 	return pkg_name_cmp(pkg1.name, pkg2.name)
 
-def get_temp_dir():
+def get_temp_dir(): # Temporary directory name
 	tempdir = os.getenv('TMPDIR')
 	return (tempdir is None and slackroll_default_temp_dir or tempdir)
 
 def kibi(bytes):
 	return (bytes / 1024)
 
-def get_self_file_version():
+def get_self_file_version(): # Get self version from disk file
 	try:
 		data = file(slackroll_self_filename, 'r').read()
 		return long(data)
 	except (OSError, IOError, ValueError):
 		sys.exit('Error: unable to read version from file %s' % slackroll_self_filename)
 
-def write_self_file_version():
+def write_self_file_version(): # Write self version to disk file
 	try:
 		file(slackroll_self_filename, 'w').write('%s\n' % slackroll_version)
 	except (OSError, IOError):
@@ -212,13 +211,13 @@ def newer_than(path1, path2): # path1 modification time more recent than path2 m
 	modtime = get_mtime_or_exit(path1)
 	return (modtime > reftime)
 	
-def try_dump(object, filepath):
+def try_dump(object, filepath): # cPickle.dump()
 	try:
 		cPickle.dump(object, file(filepath, 'wb'), -1)
 	except (OSError, IOError, cPickle.PickleError):
 		sys.exit('Error: unable to dump object to file %s' % filepath)
 
-def try_load(filepath):
+def try_load(filepath): # cPickle.load()
 	try:
 		return cPickle.load(file(filepath, 'rb'))
 	except (OSError, IOError, cPickle.PickleError):
@@ -332,7 +331,7 @@ def try_to_rename(src, dest, fatal=True):
 		if fatal:
 			sys.exit(slackroll_exit_failure)
 
-def download_report_hook(filename, numblocks, blocksize, totalsize): # Callback for urllib.urlretrieve()
+def download_report_hook(filename, numblocks, blocksize, totalsize): # Template for urllib.urlretrieve() callbacks
 	if totalsize == -1:
 		percent = 'N/A'
 		kibibytes = 'N/A'
@@ -405,13 +404,13 @@ def verify_signature(filename):	# Does not exit on errors
 		print 'Verifying signature %s ... ' % os.path.basename(filename)
 		retcode = subprocess.call(['gpg', '--verify', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
 		if retcode != 0:
-			sys.stderr.write('Error: bad signature\n')
+			sys.stderr.write('Error: signature verification failed: %s\n' % filename)
 			raise SlackRollError('GnuPG exited with status code %s' % retcode)
 	except OSError:
-		sys.stderr.write('Error: unable to verify signature in %s\n' % filename)
+		sys.stderr.write('Error: unable to run GnuPG\n')
 		raise SlackRollError('OSError running GnuPG to verify signature')
 
-def upgrade_or_install(filename, reinstall):
+def upgrade_or_install(filename, reinstall): # upgradepkg
 	try:
 		print 'Installing %s ...' % os.path.basename(filename)
 		retcode = subprocess.call(['/sbin/upgradepkg', '--install-new'] + (reinstall and ['--reinstall'] or []) + [filename])
@@ -420,7 +419,7 @@ def upgrade_or_install(filename, reinstall):
 	except OSError:
 		sys.exit('Error: unable to install %s' % filename)
 
-def remove_pkg(removepkg_arg):
+def remove_pkg(removepkg_arg): # removepkg
 	try:
 		print 'Removing %s ...' % removepkg_arg
 		retcode = subprocess.call(['/sbin/removepkg', removepkg_arg])
@@ -526,16 +525,12 @@ def choose_option(option_list): # Prompt user and return option index
 		print '    (%s) %s' % (code, text)
 	codes = [x[0].lower() for x in option_list]
 	while True:
-		try:
-			sys.stdout.write('You choose option... ')
-			sys.stdout.flush()
-			chosen = raw_input().lower()
-			if chosen not in codes:
-				continue
-			break
-		except EOFError:
-			print
+		sys.stdout.write('You choose option... ')
+		sys.stdout.flush()
+		chosen = raw_input().lower()
+		if chosen not in codes:
 			continue
+		break
 	return codes.index(chosen)
 
 def choose_pkg(pkg_list): # Returns chosen package or None
@@ -547,10 +542,7 @@ def choose_pkg(pkg_list): # Returns chosen package or None
 	return options_pkg[chosen]
 
 def confirm_continue():
-	try:
-		raw_input('Press Ctrl+C to cancel or Enter to continue... ')
-	except EOFError:
-		pass
+	raw_input('Press Ctrl+C to cancel or Enter to continue... ')
 
 def not_pasture(pkg_list): # Returns packages not in pasture
 	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path]
@@ -613,7 +605,7 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 	if not has_results:
 		print '    (No results)\n'
 
-def extract_file_list(filename): # Extracts the file list from a local info file (FILE LIST:\n etc)
+def extract_file_list(filename): # Extracts the file list from a local info file
 	try:
 		lines = file(filename, 'r').readlines()
 		paths = ['/%s' % x.strip() for x in lines[lines.index(slackroll_local_pkg_filelist_marker) + 1:]]
@@ -1444,11 +1436,13 @@ try:
 			print ''.join(['    %s\n' % x for x in matching_fullnames])
 		sys.exit()
 	
-except (KeyboardInterrupt, IOError), error:
+except (KeyboardInterrupt, IOError, EOFError), error:
 	if isinstance(error, KeyboardInterrupt):
 		sys.stderr.write('\nProgram aborted by user\n')
-	else:
+	elif isinstance(error, IOError):
 		sys.stderr.write('\nIOError: Broken pipe?\n')
+	else:
+		sys.stderr.write('\nEOF found, exiting\n')
 	if persistent_list is not None:
 		persistent_list.close()
 	sys.exit(slackroll_exit_failure)
