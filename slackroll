@@ -167,7 +167,7 @@ def index_of(thelist, elem):
 	except ValueError:
 		return -1
 
-def pkg_cmp(name1, name2):
+def pkg_name_cmp(name1, name2):
 	idx1 = index_of(slackroll_prioritized_pkgs, name1)
 	idx2 = index_of(slackroll_prioritized_pkgs, name2)
 
@@ -178,6 +178,9 @@ def pkg_cmp(name1, name2):
 	if idx2 == -1:
 		return -1
 	return (idx1 - idx2)
+
+def pkg_cmp(pkg1, pkg2):
+	return pkg_name_cmp(pkg1.name, pkg2.name)
 
 def get_temp_dir():
 	tempdir = os.getenv('TMPDIR')
@@ -426,6 +429,10 @@ def remove_pkg(removepkg_arg):
 	except OSError:
 		sys.exit('Error: unable to remove %s' % removepkg_arg)
 
+def remove_pkgs(pkg_list):
+	for pkg in pkg_list:
+		remove_pkg(pkg.idname)
+
 def package_in_cache(package): # Check if package is in ./packages
 	filepath = os.path.join(slackroll_pkgs_dir, package.archivename)
 	return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
@@ -554,7 +561,7 @@ def not_main(pkg_list): # Returns packages not in the main tree
 def print_in_states(states, persistent_list, header): # Print package name if its state matches
 	print header
 	keys = [x for x in persistent_list if persistent_list[x] in states]
-	keys.sort(cmp=pkg_cmp)
+	keys.sort(cmp=pkg_name_cmp)
 	for name in keys:
 		print '    %s' % name
 	print 'End of list'
@@ -562,7 +569,7 @@ def print_in_states(states, persistent_list, header): # Print package name if it
 def print_keys(dictionary, header): # Print every package name in list
 	print header
 	keys = dictionary.keys()
-	keys.sort(cmp=pkg_cmp)
+	keys.sort(cmp=pkg_name_cmp)
 	for key in keys:
 		print '    %s' % key
 	print 'End of list'
@@ -893,6 +900,7 @@ urls-new		Show URLs for all new packages
 urls-path REGEX...	Show URLs for all packages with matching path
 remove PKG...		Remove packages
 remove-unavailable	Remove every unavailable package
+remove-path REGEX...	Remove all packages with matching path
 pb-search FILE...	Search for files in the Slackware Package Browser
 remote-search FILE...	Alias for 'pb-search'
 local-search REGEX...	Search for files in local packages
@@ -951,6 +959,7 @@ try:
 		'reinstall',
 		'remote-search',
 		'remove',
+		'remove-path',
 		'remove-unavailable',
 		'show-upgrade-urls',
 		'state',
@@ -1113,7 +1122,7 @@ try:
 	if operation in ['upgrade', 'download-upgrades', 'show-upgrade-urls']:
 		mirror = get_mirror()
 		names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
-		names.sort(cmp=pkg_cmp)
+		names.sort(cmp=pkg_name_cmp)
 
 		if len(names) == 0:
 			print 'No outdated packages'
@@ -1184,7 +1193,7 @@ try:
 			print 'Outdated packages:'
 			valid_states = [slackroll_state_outdated]
 		names = [x for x in persistent_list if persistent_list[x] in valid_states]
-		names.sort(cmp=pkg_cmp)
+		names.sort(cmp=pkg_name_cmp)
 		glibc_affected = False
 		for name in names:
 			if slackroll_glibc_indicator in name:
@@ -1206,7 +1215,7 @@ try:
 			print 'Would be outdated:'
 			names = [x for x in local_list if persistent_list[x] == slackroll_state_frozen and local_list[x] not in remote_list[x]]
 
-		names.sort(cmp=pkg_cmp)
+		names.sort(cmp=pkg_name_cmp)
 		glibc_affected = False
 		for name in names:
 			candidates = not_pasture(remote_list[name])
@@ -1228,7 +1237,7 @@ try:
 	if operation == 'list-alternatives':
 		print 'Packages with alternatives:'
 		names = persistent_list.keys()
-		names.sort(cmp=pkg_cmp)
+		names.sort(cmp=pkg_name_cmp)
 		for name in names:
 			versions = []
 			if name in remote_list:
@@ -1338,7 +1347,7 @@ try:
 	
 	if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
 		names = [x for x in persistent_list if persistent_list[x] == slackroll_state_new]
-		names.sort(cmp=pkg_cmp)
+		names.sort(cmp=pkg_name_cmp)
 		if len(names) == 0:
 			print 'No new packages'
 			sys.exit()
@@ -1346,7 +1355,7 @@ try:
 		install_operations_family(opname, names, local_list, remote_list, persistent_list)
 		sys.exit()
 	
-	if operation in ['install-path', 'download-path', 'info-path', 'urls-path']:
+	if operation in ['install-path', 'download-path', 'info-path', 'urls-path', 'remove-path']:
 		regexes = []
 		for retxt in sys.argv[2:]:
 			try:
@@ -1365,27 +1374,40 @@ try:
 					matching_pkgs.append(pkg)
 					break
 
+		if operation == 'remove-path': # Filter out packages not present in local system
+			matching_pkgs = [x for x in matching_pkgs if x.name in local_list and local_list[x.name] == x]
+
 		if len(matching_pkgs) == 0:
-			print 'No matching packages'
+			if operation == 'remove-path':
+				print 'No matching local packages'
+			else:
+				print 'No matching packages'
 			sys.exit()
 
-		opname = operation.replace('-path', '')
-		fullnames = [x.fullname for x in matching_pkgs]
-		install_operations_family(opname, fullnames, local_list, remote_list, persistent_list)
+		matching_pkgs.sort(cmp=pkg_cmp)
+		if operation == 'remove-path':
+			remove_pkgs(matching_pkgs)
+		else:
+			opname = operation.replace('-path', '')
+			fullnames = [x.fullname for x in matching_pkgs]
+			install_operations_family(opname, fullnames, local_list, remote_list, persistent_list)
+
 		sys.exit()
 
 	if operation in ['remove', 'remove-unavailable']:
 		if operation == 'remove':
-			args = sys.argv[2:]
+			args = []
+			for name in sys.argv[2:]:
+				if name not in local_list:
+					sys.exit('Error: %s not present in local system' % name)
+				args.append(name)
 		else: # remove-unavailable
 			args = [x for x in persistent_list if persistent_list[x] == slackroll_state_unavailable]
+
 		if len(args) == 0:
 			print 'No unavailable packages'
-			sys.exit()
-		for name in args:
-			if name not in local_list:
-				sys.exit('Error: %s not present in local system' % name)
-			remove_pkg(local_list[name].idname)
+		else:
+			remove_pkgs([local_list[x] for x in args])
 		sys.exit()
 
 	if operation == 'name-search':
@@ -1397,7 +1419,7 @@ try:
 				sys.exit('Error: invalid regular expression: %s' % retxt)
 			print 'Searching for "%s":' % retxt
 			names = [x for x in persistent_list if regexp.search(x) is not None]
-			names.sort(cmp=pkg_cmp)
+			names.sort(cmp=pkg_name_cmp)
 			if len(names) == 0:
 				print '    (No results)\n'
 				continue
