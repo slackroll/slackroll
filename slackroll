@@ -778,6 +778,20 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			else:
 				download_display_info(mirror, pkg)
 
+def walk_append_if(root, condition, output): # Walk with os.walk() and append if entries make condition true
+	abspath = os.path.abspath(root)
+	for (dirpath, dirnames, filenames) in os.walk(abspath):
+		for sub in dirnames + filenames:
+			full = os.path.join(dirpath, sub)
+			if condition(full):
+				output.append(full)
+
+def is_not_link(path):
+	return not os.path.islink(path)
+
+def is_broken_link(path):
+	return os.path.islink(path) and not os.path.exists(path)
+
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	print 'Updating persistent database...'
 	already_analyzed = dict()
@@ -899,6 +913,7 @@ local-search REGEX...	Search for files in local packages
 name-search REGEX...	Search for package names matching regular expressions
 path-search REGEX...	Search for remote packages having matching path
 orphan-search PATH...	Search for orphan files in local system
+broken-symlinks PATH...	Search for broken symlinks in local system
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
@@ -911,6 +926,7 @@ try:
 	urllib._urlopener = SlackRollURLopener()
 
 	all_ops = [
+		'broken-symlinks',
 		'clean-cache',
 		'download',
 		'download-new',
@@ -1064,7 +1080,7 @@ try:
 	
 	if operation == 'orphan-search':
 		print 'WARNING: This operation may take a long time to complete'
-		print 'WARNING: Results should be interpreted with care'
+		print 'WARNING: Results should be interpreted carefully'
 		confirm_continue()
 
 		print '\nReading and normalizing contents of %s ...' % slackroll_local_pkgs_dir
@@ -1081,12 +1097,7 @@ try:
 		print 'Examining specified paths...'
 		tree = []
 		for path in sys.argv[2:]: # Iterate over specified paths
-			abspath = os.path.abspath(path)
-			for (dirpath, dirnames, filenames) in os.walk(abspath): # walk element
-				for sub in dirnames + filenames:
-					full = os.path.join(dirpath, sub)
-					if not os.path.islink(full):
-						tree.append(full)
+			walk_append_if(path, is_not_link, tree)
 
 		# Detect orphans
 		print 'Finding orphan files...'
@@ -1102,6 +1113,23 @@ try:
 		else:
 			print_keys(orphans, 'Orphan files:')
 
+		sys.exit()
+	
+	if operation == 'broken-symlinks':
+		print 'WARNING: Results should be interpreted carefully'
+		confirm_continue()
+
+		print '\nExamining specified paths...'
+		broken_symlinks = []
+		for path in sys.argv[2:]:
+			walk_append_if(path, is_broken_link, broken_symlinks)
+		if len(broken_symlinks) == 0:
+			print 'No broken symlinks found'
+		else:
+			broken_symlinks_dict = dict()
+			for name in broken_symlinks:
+				broken_symlinks_dict[name] = True
+			print_keys(broken_symlinks_dict, 'Broken symlinks:')
 		sys.exit()
 
 	# Some operations below need to have the temporary directory available to download stuff
