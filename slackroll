@@ -898,6 +898,7 @@ remote-search FILE...	Alias for 'pb-search'
 local-search REGEX...	Search for files in local packages
 name-search REGEX...	Search for package names matching regular expressions
 path-search REGEX...	Search for remote packages having matching path
+orphan-search PATH...	Search for orphan files in local system
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
@@ -946,6 +947,7 @@ try:
 		'new',
 		'new-not-installed',
 		'not-installed',
+		'orphan-search',
 		'path-search',
 		'pb-search',
 		'reinstall',
@@ -1060,6 +1062,48 @@ try:
 				print '    (No results)\n'
 		sys.exit()
 	
+	if operation == 'orphan-search':
+		print 'WARNING: This operation may take a long time to complete'
+		print 'WARNING: Results should be interpreted with care'
+		confirm_continue()
+
+		print '\nReading and normalizing contents of %s ...' % slackroll_local_pkgs_dir
+		try:
+			filenames = glob.glob(slackroll_local_pkgs_glob)
+		except (OSError, IOError):
+			sys.exit('Error: unable to get local package list')
+
+		known_files = dict()
+		for pkg in filenames:
+			for path in extract_file_list(pkg):
+				known_files[os.path.realpath(path)] = True
+
+		print 'Examining specified paths...'
+		tree = []
+		for path in sys.argv[2:]: # Iterate over specified paths
+			abspath = os.path.abspath(path)
+			for (dirpath, dirnames, filenames) in os.walk(abspath): # walk element
+				for sub in dirnames + filenames:
+					full = os.path.join(dirpath, sub)
+					if not os.path.islink(full):
+						tree.append(full)
+
+		# Detect orphans
+		print 'Finding orphan files...'
+		orphans = dict()
+		for name in tree:
+			alternative = '%s%s' % (name, slackroll_new_suffix)
+			if name not in known_files and alternative not in known_files:
+				orphans[name] = True
+
+		# Print results
+		if len(orphans) == 0:
+			print 'No orphan files found'
+		else:
+			print_keys(orphans, 'Orphan files:')
+
+		sys.exit()
+
 	# Some operations below need to have the temporary directory available to download stuff
 	handle_writable_dir(get_temp_dir())
 
