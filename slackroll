@@ -240,7 +240,7 @@ def try_load(filepath): # cPickle.load()
 def extract_file_list(filename): # Extracts the file list from a local info file
 	try:
 		lines = file(filename, 'r').readlines()
-		paths = ['/%s' % x.strip() for x in lines[lines.index(slackroll_local_pkg_filelist_marker) + 1:]]
+		paths = ['/%s' % x.strip().decode('string_escape') for x in lines[lines.index(slackroll_local_pkg_filelist_marker) + 1:]]
 		return paths
 	except ValueError:
 		sys.exit('Error: unable to find file list marker in %s' % filename)
