@@ -212,6 +212,12 @@ def long_time_warning():
 def interpret_results_warning():
 	print 'WARNING: Results should be interpreted carefully'
 
+def get_mtime_or_exit(path):
+	try:
+		return os.path.getmtime(path)
+	except OSError:
+		sys.exit('Error: unable to get modification time for %s' % path)
+
 def newer_than(path1, path2): # path1 modification time more recent than path2 modification time?
 	reftime = get_mtime_or_exit(path2)
 	if not os.path.exists(path1):
@@ -231,7 +237,17 @@ def try_load(filepath): # cPickle.load()
 	except (OSError, IOError, cPickle.PickleError):
 		sys.exit('Error: unable to load object from file %s' % filepath)
 
-def get_pkg_filelists(): # Return a dictionary of filename -> file-list from /var/log/packages
+def extract_file_list(filename): # Extracts the file list from a local info file
+	try:
+		lines = file(filename, 'r').readlines()
+		paths = ['/%s' % x.strip() for x in lines[lines.index(slackroll_local_pkg_filelist_marker) + 1:]]
+		return paths
+	except ValueError:
+		sys.exit('Error: unable to find file list marker in %s' % filename)
+	except (OSError, IOError):
+		sys.exit('Error: unable to read contents from %s' % filename)
+
+def get_pkg_filelists(): # Return a dictionary of filename->filelist from /var/log/packages
 	if not newer_than(slackroll_pkg_files_filename, slackroll_local_pkgs_dir):
 		try:
 			filenames = glob.glob(slackroll_local_pkgs_glob)
@@ -417,12 +433,6 @@ def handle_writable_dir(dirname): # Make sure dirname is available and writable
 	if not os.access(dirname, os.R_OK | os.W_OK):
 		sys.exit('Error: wrong permissions for directory %s' % dirname)
 
-def get_mtime_or_exit(path):
-	try:
-		return os.path.getmtime(path)
-	except OSError:
-		sys.exit('Error: unable to get modification time for %s' % path)
-
 def import_key(filename):
 	try:
 		print 'Importing keys from %s ...' % filename
@@ -574,9 +584,6 @@ def choose_pkg(pkg_list): # Returns chosen package or None
 	chosen = choose_option(options)
 	return options_pkg[chosen]
 
-def confirm_continue():
-	raw_input('Press Ctrl+C to cancel or Enter to continue... ')
-
 def not_pasture(pkg_list): # Returns packages not in pasture
 	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path]
 
@@ -645,16 +652,6 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 	if not has_results:
 		print '    (No results)\n'
 
-def extract_file_list(filename): # Extracts the file list from a local info file
-	try:
-		lines = file(filename, 'r').readlines()
-		paths = ['/%s' % x.strip() for x in lines[lines.index(slackroll_local_pkg_filelist_marker) + 1:]]
-		return paths
-	except ValueError:
-		sys.exit('Error: unable to find file list marker in %s' % filename)
-	except (OSError, IOError):
-		sys.exit('Error: unable to read contents from %s' % filename)
-
 def handle_dotnew_files(package_list): # Handles .new files present in packages
 	local_files = [equiv_local_pkg(x).fullname for x in package_list]
 	new_files = []
@@ -666,12 +663,14 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 		return
 
 	existence_text = ['MISSING', 'FOUND  ']
+
+	# Iterate over every pair of .new files
 	for newfile in new_files:
 		oldfile = newfile[:-(len(slackroll_new_suffix))]
 		basenew = os.path.basename(newfile)
 		baseold = os.path.basename(oldfile)
 
-		# Option texts
+		# Every menu option
 		go_next = ('X', 'Review next pair')
 		remove_new = ('R', 'rm %s' % basenew)
 		rename_new = ('M', 'mv %s %s' % (basenew, baseold))
@@ -737,6 +736,9 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 					break
 
 	print '\nNo more files to review'
+
+def confirm_continue():
+	raw_input('Press Ctrl+C to cancel or Enter to continue... ')
 
 def install_operations_family(operation, args, local_list, remote_list, persistent_list):
 	# Warn the user on install and reinstall operations if there is glibc
