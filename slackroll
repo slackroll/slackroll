@@ -49,7 +49,7 @@ slackroll_persistentlist_filename = 'persistent.db'
 slackroll_locallist_filename = 'local.db'
 slackroll_remotelist_filename = 'remote.db'
 slackroll_pkg_files_filename = 'pkgfiles.db'
-slackroll_pkg_normalized_files_filename = 'pkgfilesn.db'
+slackroll_known_files = 'knownfiles.db'
 slackroll_filelist_filename = 'FILELIST.TXT'
 slackroll_changelog_filename = 'ChangeLog.txt'
 slackroll_gpgkey_filename = 'GPG-KEY'
@@ -260,7 +260,7 @@ def get_pkg_filelists(): # Return a dictionary of filename->filelist from /var/l
 	return try_load(slackroll_pkg_files_filename)
 
 def get_normalized_known_files(): # Return a hash of known files for orphan-search
-	if not newer_than(slackroll_pkg_normalized_files_filename, slackroll_local_pkgs_dir):
+	if not newer_than(slackroll_known_files, slackroll_local_pkgs_dir):
 		try:
 			filenames = glob.glob(slackroll_local_pkgs_glob)
 		except (OSError, IOError):
@@ -269,8 +269,8 @@ def get_normalized_known_files(): # Return a hash of known files for orphan-sear
 		for pkg in filenames:
 			for path in extract_file_list(pkg):
 				known_files[os.path.realpath(path)] = True
-		try_dump(known_files, slackroll_pkg_normalized_files_filename)
-	return try_load(slackroll_pkg_normalized_files_filename)
+		try_dump(known_files, slackroll_known_files)
+	return try_load(slackroll_known_files)
 
 def get_local_pkgs(): # Return a list of packages from /var/log/packages
 	local_pkgs = glob.glob(slackroll_local_pkgs_glob)
