@@ -49,6 +49,7 @@ slackroll_persistentlist_filename = 'persistent.db'
 slackroll_locallist_filename = 'local.db'
 slackroll_remotelist_filename = 'remote.db'
 slackroll_pkg_files_filename = 'pkgfiles.db'
+slackroll_pkg_normalized_files_filename = 'pkgfilesn.db'
 slackroll_filelist_filename = 'FILELIST.TXT'
 slackroll_changelog_filename = 'ChangeLog.txt'
 slackroll_gpgkey_filename = 'GPG-KEY'
@@ -241,6 +242,19 @@ def get_pkg_filelists(): # Return a dictionary of filename -> file-list from /va
 			contents[filename] = extract_file_list(filename)
 		try_dump(contents, slackroll_pkg_files_filename)
 	return try_load(slackroll_pkg_files_filename)
+
+def get_normalized_known_files(): # Return a hash of known files for orphan-search
+	if not newer_than(slackroll_pkg_normalized_files_filename, slackroll_local_pkgs_dir):
+		try:
+			filenames = glob.glob(slackroll_local_pkgs_glob)
+		except (OSError, IOError):
+			sys.exit('Error: unable to get local package list')
+		known_files = dict()
+		for pkg in filenames:
+			for path in extract_file_list(pkg):
+				known_files[os.path.realpath(path)] = True
+		try_dump(known_files, slackroll_pkg_normalized_files_filename)
+	return try_load(slackroll_pkg_normalized_files_filename)
 
 def get_local_pkgs(): # Return a list of packages from /var/log/packages
 	local_pkgs = glob.glob(slackroll_local_pkgs_glob)
@@ -1104,16 +1118,8 @@ try:
 		interpret_results_warning()
 		confirm_continue()
 
-		print '\nReading and normalizing contents of %s ...' % slackroll_local_pkgs_dir
-		try:
-			filenames = glob.glob(slackroll_local_pkgs_glob)
-		except (OSError, IOError):
-			sys.exit('Error: unable to get local package list')
-
-		known_files = dict()
-		for pkg in filenames:
-			for path in extract_file_list(pkg):
-				known_files[os.path.realpath(path)] = True
+		print '\nReading normalized contents of %s ...' % slackroll_local_pkgs_dir
+		known_files = get_normalized_known_files()
 
 		print 'Examining specified paths...'
 		tree = []
