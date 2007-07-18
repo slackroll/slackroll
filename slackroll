@@ -204,6 +204,12 @@ def write_self_file_version(): # Write self version to disk file
 def print_glibc_warning():
 	print '\n!!! WATCH OUT: ACTIVITY IN GLIBC PACKAGES !!!\n'
 
+def long_time_warning():
+	print 'WARNING: This operation may take a long time to complete'
+
+def interpret_results_warning():
+	print 'WARNING: Results should be interpreted carefully'
+
 def newer_than(path1, path2): # path1 modification time more recent than path2 modification time?
 	reftime = get_mtime_or_exit(path2)
 	if not os.path.exists(path1):
@@ -564,6 +570,13 @@ def print_keys(dictionary, header): # Print every package name in list
 	keys.sort(cmp=pkg_name_cmp)
 	for key in keys:
 		print '    %s' % key
+	print 'End of list'
+
+def print_list(the_list, header): # Print every list entry, sorted
+	print header
+	the_list.sort()
+	for entry in the_list:
+		print '    %s' % entry
 	print 'End of list'
 
 def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): # Changes state if it matches
@@ -1079,8 +1092,8 @@ try:
 		sys.exit()
 	
 	if operation == 'orphan-search':
-		print 'WARNING: This operation may take a long time to complete'
-		print 'WARNING: Results should be interpreted carefully'
+		long_time_warning()
+		interpret_results_warning()
 		confirm_continue()
 
 		print '\nReading and normalizing contents of %s ...' % slackroll_local_pkgs_dir
@@ -1101,22 +1114,22 @@ try:
 
 		# Detect orphans
 		print 'Finding orphan files...'
-		orphans = dict()
+		orphans = []
 		for name in tree:
 			alternative = '%s%s' % (name, slackroll_new_suffix)
 			if name not in known_files and alternative not in known_files:
-				orphans[name] = True
+				orphans.append(name)
 
 		# Print results
 		if len(orphans) == 0:
 			print 'No orphan files found'
 		else:
-			print_keys(orphans, 'Orphan files:')
+			print_list(orphans, 'Orphan files:')
 
 		sys.exit()
 	
 	if operation == 'broken-symlinks':
-		print 'WARNING: Results should be interpreted carefully'
+		interpret_results_warning()
 		confirm_continue()
 
 		print '\nExamining specified paths...'
@@ -1126,10 +1139,7 @@ try:
 		if len(broken_symlinks) == 0:
 			print 'No broken symlinks found'
 		else:
-			broken_symlinks_dict = dict()
-			for name in broken_symlinks:
-				broken_symlinks_dict[name] = True
-			print_keys(broken_symlinks_dict, 'Broken symlinks:')
+			print_list(broken_symlinks, 'Broken symlinks:')
 		sys.exit()
 
 	# Some operations below need to have the temporary directory available to download stuff
