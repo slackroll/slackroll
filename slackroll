@@ -534,9 +534,9 @@ def update_changelog(mirror):
 	except (OSError, IOError):
 		sys.exit('Error: unable to read first line of %s' % slackroll_changelog_filename)
 
+	changelog_url = urlparse.urljoin(mirror, slackroll_changelog_filename)
+	lines = []
 	try:
-		changelog_url = urlparse.urljoin(mirror, slackroll_changelog_filename)
-		lines = []
 		conn = urllib.urlopen(changelog_url)
 		while True:
 			new_line = conn.readline()
