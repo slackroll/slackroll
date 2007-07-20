@@ -544,13 +544,13 @@ def update_changelog(mirror):
 				break
 			lines.append(new_line)
 		conn.close()
-		if len(lines) == 0:
-			print 'no new entries.'
-			return
-		print 'new entries found.'
 	except (IOError, socket.error, urllib.ContentTooShortError):
 		sys.exit('Error: could not retrieve this URL: %s' % changelog_url)
 
+	if len(lines) == 0:
+		print 'no new entries.'
+		return
+	print 'new entries found.'
 	try:
 		file(slackroll_changelog_filename, 'w').writelines(lines)
 	except (OSError, IOError):
