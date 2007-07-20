@@ -1171,8 +1171,8 @@ try:
 
 	if operation == 'update':
 		mirror = get_mirror()
-		download_or_exit(mirror, slackroll_filelist_filename, '.')
 		update_changelog(mirror)
+		download_or_exit(mirror, slackroll_filelist_filename, '.')
 		sys.exit()
 
 	if operation == 'import-key':
