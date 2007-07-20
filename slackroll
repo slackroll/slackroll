@@ -291,11 +291,11 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
 			name = pkg.name
 			if name in local_list:
 				dupes[name] = True
-				continue
-			local_list[name] = pkg
+			value = local_list.get(name, [])
+			value.append(pkg)
+			local_list[name] = value
 		if len(dupes) > 0:
 			print_keys(dupes, 'Warning: packages with two or more local versions (best if frozen):')
-			sys.exit(slackroll_exit_failure)
 		try_dump(local_list, slackroll_locallist_filename)
 	return try_load(slackroll_locallist_filename)
 
@@ -775,8 +775,8 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
 		if is_full:
 			# Specific version given
-			if name in local_list and local_list[name] == pkg and operation == 'info':
-				chosen_pkgs.append(local_list[name])
+			if name in local_list and pkg in local_list[name] and operation == 'info':
+				chosen_pkgs.append([x for x in local_list[name] if x == pkg][0])
 			else:
 				try:
 					chosen_pkgs.append(remote_list[name][remote_list[name].index(pkg)])
@@ -789,14 +789,16 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
 			candidates = []
 			if name in local_list and operation == 'info':
-				candidates.append(local_list[name])
+				candidates.extend(local_list[name])
 			if name in remote_list:
 				candidates.extend([x for x in remote_list[name] if x not in candidates])
+
 			if len(candidates) == 1:
 				chosen_pkgs.append(candidates[0])
 			else:
 				if name in local_list and operation != 'info':
-					print 'Local: %s' % local_list[name].idname
+					for pkg in local_list[name]:
+						print 'Local: %s' % pkg.idname
 				chosen = choose_pkg(candidates)
 				if chosen is not None:
 					chosen_pkgs.append(chosen)
@@ -819,9 +821,9 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 	else:	# info operation
 		for pkg in chosen_pkgs:
 			name = pkg.name
-			if name in local_list and local_list[name] == pkg:
+			if name in local_list and pkg in local_list[name]:
 				try:
-					info_file = local_list[name].fullname
+					info_file = pkg.fullname
 					run_pager_on(info_file)
 				except SlackRollError:
 					sys.exit('Error: unable to run pager on %s' % info_file)
@@ -842,6 +844,9 @@ def is_not_link(path):
 def is_broken_link(path):
 	return os.path.islink(path) and not os.path.exists(path)
 
+def up_to_date(local_versions, remote_versions): # Is the local package up to date?
+	return (len([x for x in local_versions if x in remote_versions]) > 0)
+
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	print 'Updating persistent database...'
 	already_analyzed = dict()
@@ -854,14 +859,14 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 			state = persistent_list[name]
 			if state in [slackroll_state_new, slackroll_state_notinstalled]:
 				if name in remote_list:
-					up_to_date = local_list[name] in not_pasture(remote_list[name])
-					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][up_to_date]
+					utd = up_to_date(local_list[name], not_pasture(remote_list[name]))
+					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][utd]
 				else:
 					persistent_list[name] = slackroll_state_unavailable
 			elif state in [slackroll_state_unavailable, slackroll_state_foreign]:
 				if name in remote_list:
-					up_to_date = local_list[name] in not_pasture(remote_list[name])
-					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][up_to_date]
+					utd = up_to_date(local_list[name], not_pasture(remote_list[name]))
+					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][utd]
 			elif state in [slackroll_state_frozen]:
 				if name not in remote_list:
 					persistent_list[name] = slackroll_state_unavailable
@@ -869,14 +874,14 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 				if name not in remote_list:
 					persistent_list[name] = slackroll_state_unavailable
 				else:
-					up_to_date = local_list[name] in not_pasture(remote_list[name])
-					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][up_to_date]
+					utd = up_to_date(local_list[name], not_pasture(remote_list[name]))
+					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][utd]
 				
 		else:
 			# Introduce them in the persistent list
 			if name in remote_list:
-				up_to_date = local_list[name] in not_pasture(remote_list[name])
-				persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][up_to_date]
+				utd = up_to_date(local_list[name], not_pasture(remote_list[name]))
+				persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][utd]
 			else:
 				persistent_list[name] = slackroll_state_unavailable
 		persistent_list.sync()
@@ -1219,7 +1224,7 @@ try:
 
 	if operation in ['upgrade', 'download-upgrades', 'show-upgrade-urls']:
 		mirror = get_mirror()
-		names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
+		names = [x for x in persistent_list if persistent_list[x] == slackroll_state_outdated]
 		names.sort(cmp=pkg_name_cmp)
 
 		if len(names) == 0:
@@ -1235,7 +1240,8 @@ try:
 			if len(candidates) == 1:
 				chosen_pkgs.append(candidates[0])
 			else:
-				print 'Local: %s' % local_list[name].idname
+				for pkg in local_list[name]:
+					print 'Local: %s' % pkg.idname
 				chosen = choose_pkg(candidates)
 				if chosen is not None:
 					chosen_pkgs.append(chosen)
@@ -1268,7 +1274,7 @@ try:
 		no_files = True
 		for pkg in cache_pkgs:
 			name = pkg.name
-			if (name in local_list and local_list[name] == pkg) or (name in remote_list and pkg in remote_list[name]):
+			if (name in local_list and pkg in local_list[name]) or (name in remote_list and pkg in remote_list[name]):
 				continue
 			print 'Removing %s ...' % pkg.fullname
 			try_to_remove(pkg.fullname)
@@ -1308,10 +1314,10 @@ try:
 	if operation in ['list-upgrades', 'list-outdated-frozen']:
 		if operation == 'list-upgrades':
 			print 'Available upgrades:'
-			names = [x for x in local_list if persistent_list[x] == slackroll_state_outdated]
+			names = [x for x in persistent_list if persistent_list[x] == slackroll_state_outdated]
 		else: # list-outdated-frozen
 			print 'Would be outdated:'
-			names = [x for x in local_list if persistent_list[x] == slackroll_state_frozen and local_list[x] not in remote_list[x]]
+			names = [x for x in persistent_list if persistent_list[x] == slackroll_state_frozen and not up_to_date(local_list[x], remote_list[x])]
 
 		names.sort(cmp=pkg_name_cmp)
 		glibc_affected = False
@@ -1323,7 +1329,8 @@ try:
 			if slackroll_glibc_indicator in name:
 				glibc_affected = True
 			print '    %s:' % name
-			print '\tLocal:\t%s' % local_list[name].idname
+			for pkg in local_list[name]:
+				print '\tLocal:\t%s' % pkg.idname
 			for other in candidates:
 				print '\tRemote:\t%s' % other.fullname
 			print
@@ -1340,8 +1347,8 @@ try:
 			versions = []
 			if name in remote_list:
 				versions.extend(remote_list[name])
-			if name in local_list and local_list[name] not in versions:
-				versions.append(local_list[name])
+			if name in local_list:
+				versions.extend([x for x in local_list[name] if x not in versions])
 			if len(versions) > 1:
 				print '    %s:' % name
 				for ver in versions:
@@ -1431,7 +1438,8 @@ try:
 				continue
 			print '    %s:' % name
 			if name in local_list:
-				print '\tLocal:\t%s' % local_list[name].idname
+				for ver in local_list[name]:
+					print '\tLocal:\t%s' % ver.idname
 			if name in remote_list:
 				for ver in remote_list[name]:
 					print '\tRemote:\t%s' % ver.fullname
@@ -1473,7 +1481,7 @@ try:
 					break
 
 		if operation == 'remove-path': # Filter out packages not present in local system
-			matching_pkgs = [x for x in matching_pkgs if x.name in local_list and local_list[x.name] == x]
+			matching_pkgs = [x for x in matching_pkgs if x.name in local_list and x in local_list[x.name]]
 
 		if len(matching_pkgs) == 0:
 			if operation == 'remove-path':
@@ -1504,8 +1512,19 @@ try:
 
 		if len(args) == 0:
 			print 'No unavailable packages'
-		else:
-			remove_pkgs([local_list[x] for x in args])
+			sys.exit()
+
+		to_be_removed = []
+		for name in args:
+			candidates = local_list[name]
+			if len(candidates) == 1:
+				to_be_removed.append(candidates[0])
+				continue
+			chosen = choose_pkg(candidates)
+			if chosen is not None:
+				to_be_removed.append(chosen)
+
+		remove_pkgs(to_be_removed)
 		sys.exit()
 
 	if operation == 'name-search':
