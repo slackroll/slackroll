@@ -207,10 +207,10 @@ def print_glibc_warning():
 	print '\n!!! WATCH OUT: ACTIVITY IN GLIBC PACKAGES !!!\n'
 
 def long_time_warning():
-	print 'WARNING: This operation may take a long time to complete'
+	print 'Warning: This operation may take a long time to complete'
 
 def interpret_results_warning():
-	print 'WARNING: Results should be interpreted carefully'
+	print 'Warning: Results should be interpreted carefully'
 
 def get_mtime_or_exit(path):
 	try:
@@ -294,7 +294,7 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
 				continue
 			local_list[name] = pkg
 		if len(dupes) > 0:
-			print_keys(dupes, 'Error: these packages have more than one local version:')
+			print_keys(dupes, 'Warning: packages with two or more local versions (best if frozen):')
 			sys.exit(slackroll_exit_failure)
 		try_dump(local_list, slackroll_locallist_filename)
 	return try_load(slackroll_locallist_filename)
