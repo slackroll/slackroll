@@ -285,9 +285,17 @@ def get_local_pkgs(): # Return a list of packages from /var/log/packages
 def get_local_list(forced_rebuild): # Return list of local packages from cached list, updating it if needed
 	if not newer_than(slackroll_locallist_filename, slackroll_local_pkgs_dir) or forced_rebuild:
 		print 'Rebuilding local package list...'
+		dupes = dict()
 		local_list = dict()
 		for pkg in get_local_pkgs():
-			local_list[pkg.name] = pkg
+			name = pkg.name
+			if name in local_list:
+				dupes[name] = True
+				continue
+			local_list[name] = pkg
+		if len(dupes) > 0:
+			print_keys(dupes, 'Error: these packages have more than one local version:')
+			sys.exit(slackroll_exit_failure)
 		try_dump(local_list, slackroll_locallist_filename)
 	return try_load(slackroll_locallist_filename)
 
