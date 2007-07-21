@@ -919,7 +919,7 @@ update			Download remote tree information
 import-key		Download and import the GPG key
 upgrade			Upgrade system packages
 download-upgrades	Like 'upgrade' but without installing
-show-upgrade-urls	Like 'upgrade' but only printing URLs
+urls-upgrades		Like 'upgrade' but only printing URLs
 clean-cache		Remove unknown package versions from package cache
 touch			Force update on persistent database
 list-transient		Combined list of new, unavailable and outdated packages
@@ -1026,7 +1026,7 @@ try:
 		'remove',
 		'remove-path',
 		'remove-unavailable',
-		'show-upgrade-urls',
+		'urls-upgrades',
 		'state',
 		'touch',
 		'unavailable',
@@ -1063,7 +1063,7 @@ try:
 		'list-upgrades',
 		'new-not-installed',
 		'remove-unavailable',
-		'show-upgrade-urls',
+		'urls-upgrades',
 		'touch',
 		'unavailable-foreign',
 		'update',
@@ -1222,7 +1222,7 @@ try:
 		print 'End of list'
 		sys.exit()
 
-	if operation in ['upgrade', 'download-upgrades', 'show-upgrade-urls']:
+	if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
 		mirror = get_mirror()
 		names = [x for x in persistent_list if persistent_list[x] == slackroll_state_outdated]
 		names.sort(cmp=pkg_name_cmp)
