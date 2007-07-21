@@ -586,12 +586,11 @@ def choose_option(option_list): # Prompt user and return option index
 	return codes.index(chosen)
 
 def choose_pkg(pkg_list): # Returns chosen package or None
-	options_pkg = [None] + pkg_list
-	options = [('0', 'None')]
+	options = []
 	for x in xrange(len(pkg_list)):
 		options.append((str(x + 1), pkg_list[x].fullname))
 	chosen = choose_option(options)
-	return options_pkg[chosen]
+	return pkg_list[chosen]
 
 def not_pasture(pkg_list): # Returns packages not in pasture
 	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path]
