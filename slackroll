@@ -295,7 +295,8 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
 			value.append(pkg)
 			local_list[name] = value
 		if len(dupes) > 0:
-			print_keys(dupes, 'Warning: packages with two or more local versions (best if frozen):')
+			print 'Warning: packages with two or more local versions should be frozen or foreign'
+			print_keys(dupes, 'Warning: list of packages with two or more local versions:')
 		try_dump(local_list, slackroll_locallist_filename)
 	return try_load(slackroll_locallist_filename)
 
