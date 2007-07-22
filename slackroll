@@ -1317,7 +1317,8 @@ try:
 			names = [x for x in persistent_list if persistent_list[x] == slackroll_state_outdated]
 		else: # list-outdated-frozen
 			print 'Would be outdated:'
-			names = [x for x in persistent_list if persistent_list[x] == slackroll_state_frozen and not up_to_date(local_list[x], remote_list[x])]
+			names = [x for x in persistent_list if persistent_list[x] == slackroll_state_frozen
+								and not up_to_date(local_list[x], not_pasture(remote_list[x]))]
 
 		names.sort(cmp=pkg_name_cmp)
 		glibc_affected = False
