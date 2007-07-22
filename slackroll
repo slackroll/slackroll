@@ -340,7 +340,7 @@ def get_mirror(): # From the 'mirror' file
 	except IOError:
 		sys.exit('ERROR: %s unreadable or wrong format' % slackroll_mirror_filename)
 
-def get_version_from_mirror(mirror): # Extract slackware version from mirror URL
+def get_version_from_mirror(mirror): # Extract Slackware version from mirror URL
 	match = slackroll_mirror_version_re.search(mirror)
 	if match is None:
 		sys.exit('ERROR: unable to extract Slackware version from mirror name')
@@ -598,15 +598,23 @@ def not_pasture(pkg_list): # Returns packages not in pasture
 def not_main(pkg_list): # Returns packages not in the main tree
 	return [x for x in pkg_list if slackroll_main_indicator not in x.path]
 
-def print_in_states(states, persistent_list, header): # Print package name if its state matches
+def print_in_states(states, persistent_list, header, print_state=False, warn_glibc=False): # Print package name if its state matches
 	print header
 	keys = [x for x in persistent_list if persistent_list[x] in states]
 	keys.sort(cmp=pkg_name_cmp)
+	glibc_affected = False
 	for name in keys:
-		print '    %s' % name
+		if slackroll_glibc_indicator in name:
+			glibc_affected = True
+		sys.stout.write('    %s' % name)
+		if print_state:
+			sys.stdout.write(' (%s)' % persistent_list[name])
+		print
+	if warn_glibc and glibc_affected:
+		print_glibc_warning()
 	print 'End of list'
 
-def print_keys(dictionary, header): # Print every package name in list
+def print_keys(dictionary, header): # Print every dictionary key, sorted with pkg_name_cmp()
 	print header
 	keys = dictionary.keys()
 	keys.sort(cmp=pkg_name_cmp)
@@ -636,7 +644,7 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 		persistent_list[name] = dest_state
 		persistent_list.sync()
 
-def query_pkg_browser(version, name): # Query package browser on given file with given slackware version
+def query_pkg_browser(version, name): # Query package browser on given file with given Slackware version
 	searchstr = '"%s"' % name
 	print 'Searching for %s:' % searchstr
 	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
@@ -702,46 +710,42 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 			print '    %s  %s' % (existence_text[new_exists], basenew)
 
 			# Different options depending on which files exist
-			if new_exists:
-				if old_exists:
-					# Both exist
-					options = [go_next, remove_new, rename_new, run_vimdiff]
-					chosen = choose_option(options)
-					if chosen == 0:
-						break
-					elif chosen == 1:
-						print 'Removing %s ...' % newfile
-						try_to_remove(newfile, fatal=False)
-					elif chosen == 2:
-						print 'Renaming %s ...' % newfile
-						try_to_rename(newfile, oldfile, fatal=False)
-					else:
-						run_vimdiff_on(oldfile, newfile)
-				else:
-					# Only .new file exists
-					options = [go_next, rename_new, visual_new]
-					chosen = choose_option(options)
-					if chosen == 0:
-						break
-					if chosen == 1:
-						print 'Renaming %s ...' % newfile
-						try_to_rename(newfile, oldfile, fatal=False)
-					else:
-						run_visual_on(newfile)
-			else:
-				if old_exists:
-					# Only old file exists
-					options = [go_next, visual_old]
-					chosen = choose_option(options)
-					if chosen == 0:
-						break
-					else:
-						run_visual_on(oldfile)
-				else:
-					# None exists
-					options = [go_next]
-					chosen = choose_option(options)
+			if (new_exists, old_exists) == (True, True): # Both
+				options = [go_next, remove_new, rename_new, run_vimdiff]
+				chosen = choose_option(options)
+				if chosen == 0:
 					break
+				elif chosen == 1:
+					print 'Removing %s ...' % newfile
+					try_to_remove(newfile, fatal=False)
+				elif chosen == 2:
+					print 'Renaming %s ...' % newfile
+					try_to_rename(newfile, oldfile, fatal=False)
+				else:
+					run_vimdiff_on(oldfile, newfile)
+
+			elif (new_exists, old_exists) == (True, False): # New only
+				options = [go_next, rename_new, visual_new]
+				chosen = choose_option(options)
+				if chosen == 0:
+					break
+				if chosen == 1:
+					print 'Renaming %s ...' % newfile
+					try_to_rename(newfile, oldfile, fatal=False)
+				else:
+					run_visual_on(newfile)
+
+			elif (new_exists, old_exists) == (False, True): # Old only
+				options = [go_next, visual_old]
+				chosen = choose_option(options)
+				if chosen == 0:
+					break
+				else:
+					run_visual_on(oldfile)
+			else: # None
+				options = [go_next]
+				chosen = choose_option(options)
+				break
 
 	print '\nNo more files to review'
 
@@ -1289,28 +1293,6 @@ try:
 
 		sys.exit()
 	
-	if operation in ['list-transient', 'list-outdated']:
-		if operation == 'list-transient':
-			print 'Transient packages:'
-			valid_states = [slackroll_state_new, slackroll_state_unavailable, slackroll_state_outdated]
-		else:
-			print 'Outdated packages:'
-			valid_states = [slackroll_state_outdated]
-		names = [x for x in persistent_list if persistent_list[x] in valid_states]
-		names.sort(cmp=pkg_name_cmp)
-		glibc_affected = False
-		for name in names:
-			if slackroll_glibc_indicator in name:
-				glibc_affected = True
-			if operation == 'list-transient':
-				print '    %s (%s)' % (name, slackroll_state_strings[persistent_list[name]])
-			else:
-				print '    %s' % name
-		print 'End of list'
-		if glibc_affected:
-			print_glibc_warning()
-		sys.exit()
-
 	if operation in ['list-upgrades', 'list-outdated-frozen']:
 		if operation == 'list-upgrades':
 			print 'Available upgrades:'
@@ -1340,6 +1322,11 @@ try:
 			print_glibc_warning()
 		sys.exit()
 
+	if operation == 'list-transient':
+		print_in_states([slackroll_state_new, slackroll_state_unavailable, slackroll_state_outdated], persistent_list, 'Transient packages:',
+				print_state=True, warn_glibc=True)
+		sys.exit()
+
 	if operation == 'list-alternatives':
 		print 'Packages with alternatives:'
 		names = persistent_list.keys()
@@ -1359,11 +1346,11 @@ try:
 		sys.exit()
 
 	if operation == 'list-new':
-		print_in_states([slackroll_state_new], persistent_list, 'New packages:')
+		print_in_states([slackroll_state_new], persistent_list, 'New packages:', warn_glibc=True)
 		sys.exit()
 
 	if operation == 'list-unavailable':
-		print_in_states([slackroll_state_unavailable], persistent_list, 'Unavailable packages:')
+		print_in_states([slackroll_state_unavailable], persistent_list, 'Unavailable packages:', warn_glibc=True)
 		sys.exit()
 
 	if operation == 'list-installed':
@@ -1380,6 +1367,10 @@ try:
 
 	if operation == 'list-foreign':
 		print_in_states([slackroll_state_foreign], persistent_list, 'Foreign packages:')
+		sys.exit()
+	
+	if operation == 'list-outdated':
+		print_in_states([slackroll_state_outdated], persistent_list, 'Outdated packages:', warn_glibc=True)
 		sys.exit()
 	
 	if operation == 'list-local':
