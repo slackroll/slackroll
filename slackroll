@@ -204,7 +204,7 @@ def write_self_file_version(): # Write self version to disk file
 		sys.exit('ERROR: unable to write version to file %s' % slackroll_self_filename)
 
 def print_glibc_warning():
-	print '\n!!! WATCH OUT: ACTIVITY IN GLIBC PACKAGES !!!\n'
+	print '\nWATCH OUT: ACTIVITY IN GLIBC PACKAGES\n'
 
 def long_time_warning():
 	print 'WARNING: This operation may take a long time to complete'
@@ -606,13 +606,13 @@ def print_in_states(states, persistent_list, header, print_state=False, warn_gli
 	for name in keys:
 		if slackroll_glibc_indicator in name:
 			glibc_affected = True
-		sys.stout.write('    %s' % name)
+		sys.stdout.write('    %s' % name)
 		if print_state:
-			sys.stdout.write(' (%s)' % persistent_list[name])
+			sys.stdout.write(' (%s)' % slackroll_state_strings[persistent_list[name]])
 		print
+	print 'End of list'
 	if warn_glibc and glibc_affected:
 		print_glibc_warning()
-	print 'End of list'
 
 def print_keys(dictionary, header): # Print every dictionary key, sorted with pkg_name_cmp()
 	print header
