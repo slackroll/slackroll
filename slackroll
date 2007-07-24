@@ -57,6 +57,7 @@ slackroll_temp_suffix = '.part'
 slackroll_signature_suffix = '.asc'
 slackroll_info_suffix = '.txt'
 slackroll_new_suffix = '.new'
+slackroll_default_pager = 'less'
 
 slackroll_state_new = 0
 slackroll_state_unavailable = 1
@@ -183,9 +184,17 @@ def pkg_name_cmp(name1, name2): # To be used for sorting functions
 def pkg_cmp(pkg1, pkg2):
 	return pkg_name_cmp(pkg1.name, pkg2.name)
 
+def get_env_or(varname, defval):
+	value = os.getenv(varname)
+	if value is None:
+		return defval
+	return value
+
 def get_temp_dir(): # Temporary directory name
-	tempdir = os.getenv('TMPDIR')
-	return (tempdir is None and slackroll_default_temp_dir or tempdir)
+	return get_env_or('TMPDIR', slackroll_default_temp_dir)
+
+def get_pager():
+	return get_env_or('PAGER', slackroll_default_pager)
 
 def kibi(bytes):
 	return (bytes / 1024)
@@ -348,9 +357,10 @@ def get_version_from_mirror(mirror): # Extract Slackware version from mirror URL
 
 def run_pager_on(file_path): # Does not exit on errors
 	try:
-		subprocess.call(['less', file_path])
+		pager = get_pager()
+		subprocess.call([pager, file_path])
 	except OSError:
-		sys.stderr.write('ERROR: unable to run "less" on %s\n' % file_path)
+		sys.stderr.write('ERROR: unable to run "%s" on %s\n' % (pager, file_path))
 		raise SlackRollError('OSError running pager on %s' % file_path)
 
 def run_visual_on(file_path): # Does not exit on errors
