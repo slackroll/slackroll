@@ -364,7 +364,7 @@ def run_pager_on(file_path): # Does not exit on errors
 		raise SlackRollError('OSError running pager on %s' % file_path)
 
 def run_visual_on(file_path): # Does not exit on errors
-	visual = os.getenv('VISUAL')
+	visual = get_env_or('VISUAL', None)
 	if visual is None:
 		sys.stderr.write('ERROR: VISUAL environment variable not set\n')
 		return
