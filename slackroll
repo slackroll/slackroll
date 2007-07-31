@@ -358,7 +358,8 @@ def get_version_from_mirror(mirror): # Extract Slackware version from mirror URL
 def run_pager_on(file_path): # Does not exit on errors
 	try:
 		pager = get_pager()
-		subprocess.call([pager, file_path])
+		pager_list = pager.split()
+		subprocess.call(pager_list + [file_path])
 	except OSError:
 		sys.stderr.write('ERROR: unable to run "%s" on %s\n' % (pager, file_path))
 		raise SlackRollError('OSError running pager on %s' % file_path)
