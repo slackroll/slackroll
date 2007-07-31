@@ -359,7 +359,7 @@ def run_pager_on(file_path): # Does not exit on errors
 	try:
 		pager = get_pager()
 		pager_list = pager.split()
-		subprocess.call(pager_list + [file_path])
+		subprocess.call(pager_list, stdin=file(file_path, 'r'))
 	except OSError:
 		sys.stderr.write('ERROR: unable to run "%s" on %s\n' % (pager, file_path))
 		raise SlackRollError('OSError running pager on %s' % file_path)
