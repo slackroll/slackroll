@@ -121,5 +121,146 @@
 		<p><strong>Answer</strong>: Yes. Pipe the output of
 		SlackRoll to <code>tee url-list.txt</code> and then edit
 		the file to remove the extra lines.</p>
+
+		<h2>Coordinating with rsync</h2>
+
+		<p><strong>Question</strong>: I normally get my remote
+		packages using <em>rsync</em>, so as to keep a local copy
+		of the remote tree. Can I coordinate this with SlackRoll?</p>
+
+		<p><strong>Answer</strong>: Yes. I would use a script like
+		the following one, replacing the chunks in brackets by
+		the appropriate contents.</p>
+
+		<p><code>
+		SLACKROLL_DIR=<em>[path to slackroll working directory]</em><br />
+		LOCAL_MIRROR_DIR=<em>[path to local copy of the tree]</em><br />
+		<br />
+		<em>[rsync command(s)]</em><br />
+		cd $SLACKROLL_DIR<br />
+		slackroll update<br />
+		rm -f packages/*<br />
+		for pkg in $( slackroll path-search '' | grep '\.tgz$' ); do<br />
+		&nbsp;&nbsp;ln -sf $LOCAL_MIRROR_DIR/$pkg ./packages<br />
+		done<br />
+		</code></p>
+
+		<p>This will synchronize your local copy of the remote tree and
+		then populate the SlackRoll package cache with symbolic
+		links to the package archives located inside your local copy of
+		the Slackware remote tree. From the point of view of SlackRoll,
+		it's like if it had already downloaded every package.</p>
+
+		<h2>Comparing SlackRoll to other tools</h2>
+
+		<p><strong>Question</strong>: What are the differences
+		between SlackRoll and other tools like slapt-get, swaret
+		or slackpkg?</p>
+
+		<p><strong>Answer</strong>: That's a hard question
+		which is better answered by exposing the features of
+		SlackRoll. In any case, it should be clarified that
+		you can run two types of Slackware installations. On
+		the one hand you have stable releases. If you are going
+		to run a stable release any tool will probably be
+		useful enough for you, including SlackRoll. This is
+		because stable releases are easy to manage, given that
+		the only events they are exposed to are the release
+		of patches. It is extremely rare, but not impossible,
+		that a package is added to or removed from the tree of
+		a stable release. Any of the existing tools can easily
+		tell you which patches have been released and let you
+		automate the download and installation process.</p>
+
+		<p>On the other hand, you can be running the testing
+		tree of Slackware, also known as slackware-current.
+		In this case, in my humble opinion, SlackRoll is the
+		best tool. This is because SlackRoll lets you track
+		almost any event happening in the testing tree, be it
+		packages being added, removed or upgraded, including
+		the events of a foreign package getting an official
+		version and the removal of a package for which a
+		customized version was installed. This is possible
+		thanks to its package states foundation and the absence
+		of a blacklisting mechanism in favour of working with
+		two differentiated states: foreign and frozen. No other
+		tool, as far as I know, can deal with as many events
+		as SlackRoll. I can't think of any event that is not
+		covered by SlackRoll.</p>
+
+		<p>Apart from the type of Slackware installation you're
+		running, there's the issue of using external repositories
+		like the one from LinuxPackages.net. I wouldn't
+		recommend using it because, in my own experience, too
+		many packages from that site have been built on
+		nonstandard systems. Some of them have weird dependencies
+		and other ones simply won't work in your system, because
+		they are submitted by people running many unofficial
+		builds of official packages. I am not saying that they are
+		all faulty, but the failure rate I've been getting
+		is simply too high, always in my opinion. If you want
+		to use these external repositories you want to run
+		<em>slapt-get</em>, but take into account your resulting
+		system can in many cases not be considered Slackware
+		anymore, due to the high number of unofficial builds
+		you will be running. It will be something close to
+		Slackware. A customized Slackware if you prefer.</p>
+
+		<p>If you are not going to use external repositories,
+		or packages from those external repositories are the
+		exception in your system, the dependency mechanism of
+		<em>slapt-get</em> is useless, and you may well be
+		runing SlackRoll, which tracks more events. Another
+		point of failure in <em>slapt-get</em> is that it uses
+		a version comparisson algorithm to decide if a package
+		should be upgraded or not. It can fail and, more
+		commonly, it fails to detect package reverts,
+		which happen from time to time in slackware-current,
+		forcing you to pay a lot of attention to the change log.</p>
+
+		<p>Compared to the shell-based <em>swaret</em>
+		(there's a new <em>swaret</em> being developed in Perl),
+		SlackRoll lacks tracking binary dependencies, but it
+		compensates that lack by letting you query the Slackware
+		Package Browser from the command line comfortably. Apart
+		from that, <em>swaret</em> is incredibly slow and CPU
+		hungry even when it's only downloading files from the
+		network, and doesn't come close to tracking as many
+		events as SlackRoll. SlackRoll is, in my humble opinion,
+		a clear winner over <em>swaret</em> unless you absolutely
+		love the binary dependency resolution it provides. For
+		me that's a minor feature. The Perl implementation is
+		supposed to be basically the same, but solving the high
+		CPU usage problem. If that's the case, SlackRoll would
+		still be a better option, in my opinion.</p>
+
+		<p>SlackRoll's closest friend is <em>slackpkg</em>, included
+		in the <em>/extra/</em> tree. You can think of it like a
+		very much improved <em>slackpkg</em> that works faster, detects
+		more corner cases and has more features. If you run
+		<em>slackpkg</em>, do not hesitate to give SlackRoll a try.</p>
+
+		<p>Finally, in general, SlackRoll is at least as fast or
+		faster than any of the above tools, specially faster than the
+		ones that are big shell scripts (slackpkg and swaret). It
+		downloads less metadata than any other, because it only needs
+		FILELIST.TXT and, for convenience, the new entries from the
+		change log (indeed, it only downloads the new entries). It
+		detects more events, which is specially useful when running
+		slackware-current. And it has some useful features no other
+		tool has, like the operations to detect orphan files and
+		broken symlinks. You won't have to run <em>grep</em> on the
+		contents of <em>/var/log/packages</em> anymore, because it
+		has a local search operation, and also a remote search
+		operation that lets you query the Slackware Package Browser
+		comfortably from the command line and receive the results
+		on your terminal. And it also lets you choose which package
+		version to install when there are several ones available. It
+		lets you upgrade individual packages or every upgradeable
+		package, install new packages, remove old ones, search for
+		package names or packages with a given tree component, list
+		alternative versions of packages, detect and warn you about
+		activity in <em>glibc</em> packages, etc.</p>
+
 	</body>
 </html>
