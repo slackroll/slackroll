@@ -369,8 +369,9 @@ def run_visual_on(file_path): # Does not exit on errors
 	if visual is None:
 		sys.stderr.write('ERROR: VISUAL environment variable not set\n')
 		return
+	visual_list = visual.split()
 	try:
-		subprocess.call([visual, file_path])
+		subprocess.call(visual_list + [file_path])
 	except OSError:
 		sys.stderr.write('ERROR: unable to run %s on %s\n' % (visual, file_path))
 
