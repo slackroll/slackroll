@@ -493,8 +493,10 @@ def remove_pkg(removepkg_arg): # removepkg
 		sys.exit('ERROR: unable to remove %s' % removepkg_arg)
 
 def remove_pkgs(pkg_list):
+	dotnew_files = extract_dotnew_files(pkg_list)
 	for pkg in pkg_list:
 		remove_pkg(pkg.idname)
+	handle_dotnew_files_removal(dotnew_files)
 
 def package_in_cache(package): # Check if package is in ./packages
 	filepath = os.path.join(slackroll_pkgs_dir, package.archivename)
@@ -680,21 +682,26 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 	if not has_results:
 		print '    (No results)\n'
 
-def handle_dotnew_files(package_list): # Handles .new files present in packages
-	local_files = [equiv_local_pkg(x).fullname for x in package_list]
-	new_files = []
-	for filename in local_files:
-		new_files.extend([x for x in extract_file_list(filename) if x.endswith(slackroll_new_suffix)])
-	new_files.sort()
-	
-	if len(new_files) == 0:
+def extract_dotnew_files(package_list): # Get .new files from multiple packages
+	dotnew_files = []
+	for pkg in package_list:
+		local_file = equiv_local_pkg(pkg).fullname
+		dotnew_files.extend([x for x in extract_file_list(local_file) if x.endswith(slackroll_new_suffix)])
+	return dotnew_files
+
+def old_file(dotnew_file): # Returns filename without .new suffix
+	return dotnew_file[:-(len(slackroll_new_suffix))]
+
+def handle_dotnew_files_installation(dotnew_files): # Handles .new files present in packages
+	if len(dotnew_files) == 0:
 		return
 
 	existence_text = ['MISSING', 'FOUND  ']
 
 	# Iterate over every pair of .new files
-	for newfile in new_files:
-		oldfile = newfile[:-(len(slackroll_new_suffix))]
+	dotnew_files.sort()
+	for newfile in dotnew_files:
+		oldfile = old_file(newfile)
 		basenew = os.path.basename(newfile)
 		baseold = os.path.basename(oldfile)
 
@@ -760,6 +767,25 @@ def handle_dotnew_files(package_list): # Handles .new files present in packages
 				break
 
 	print '\nNo more files to review'
+
+def handle_dotnew_files_removal(dotnew_files):
+	if len(dotnew_files) == 0:
+		return
+
+	old_files = [old_file(x) for x in dotnew_files]
+	all_files = []
+	all_files.extend(dotnew_files)
+	all_files.extend(old_files)
+	all_files.sort()
+
+	for path in all_files:
+		if not (os.path.exists(path) or os.path.islink(path)):
+			continue # Does not exist in any form
+		print '\nFound %s' % path
+		options = [ ('X', 'Skip without removing'), ('R', 'Remove it') ]
+		chosen = choose_option(options)
+		if chosen == 1:
+			try_to_remove(path, fatal=False)
 
 def confirm_continue():
 	raw_input('Press Ctrl+C to cancel or Enter to continue... ')
@@ -833,7 +859,9 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 		for pkg in chosen_pkgs:
 			action(pkg)
 		if operation in ['install', 'reinstall']:
-			handle_dotnew_files(chosen_pkgs)
+			dotnew_files = extract_dotnew_files(chosen_pkgs)
+			handle_dotnew_files_installation(dotnew_files)
+
 	else:	# info operation
 		for pkg in chosen_pkgs:
 			name = pkg.name
@@ -1272,7 +1300,8 @@ try:
 		for pkg in chosen_pkgs:
 			action(pkg)
 		if operation == 'upgrade':
-			handle_dotnew_files(chosen_pkgs)
+			dotnew_files = extract_dotnew_files(chosen_pkgs)
+			handle_dotnew_files_installation(dotnew_files)
 		sys.exit()
 
 	if operation == 'clean-cache':
