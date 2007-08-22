@@ -1548,14 +1548,18 @@ try:
 			sys.exit()
 
 		to_be_removed = []
-		for name in args:
-			candidates = local_list[name]
-			if len(candidates) == 1:
-				to_be_removed.append(candidates[0])
-				continue
-			chosen = choose_pkg(candidates)
-			if chosen is not None:
-				to_be_removed.append(chosen)
+		if operation == 'remove':
+			for name in args:
+				candidates = local_list[name]
+				if len(candidates) == 1:
+					to_be_removed.append(candidates[0])
+					continue
+				chosen = choose_pkg(candidates)
+				if chosen is not None:
+					to_be_removed.append(chosen)
+		else: # remove-unavailable
+			for name in args:
+				to_be_removed.extend(local_list[name])
 
 		remove_pkgs(to_be_removed)
 		sys.exit()
