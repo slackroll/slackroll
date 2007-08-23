@@ -790,7 +790,7 @@ def handle_dotnew_files_removal(dotnew_files):
 def confirm_continue():
 	raw_input('Press Ctrl+C to cancel or Enter to continue... ')
 
-def install_operations_family(operation, args, local_list, remote_list, persistent_list):
+def install_operations_family(operation, args, local_list, remote_list, persistent_list, pasture=True):
 	# Warn the user on install and reinstall operations if there is glibc
 	# activity and they have not indicated glibc packages
 	if (operation in ['install', 'reinstall']
@@ -830,12 +830,17 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 				sys.exit('ERROR: unable to find remote package %s' % name)
 
 			candidates = []
-			if name in local_list and operation == 'info':
+			if operation == 'info' and name in local_list:
 				candidates.extend(local_list[name])
 			if name in remote_list:
 				candidates.extend([x for x in remote_list[name] if x not in candidates])
 
-			if len(candidates) == 1:
+			if not pasture: # Filter /pasture/ candidates if indicated
+				candidates = not_pasture(candidates)
+
+			if len(candidates) == 0:
+				print 'WARNING: %s only present in /pasture/' % name
+			elif len(candidates) == 1:
 				chosen_pkgs.append(candidates[0])
 			else:
 				if name in local_list and operation != 'info':
@@ -1275,33 +1280,8 @@ try:
 			print 'No outdated packages'
 			sys.exit()
 
-		chosen_pkgs = []
-		for name in names:
-			candidates = not_pasture(remote_list[name])
-			if len(candidates) == 0:
-				print 'WARNING: %s only present in /pasture/' % name
-				continue
-			if len(candidates) == 1:
-				chosen_pkgs.append(candidates[0])
-			else:
-				for pkg in local_list[name]:
-					print 'Local: %s' % pkg.idname
-				chosen = choose_pkg(candidates)
-				if chosen is not None:
-					chosen_pkgs.append(chosen)
-		
-		print 'Total size: %sk' % kibi(sum([x.size for x in chosen_pkgs]))
-		if operation == 'upgrade':
-			action = lambda x: download_verify_install(mirror, x)
-		elif operation == 'download-upgrades':
-			action = lambda x: download_verify(mirror, x) is None and sys.exit(slackroll_exit_failure)
-		else:
-			action = lambda x: print_urls(mirror, x)
-		for pkg in chosen_pkgs:
-			action(pkg)
-		if operation == 'upgrade':
-			dotnew_files = extract_dotnew_files(chosen_pkgs)
-			handle_dotnew_files_installation(dotnew_files)
+		opmap = { 'upgrade': 'install', 'download-upgrades': 'download', 'urls-upgrades': 'urls' }
+		install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, pasture=False)
 		sys.exit()
 
 	if operation == 'clean-cache':
