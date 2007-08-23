@@ -766,8 +766,6 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 				chosen = choose_option(options)
 				break
 
-	print '\nNo more files to review'
-
 def handle_dotnew_files_removal(dotnew_files):
 	if len(dotnew_files) == 0:
 		return
