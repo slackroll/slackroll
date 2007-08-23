@@ -1316,12 +1316,22 @@ try:
 	
 	if operation in ['list-upgrades', 'list-outdated-frozen']:
 		if operation == 'list-upgrades':
-			print 'Available upgrades:'
 			names = [x for x in persistent_list if persistent_list[x] == slackroll_state_outdated]
 		else: # list-outdated-frozen
-			print 'Would be outdated:'
 			names = [x for x in persistent_list if persistent_list[x] == slackroll_state_frozen
 								and not up_to_date(local_list[x], not_pasture(remote_list[x]))]
+
+		if len(names) == 0:
+			if operation == 'list-upgrades':
+				print 'No outdated packages'
+			else: # list-outdated-frozen
+				print 'No frozen packages would be outdated'
+			sys.exit()
+
+		if operation == 'list-upgrades':
+			print 'Available upgrades:'
+		else: # list-outdated-frozen
+			print 'Would be outdated:'
 
 		names.sort(cmp=pkg_name_cmp)
 		glibc_affected = False
