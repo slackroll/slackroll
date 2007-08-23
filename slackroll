@@ -850,6 +850,16 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 				if chosen is not None:
 					chosen_pkgs.append(chosen)
 
+	# For install and reinstall operations, trace legacy .new files
+	if operation in ['install', 'reinstall']:
+		local_existing_pkgs = []
+		for pkg in chosen_pkgs:
+			name = pkg.name
+			if name in local_list:
+				local_existing_pkgs.extend(local_list[name])
+
+		legacy_dotnew = extract_dotnew_files(local_existing_pkgs)
+
 	# After selecting the packages, run the requested operation on them
 	if operation in ['install', 'reinstall', 'download', 'urls']:
 		print 'Total size: %sk' % kibi(sum([x.size for x in chosen_pkgs]))
@@ -878,6 +888,12 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 					sys.exit('ERROR: unable to run pager on %s' % info_file)
 			else:
 				download_display_info(mirror, pkg)
+	
+	# Review legacy .new files left behind
+	if operation in ['install', 'reinstall']:
+		previous = frozenset(legacy_dotnew)
+		current = frozenset(dotnew_files)
+		handle_dotnew_files_removal(list(previous - current))
 
 def walk_append_if(root, condition, output): # Walk with os.walk() and append if entries make condition true
 	abspath = os.path.abspath(root)
