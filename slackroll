@@ -782,7 +782,7 @@ def handle_dotnew_files_removal(dotnew_files):
 		if not (os.path.exists(path) or os.path.islink(path)):
 			continue # Does not exist in any form
 		print '\nFound %s' % path
-		options = [ ('X', 'Skip without removing'), ('R', 'Remove it') ]
+		options = [ ('K', 'Keep it'), ('R', 'Remove it') ]
 		chosen = choose_option(options)
 		if chosen == 1:
 			try_to_remove(path, fatal=False)
