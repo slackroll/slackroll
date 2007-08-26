@@ -685,10 +685,10 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 	if not has_results:
 		print '    (No results)\n'
 
-def extract_dotnew_files(package_list): # Get .new files from multiple packages
+def extract_dotnew_files(local_pkg_list): # Get .new files from multiple packages
 	dotnew_files = []
-	for pkg in package_list:
-		local_file = pkg.local().fullname
+	for pkg in local_pkg_list:
+		local_file = pkg.fullname
 		dotnew_files.extend([x for x in extract_file_list(local_file) if x.endswith(slackroll_new_suffix)])
 	return dotnew_files
 
@@ -804,7 +804,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 	mirror = get_mirror()
 	chosen_pkgs = []
 	for arg in args:
-		# Decide the type of argument
+		# Decide the type of argument (full name or simple name)
 		try:
 			pkg = pkg_from_str(arg)
 			name = pkg.name
@@ -874,8 +874,10 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			action = lambda x: print_urls(mirror, x)
 		for pkg in chosen_pkgs:
 			action(pkg)
+
+		# Review installed .new files
 		if operation in ['install', 'reinstall']:
-			dotnew_files = extract_dotnew_files(chosen_pkgs)
+			dotnew_files = extract_dotnew_files([x.local() for x in chosen_pkgs])
 			handle_dotnew_files_installation(dotnew_files)
 
 	else:	# info operation
@@ -1532,7 +1534,7 @@ try:
 
 		matching_pkgs.sort()
 		if operation == 'remove-path':
-			remove_pkgs(matching_pkgs)
+			remove_pkgs([x.local() for x in matching_pkgs])
 		else:
 			opname = operation.replace('-path', '')
 			fullnames = [x.fullname for x in matching_pkgs]
