@@ -231,11 +231,11 @@ def get_mtime_or_exit(path):
 		sys.exit('ERROR: unable to get modification time for %s' % path)
 
 def newer_than(path1, path2): # path1 modification time more recent than path2 modification time?
-	reftime = get_mtime_or_exit(path2)
-	if not os.path.exists(path1):
-		return False
-	modtime = get_mtime_or_exit(path1)
-	return (modtime > reftime)
+	reftime = get_mtime_or_exit(path1)
+	if not os.path.exists(path2):
+		return True
+	modtime = get_mtime_or_exit(path2)
+	return (reftime > modtime)
 	
 def try_dump(object, filepath): # cPickle.dump()
 	try:
@@ -260,7 +260,7 @@ def extract_file_list(filename): # Extracts the file list from a local info file
 		sys.exit('ERROR: unable to read contents from %s' % filename)
 
 def get_pkg_filelists(): # Return a dictionary of filename->filelist from /var/log/packages
-	if not newer_than(slackroll_pkg_files_filename, slackroll_local_pkgs_dir):
+	if newer_than(slackroll_local_pkgs_dir, slackroll_pkg_files_filename):
 		try:
 			filenames = glob.glob(slackroll_local_pkgs_glob)
 		except (OSError, IOError):
@@ -272,7 +272,7 @@ def get_pkg_filelists(): # Return a dictionary of filename->filelist from /var/l
 	return try_load(slackroll_pkg_files_filename)
 
 def get_normalized_known_files(): # Return a hash of known files for orphan-search
-	if not newer_than(slackroll_known_files, slackroll_local_pkgs_dir):
+	if newer_than(slackroll_local_pkgs_dir, slackroll_known_files):
 		try:
 			filenames = glob.glob(slackroll_local_pkgs_glob)
 		except (OSError, IOError):
@@ -295,7 +295,7 @@ def get_local_pkgs(): # Return a list of packages from /var/log/packages
 	return local_pkgs
 
 def get_local_list(forced_rebuild): # Return list of local packages from cached list, updating it if needed
-	if not newer_than(slackroll_locallist_filename, slackroll_local_pkgs_dir) or forced_rebuild:
+	if newer_than(slackroll_local_pkgs_dir, slackroll_locallist_filename) or forced_rebuild:
 		print 'Rebuilding local package list...'
 		dupes = dict()
 		local_list = dict()
@@ -322,7 +322,7 @@ def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
 		sys.exit('ERROR: could not read %s' % slackroll_filelist_filename)
 
 def get_remote_list(forced_rebuild): # Return list of remote packages from cached list, updating if needed
-	if not newer_than(slackroll_remotelist_filename, slackroll_filelist_filename) or forced_rebuild:
+	if newer_than(slackroll_filelist_filename, slackroll_remotelist_filename) or forced_rebuild:
 		print 'Rebuilding remote packages list...'
 		remote_list = dict()
 		has_patch = dict()
@@ -1260,8 +1260,8 @@ try:
 	local_list = get_local_list(needs_forced_rebuild)
 	remote_list = get_remote_list(needs_forced_rebuild)
 
-	needs_update = (not newer_than(slackroll_persistentlist_filename, slackroll_remotelist_filename)
-			or not newer_than(slackroll_persistentlist_filename, slackroll_locallist_filename)
+	needs_update = (newer_than(slackroll_remotelist_filename, slackroll_persistentlist_filename)
+			or newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename)
 			or operation == 'touch' or needs_forced_rebuild)
 
 	try:
