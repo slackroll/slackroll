@@ -680,7 +680,7 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 		pkgcontents = match.group(slackroll_pb_result_files)
 
 		print '    %s' % re.sub(r'\s', '', pkgstr)
-		print ''.join(['\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents))])
+		print ''.join('\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents)))
 	
 	if not has_results:
 		print '    (No results)\n'
@@ -689,7 +689,7 @@ def extract_dotnew_files(local_pkg_list): # Get .new files from multiple package
 	dotnew_files = []
 	for pkg in local_pkg_list:
 		local_file = pkg.fullname
-		dotnew_files.extend([x for x in extract_file_list(local_file) if x.endswith(slackroll_new_suffix)])
+		dotnew_files.extend(x for x in extract_file_list(local_file) if x.endswith(slackroll_new_suffix))
 	return dotnew_files
 
 def old_file(dotnew_file): # Returns filename without .new suffix
@@ -834,7 +834,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			if operation == 'info' and name in local_list:
 				candidates.extend(local_list[name])
 			if name in remote_list:
-				candidates.extend([x for x in remote_list[name] if x not in candidates])
+				candidates.extend(x for x in remote_list[name] if x not in candidates)
 
 			if not pasture: # Filter /pasture/ candidates if indicated
 				candidates = not_pasture(candidates)
@@ -863,7 +863,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
 	# After selecting the packages, run the requested operation on them
 	if operation in ['install', 'reinstall', 'download', 'urls']:
-		print 'Total size: %sk' % kibi(sum([x.size for x in chosen_pkgs]))
+		print 'Total size: %sk' % kibi(sum(x.size for x in chosen_pkgs))
 		if operation == 'install':
 			action = lambda x: download_verify_install(mirror, x)
 		elif operation == 'reinstall':
@@ -1386,7 +1386,7 @@ try:
 			if name in remote_list:
 				versions.extend(remote_list[name])
 			if name in local_list:
-				versions.extend([x for x in local_list[name] if x not in versions])
+				versions.extend(x for x in local_list[name] if x not in versions)
 			if len(versions) > 1:
 				print '    %s:' % name
 				for ver in versions:
@@ -1586,7 +1586,7 @@ try:
 			if len(names) == 0:
 				print '    (No results)\n'
 				continue
-			print ''.join(['    %s (%s)\n' % (x, slackroll_state_strings[persistent_list[x]]) for x in names])
+			print ''.join('    %s (%s)\n' % (x, slackroll_state_strings[persistent_list[x]]) for x in names)
 		sys.exit()
 	
 	if operation == 'path-search':
@@ -1604,7 +1604,7 @@ try:
 			if len(matching_fullnames) == 0:
 				print '    (No results)\n'
 				continue
-			print ''.join(['    %s\n' % x for x in matching_fullnames])
+			print ''.join('    %s\n' % x for x in matching_fullnames)
 		sys.exit()
 	
 except (KeyboardInterrupt, IOError, EOFError), error:
