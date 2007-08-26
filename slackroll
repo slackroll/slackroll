@@ -128,7 +128,7 @@ class SlackwarePackage(object):
 
 	@property
 	def idname(self):
-		return '%s-%s-%s-%s' % (self.name, self.version, self.arch, self.build)
+		return '%s-%s-%s-%s' % (self.__name, self.__version, self.__arch, self.__build)
 
 	@property
 	def archivename(self):
@@ -136,13 +136,16 @@ class SlackwarePackage(object):
 
 	@property
 	def fullname(self):
-		return os.path.join(self.path, '%s-%s-%s-%s%s' % (self.name, self.version, self.arch, self.build, self.suffix))
+		return os.path.join(self.path, '%s-%s-%s-%s%s' % (self.__name, self.__version, self.__arch, self.__build, self.__suffix))
+
+	def __cmp__(self, other):
+		return pkg_name_cmp(self.__name, other.__name)
 
 	def local(self): # Returns the equivalent local pkg
 		return SlackwarePackage(self.__name, self.__version, self.__arch, self.__build, slackroll_local_pkgs_dir, None, None)
 
-	def __cmp__(self, other):
-		return pkg_name_cmp(self.name, other.name)
+	def url(self, mirror):
+		return urlparse.urljoin(mirror, self.fullname)
 
 class SlackRollURLopener(urllib.FancyURLopener):
 	def http_error_default(self, url, fp, errcode, errmsg, headers):
@@ -581,7 +584,7 @@ def update_changelog(mirror):
 
 
 def print_urls(mirror, package):
-	url = urlparse.urljoin(mirror, package.fullname)
+	url = package.url(mirror)
 	print url
 	print '%s%s' % (url, slackroll_signature_suffix)
 
