@@ -138,6 +138,9 @@ class SlackwarePackage(object):
 	def fullname(self):
 		return os.path.join(self.path, '%s-%s-%s-%s%s' % (self.name, self.version, self.arch, self.build, self.suffix))
 
+	def local(self): # Returns the equivalent local pkg
+		return SlackwarePackage(self.__name, self.__version, self.__arch, self.__build, slackroll_local_pkgs_dir, None, None)
+
 class SlackRollURLopener(urllib.FancyURLopener):
 	def http_error_default(self, url, fp, errcode, errmsg, headers):
 		raise IOError('%s: %s' % (errcode, errmsg))
@@ -159,9 +162,6 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
 	suffix = matchobj.group(slackroll_pkg_re_suffix_group)
 	size = (size_str is not None and long(size_str) or None)
 	return SlackwarePackage(name, version, arch, build, path, suffix, size)
-
-def equiv_local_pkg(pkg): # Converts a package to the equivalent local package
-	return SlackwarePackage(pkg.name, pkg.version, pkg.arch, pkg.build, slackroll_local_pkgs_dir, None, None)
 
 def index_of(thelist, elem):
 	try:
@@ -685,7 +685,7 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 def extract_dotnew_files(package_list): # Get .new files from multiple packages
 	dotnew_files = []
 	for pkg in package_list:
-		local_file = equiv_local_pkg(pkg).fullname
+		local_file = pkg.local().fullname
 		dotnew_files.extend([x for x in extract_file_list(local_file) if x.endswith(slackroll_new_suffix)])
 	return dotnew_files
 
