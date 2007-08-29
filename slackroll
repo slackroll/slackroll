@@ -656,7 +656,10 @@ def print_keys(dictionary, header, noresults): # Print every dictionary key, sor
 		print '    %s' % key
 	print 'End of list'
 
-def print_list(the_list, header): # Print every list entry, sorted
+def print_list(the_list, header, noresults): # Print every list entry, sorted
+	if len(the_list) == 0:
+		print noresults
+		return
 	print header
 	the_list.sort()
 	for entry in the_list:
@@ -1234,11 +1237,7 @@ try:
 				orphans.append(name)
 
 		# Print results
-		if len(orphans) == 0:
-			print 'No orphan files found'
-		else:
-			print_list(orphans, 'Orphan files:')
-
+		print_list(orphans, 'Orphan files:', 'No orphan files found')
 		sys.exit()
 	
 	if operation == 'broken-symlinks':
@@ -1249,10 +1248,8 @@ try:
 		broken_symlinks = []
 		for path in sys.argv[2:]:
 			walk_append_if(path, is_broken_link, broken_symlinks)
-		if len(broken_symlinks) == 0:
-			print 'No broken symlinks found'
-		else:
-			print_list(broken_symlinks, 'Broken symlinks:')
+
+		print_list(broken_symlinks, 'Broken symlinks:', 'No broken symlinks found')
 		sys.exit()
 
 	# Some operations below need to have the temporary directory available to download stuff
