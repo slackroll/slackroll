@@ -934,6 +934,9 @@ def is_broken_link(path):
 def up_to_date(local_versions, remote_versions): # Is the local package up to date?
 	return (len([x for x in local_versions if x in remote_versions]) > 0)
 
+def outdated_or_installed(local_versions, remote_versions): # Returns outdated or installed state depending on up_to_date()
+	return [slackroll_state_outdated, slackroll_state_installed][up_to_date(local_versions, remote_versions)]
+
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
 	print 'Updating persistent database...'
 	already_analyzed = dict()
@@ -946,14 +949,12 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 			state = persistent_list[name]
 			if state in [slackroll_state_new, slackroll_state_notinstalled]:
 				if name in remote_list:
-					utd = up_to_date(local_list[name], not_pasture(remote_list[name]))
-					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][utd]
+					persistent_list[name] = outdated_or_installed(local_list[name], not_pasture(remote_list[name]))
 				else:
 					persistent_list[name] = slackroll_state_unavailable
 			elif state in [slackroll_state_unavailable, slackroll_state_foreign]:
 				if name in remote_list:
-					utd = up_to_date(local_list[name], not_pasture(remote_list[name]))
-					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][utd]
+					persistent_list[name] = outdated_or_installed(local_list[name], not_pasture(remote_list[name]))
 			elif state in [slackroll_state_frozen]:
 				if name not in remote_list:
 					persistent_list[name] = slackroll_state_unavailable
@@ -961,14 +962,12 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 				if name not in remote_list:
 					persistent_list[name] = slackroll_state_unavailable
 				else:
-					utd = up_to_date(local_list[name], not_pasture(remote_list[name]))
-					persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][utd]
+					persistent_list[name] = outdated_or_installed(local_list[name], not_pasture(remote_list[name]))
 				
 		else:
 			# Introduce them in the persistent list
 			if name in remote_list:
-				utd = up_to_date(local_list[name], not_pasture(remote_list[name]))
-				persistent_list[name] = [slackroll_state_outdated, slackroll_state_installed][utd]
+				persistent_list[name] = outdated_or_installed(local_list[name], not_pasture(remote_list[name]))
 			else:
 				persistent_list[name] = slackroll_state_unavailable
 		persistent_list.sync()
