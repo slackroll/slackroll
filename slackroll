@@ -1489,20 +1489,24 @@ try:
 		sys.exit()
 
 	if operation == 'list-versions':
-		print 'Available versions:'
-		for name in sys.argv[2:]:
-			if name not in persistent_list:
-				print '    %s: unknown package\n' % name
-				continue
-			print '    %s:' % name
-			if name in local_list:
-				for ver in local_list[name]:
-					print '\tLocal:\t%s' % ver.idname
-			if name in remote_list:
-				for ver in remote_list[name]:
-					print '\tRemote:\t%s' % ver.fullname
-			print
-		print 'End of list'
+		args = sys.argv[2:]
+		known = [x for x in args if x in persistent_list]
+		unknown = [x for x in args if x not in known]
+
+		if len(known) > 0:
+			print 'Available versions:'
+			for name in known:
+				print '    %s:' % name
+				if name in local_list:
+					for ver in local_list[name]:
+						print '\tLocal:\t%s' % ver.idname
+				if name in remote_list:
+					for ver in remote_list[name]:
+						print '\tRemote:\t%s' % ver.fullname
+				print
+			print 'End of list'
+
+		print_list(unknown, 'Unknown packages:', None)
 		sys.exit()
 
 	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
