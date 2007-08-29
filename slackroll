@@ -187,6 +187,10 @@ def pkg_name_cmp(name1, name2): # To be used for sorting functions
 		return -1
 	return (idx1 - idx2)
 
+def print_flush(message):
+	sys.stdout.write(message)
+	sys.stdout.flush()
+
 def get_env_or(varname, defval):
 	value = os.getenv(varname)
 	if value is None:
@@ -415,14 +419,12 @@ def download_report_hook(filename, numblocks, blocksize, totalsize): # Template 
 	else:
 		percent = min(int(round(numblocks * blocksize * 100.0 / totalsize)), 100)
 		kibibytes = kibi(totalsize)
-	sys.stdout.write('\rDownloading %s ... %s%% of %sk' % (filename, percent, kibibytes))
-	sys.stdout.flush()
+	print_flush('\rDownloading %s ... %s%% of %sk' % (filename, percent, kibibytes))
 
 def download_file(mirror, filepath, local_temp, local_final): # Does not exit on errors and shouldn't be called directly
 	try:
 		filename = os.path.basename(filepath)
-		sys.stdout.write('Downloading %s ... ' % filename)
-		sys.stdout.flush()
+		print_flush('Downloading %s ... ' % filename)
 		full_url = urlparse.urljoin(mirror, filepath)
 		hook = lambda a, b, c: download_report_hook(filename, a, b, c)
 		urllib.urlretrieve(full_url, local_temp, hook)
@@ -554,8 +556,7 @@ def update_changelog(mirror):
 		download_or_exit(mirror, slackroll_changelog_filename, '.')
 		return
 
-	sys.stdout.write('Updating %s ... ' % slackroll_changelog_filename)
-	sys.stdout.flush()
+	print_flush('Updating %s ... ' % slackroll_changelog_filename)
 
 	try: # Only read until last known entry
 		limit = file(slackroll_changelog_filename, 'r').readline()
@@ -596,8 +597,7 @@ def choose_option(option_list): # Prompt user and return option index
 		print '    (%s) %s' % (code, text)
 	codes = [x[0].lower() for x in option_list]
 	while True:
-		sys.stdout.write('You choose option... ')
-		sys.stdout.flush()
+		print_flush('You choose option... ')
 		chosen = raw_input().lower()
 		if chosen not in codes:
 			continue
@@ -641,10 +641,10 @@ def print_in_states(states, persistent_list, header, noresults, print_state=Fals
 	print header
 	keys.sort(cmp=pkg_name_cmp)
 	for name in keys:
-		sys.stdout.write('    %s' % name)
 		if print_state:
-			sys.stdout.write(' (%s)' % slackroll_state_strings[persistent_list[name]])
-		print
+			print '    %s (%s)' % (name, slackroll_state_strings[persistent_list[name]])
+		else:
+			print '    %s' % name
 	print 'End of list'
 
 def print_keys(dictionary, header, noresults): # Print every dictionary key, sorted with pkg_name_cmp()
