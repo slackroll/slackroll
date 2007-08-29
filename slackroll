@@ -708,7 +708,7 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 		basenew = os.path.basename(newfile)
 		baseold = os.path.basename(oldfile)
 
-		# Every menu option
+		# Every possible menu option
 		go_next = ('X', 'Review next pair')
 		remove_new = ('R', 'rm %s' % basenew)
 		rename_new = ('M', 'mv %s %s' % (basenew, baseold))
@@ -732,7 +732,7 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 			print '    %s  %s' % (existence_text[new_exists], basenew)
 
 			# Different options depending on which files exist
-			if (new_exists, old_exists) == (True, True): # Both
+			if new_exists and old_exists: # Both
 				options = [go_next, remove_new, rename_new, run_vimdiff]
 				chosen = choose_option(options)
 				if chosen == 0:
@@ -746,7 +746,7 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 				else:
 					run_vimdiff_on(oldfile, newfile)
 
-			elif (new_exists, old_exists) == (True, False): # New only
+			elif new_exists and not old_exists: # New only
 				options = [go_next, rename_new, visual_new]
 				chosen = choose_option(options)
 				if chosen == 0:
@@ -757,7 +757,7 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 				else:
 					run_visual_on(newfile)
 
-			elif (new_exists, old_exists) == (False, True): # Old only
+			elif not new_exists and old_exists: # Old only
 				options = [go_next, visual_old]
 				chosen = choose_option(options)
 				if chosen == 0:
@@ -792,10 +792,12 @@ def confirm_continue():
 	raw_input('Press Ctrl+C to cancel or Enter to continue... ')
 
 def install_operations_family(operation, args, local_list, remote_list, persistent_list, pasture=True):
+	is_real_install = (operation in ['install', 'reinstall'])
+	is_info = (operation == 'info')
+
 	# Warn the user on install and reinstall operations if there is glibc
 	# activity and they have not indicated glibc packages
-	if (operation in ['install', 'reinstall']
-	    and len([x for x in args if slackroll_glibc_indicator in x]) == 0
+	if (is_real_install and len([x for x in args if slackroll_glibc_indicator in x]) == 0
 	    and len([x for x in persistent_list if persistent_list[x] in [slackroll_state_new, slackroll_state_outdated]
 		    				   and slackroll_glibc_indicator in x]) > 0):
 		print 'WARNING: it seems there is activity in glibc packages'
@@ -818,7 +820,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
 		if is_full:
 			# Specific version given
-			if name in local_list and pkg in local_list[name] and operation == 'info':
+			if is_info and name in local_list and pkg in local_list[name]:
 				chosen_pkgs.append([x for x in local_list[name] if x == pkg][0])
 			else:
 				try:
@@ -827,11 +829,11 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 					sys.exit('ERROR: unable to find remote package %s' % pkg.idname)
 		else:
 			# Only generic name given
-			if name not in remote_list and operation != 'info':
+			if not is_info and name not in remote_list:
 				sys.exit('ERROR: unable to find remote package %s' % name)
 
 			candidates = []
-			if operation == 'info' and name in local_list:
+			if is_info and name in local_list:
 				candidates.extend(local_list[name])
 			if name in remote_list:
 				candidates.extend(x for x in remote_list[name] if x not in candidates)
@@ -844,7 +846,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			elif len(candidates) == 1:
 				chosen_pkgs.append(candidates[0])
 			else:
-				if name in local_list and operation != 'info':
+				if not is_info and name in local_list:
 					for pkg in local_list[name]:
 						print 'Local: %s' % pkg.idname
 				chosen = choose_pkg(candidates)
@@ -852,7 +854,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 					chosen_pkgs.append(chosen)
 
 	# For install and reinstall operations, trace legacy .new files
-	if operation in ['install', 'reinstall']:
+	if is_real_install:
 		local_existing_pkgs = []
 		for pkg in chosen_pkgs:
 			name = pkg.name
@@ -876,7 +878,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			action(pkg)
 
 		# Review installed .new files
-		if operation in ['install', 'reinstall']:
+		if is_real_install:
 			dotnew_files = extract_dotnew_files([x.local() for x in chosen_pkgs])
 			handle_dotnew_files_installation(dotnew_files)
 
@@ -893,7 +895,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 				download_display_info(mirror, pkg)
 	
 	# Review legacy .new files left behind
-	if operation in ['install', 'reinstall']:
+	if is_real_install:
 		previous = frozenset(legacy_dotnew)
 		current = frozenset(dotnew_files)
 		handle_dotnew_files_removal(list(previous - current))
