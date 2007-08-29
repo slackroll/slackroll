@@ -76,8 +76,6 @@ slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?
 slackroll_pb_result_idname = 1
 slackroll_pb_result_files = 2
 
-slackroll_internal_error_message = 'INTERNAL ERROR: PLEASE REPORT BUG'
-
 class SlackRollError(Exception):
 	pass
 
@@ -316,7 +314,7 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
 			local_list[name] = value
 		if len(dupes) > 0:
 			print 'WARNING: packages with two or more local versions should be frozen or foreign'
-			print_keys(dupes, 'WARNING: list of packages with two or more local versions:', slackroll_internal_error_message)
+			print_keys(dupes, 'WARNING: list of packages with two or more local versions:', None)
 		try_dump(local_list, slackroll_locallist_filename)
 	return try_load(slackroll_locallist_filename)
 
@@ -640,7 +638,8 @@ def maybe_print_glibc_warning(persistent_list):
 def print_in_states(states, persistent_list, header, noresults, print_state=False): # Print package name if its state matches
 	keys = pkgs_in_state(persistent_list, states)
 	if len(keys) == 0:
-		print noresults
+		if noresults is not None:
+			print noresults
 		return
 	print header
 	keys.sort(cmp=pkg_name_cmp)
@@ -654,7 +653,8 @@ def print_in_states(states, persistent_list, header, noresults, print_state=Fals
 def print_keys(dictionary, header, noresults): # Print every dictionary key, sorted with pkg_name_cmp()
 	keys = dictionary.keys()
 	if len(keys) == 0:
-		print noresults
+		if noresults is not None:
+			print noresults
 		return
 	print header
 	keys.sort(cmp=pkg_name_cmp)
@@ -664,7 +664,8 @@ def print_keys(dictionary, header, noresults): # Print every dictionary key, sor
 
 def print_list(the_list, header, noresults): # Print every list entry, sorted
 	if len(the_list) == 0:
-		print noresults
+		if noresults is not None:
+			print noresults
 		return
 	print header
 	the_list.sort()
@@ -675,17 +676,16 @@ def print_list(the_list, header, noresults): # Print every list entry, sorted
 def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): # Changes state if it matches
 	dest_st_name = slackroll_state_strings[dest_state]
 	print 'Marking packages as %s...' % dest_st_name
-	for name in pkg_names:
-		if name not in persistent_list:
-			print '%s: unknown package' % name
-			continue
+	known = [x for x in pkg_names if x in persistent_list]
+	for name in known:
 		cur_st = persistent_list[name]
 		if cur_st not in orig_states:
-			cur_st_name = slackroll_state_strings[cur_st]
-			print '%s: cannot change state from %s to %s' % (name, cur_st_name, dest_st_name)
+			print '%s: cannot change state from %s to %s' % (name, slackroll_state_strings[cur_st], dest_st_name)
 			continue
 		persistent_list[name] = dest_state
 		persistent_list.sync()
+	unknown = [x for x in pkg_names if x not in known]
+	print_list(unknown, 'Unknown packages:', None)
 
 def query_pkg_browser(version, name): # Query package browser on given file with given Slackware version
 	searchstr = '"%s"' % name
@@ -1300,12 +1300,10 @@ try:
 
 	if operation == 'state':
 		args = sys.argv[2:]
-		unknown = [x for x in args if x not in persistent_list]
-		if len(unknown) > 0:
-			print_list(unknown 'Unknown packages:', slackroll_internal_error_message)
 		known = dict((x, persistent_list[x]) for x in args if x in persistent_list)
-		if len(known) > 0:
-			print_in_states(slackroll_all_states, 'Package states:', slackroll_internal_error_message, print_states=True)
+		print_in_states(slackroll_all_states, known, 'Package states:', None, print_state=True)
+		unknown = [x for x in args if x not in known]
+		print_list(unknown, 'Unknown packages:', None)
 		sys.exit()
 
 	if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
@@ -1494,7 +1492,7 @@ try:
 		print 'Available versions:'
 		for name in sys.argv[2:]:
 			if name not in persistent_list:
-				print '%s: unknown package' % name
+				print '    %s: unknown package\n' % name
 				continue
 			print '    %s:' % name
 			if name in local_list:
