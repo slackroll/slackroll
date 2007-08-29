@@ -632,11 +632,11 @@ def maybe_print_glibc_warning(persistent_list):
 		print_glibc_warning()
 
 def print_in_states(states, persistent_list, header, noresults, print_state=False): # Print package name if its state matches
-	print header
 	keys = pkgs_in_state(persistent_list, states)
 	if len(keys) == 0:
 		print noresults
 		return
+	print header
 	keys.sort(cmp=pkg_name_cmp)
 	for name in keys:
 		sys.stdout.write('    %s' % name)
@@ -646,11 +646,11 @@ def print_in_states(states, persistent_list, header, noresults, print_state=Fals
 	print 'End of list'
 
 def print_keys(dictionary, header, noresults): # Print every dictionary key, sorted with pkg_name_cmp()
-	print header
 	keys = dictionary.keys()
 	if len(keys) == 0:
 		print noresults
 		return
+	print header
 	keys.sort(cmp=pkg_name_cmp)
 	for key in keys:
 		print '    %s' % key
