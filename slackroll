@@ -1272,7 +1272,7 @@ try:
 
 	# Every operation below needs an updated persistent database
 	handle_writable_dir(slackroll_pkgs_dir)
-	print 'Initializing package lists...'
+	#print 'Initializing package lists...'
 
 	needs_forced_rebuild = (not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
 	local_list = get_local_list(needs_forced_rebuild)
