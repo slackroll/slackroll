@@ -384,25 +384,29 @@ def run_vimdiff_on(oldfile, newfile): # Does not exit on errors
 	except OSError:
 		sys.stderr.write('ERROR: unable to run vimdiff on %s and %s\n' % (oldfile, newfile))
 
-def try_to_remove(file_path, fatal=True):
+def try_to_remove(file_path, fatal=True): # When it returns, it is True if file does not exist on exit
 	if not os.path.exists(file_path):
-		return
+		return True
 	try:
 		os.remove(file_path)
+		return True
 	except OSError:
 		sys.stderr.write('ERROR: unable to remove %s\n' % file_path)
 		if fatal:
 			sys.exit(slackroll_exit_failure)
+		return False
 
-def try_to_rename(src, dest, fatal=True):
+def try_to_rename(src, dest, fatal=True): # When it returns, it is True if file could be renamed
 	if not os.path.exists(src):
-		return
+		return False
 	try:
 		os.rename(src, dest)
+		return True
 	except OSError:
 		sys.stderr.write('ERROR: unable to rename %s to %s\n' % (src, dest))
 		if fatal:
 			sys.exit(slackroll_exit_failure)
+		return False
 
 def download_report_hook(filename, numblocks, blocksize, totalsize): # Template for urllib.urlretrieve() callbacks
 	if totalsize == -1:
@@ -423,16 +427,14 @@ def download_file(mirror, filepath, local_temp, local_final): # Does not exit on
 		hook = lambda a, b, c: download_report_hook(filename, a, b, c)
 		urllib.urlretrieve(full_url, local_temp, hook)
 		print
-		os.rename(local_temp, local_final)
+		if not try_to_rename(local_temp, local_final):
+			raise SlackRollError('Error renaming %s to %s' % (local_temp, local_final))
 	except (IOError, socket.error):
 		sys.stderr.write('\nError: unable to download %s\n' % full_url)
 		raise SlackRollError('IOError or socket.error on %s' % full_url)
 	except urllib.ContentTooShortError:
 		sys.stderr.write('\nError: connection cut and file incomplete: %s\n' % full_url)
 		raise SlackRollError('ContentTooShortError on %s' % full_url)
-	except OSError:
-		sys.stderr.write('\nError: unable to rename %s to %s\n' % (local_temp, local_final))
-		raise SlackRollError('OSError renaming %s to %s' % (local_temp, local_final))
 
 def download(mirror, filepath, localdir): # Wrapper that does NOT exit on errors
 	name = os.path.basename(filepath)
