@@ -67,12 +67,16 @@ slackroll_state_frozen = 4
 slackroll_state_foreign = 5
 slackroll_state_outdated = 6
 slackroll_state_strings = ['new', 'unavailable', 'installed', 'not-installed', 'frozen', 'foreign', 'outdated']
+slackroll_transient_states = [slackroll_state_outdated, slackroll_state_new, slackroll_state_unavailable]
+slackroll_all_states = range(len(slackroll_state_strings))
 
 slackroll_mirror_version_re = re.compile(r'/slackware-([^/]+)/')
 slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=%s'
 slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?<a[^>]*>(.+?)</a>.*?</div>.*?<div class="pkgdescr">(.+?)</div>.*?</div>'
 slackroll_pb_result_idname = 1
 slackroll_pb_result_files = 2
+
+slackroll_internal_error_message = 'INTERNAL ERROR: PLEASE REPORT BUG'
 
 class SlackRollError(Exception):
 	pass
@@ -312,7 +316,7 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
 			local_list[name] = value
 		if len(dupes) > 0:
 			print 'WARNING: packages with two or more local versions should be frozen or foreign'
-			print_keys(dupes, 'WARNING: list of packages with two or more local versions:', 'INTERNAL ERROR: REPORT BUG')
+			print_keys(dupes, 'WARNING: list of packages with two or more local versions:', slackroll_internal_error_message)
 		try_dump(local_list, slackroll_locallist_filename)
 	return try_load(slackroll_locallist_filename)
 
@@ -627,7 +631,7 @@ def glibc_indicator_in(string_list): # Is the glibc indicator present in any of 
 	return False
 
 def glibc_activity_pending(persistent_list): # True if any new, outdated or unavailable package has glibc indicator
-	return glibc_indicator_in(pkgs_in_state(persistent_list, [slackroll_state_new, slackroll_state_outdated, slackroll_state_unavailable]))
+	return glibc_indicator_in(pkgs_in_state(persistent_list, slackroll_transient_states))
 
 def maybe_print_glibc_warning(persistent_list):
 	if glibc_activity_pending(persistent_list):
@@ -1295,13 +1299,13 @@ try:
 		sys.exit()
 
 	if operation == 'state':
-		print 'Package states:'
-		for name in sys.argv[2:]:
-			if name not in persistent_list:
-				print '    %s: unknown package' % name
-				continue
-			print '    %s: %s' % (name, slackroll_state_strings[persistent_list[name]])
-		print 'End of list'
+		args = sys.argv[2:]
+		unknown = [x for x in args if x not in persistent_list]
+		if len(unknown) > 0:
+			print_list(unknown 'Unknown packages:', slackroll_internal_error_message)
+		known = dict((x, persistent_list[x]) for x in args if x in persistent_list)
+		if len(known) > 0:
+			print_in_states(slackroll_all_states, 'Package states:', slackroll_internal_error_message, print_states=True)
 		sys.exit()
 
 	if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
@@ -1384,8 +1388,7 @@ try:
 		sys.exit()
 
 	if operation == 'list-transient':
-		print_in_states([slackroll_state_new, slackroll_state_unavailable, slackroll_state_outdated], persistent_list, 'Transient packages:',
-				'No transient packages found', print_state=True)
+		print_in_states(slackroll_transient_states, persistent_list, 'Transient packages:', 'No transient packages found', print_state=True)
 		maybe_print_glibc_warning(persistent_list)
 		sys.exit()
 
@@ -1451,18 +1454,18 @@ try:
 		sys.exit()
 
 	if operation == 'new-not-installed':
-		from_states_to_state([slackroll_state_new], slackroll_state_notinstalled, persistent_list,
-				pkgs_in_state(persistent_list, [slackroll_state_new]))
+		new_packages = pkgs_in_state(persistent_list, [slackroll_state_new])
+		from_states_to_state([slackroll_state_new], slackroll_state_notinstalled, persistent_list, new_packages)
 		sys.exit()
 
 	if operation == 'unavailable-foreign':
-		from_states_to_state([slackroll_state_unavailable], slackroll_state_foreign, persistent_list,
-				pkgs_in_state(persistent_list, [slackroll_state_unavailable]))
+		unavailable_packages = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
+		from_states_to_state([slackroll_state_unavailable], slackroll_state_foreign, persistent_list, unavailable_packages)
 		sys.exit()
 
 	if operation == 'frozen':
-		from_states_to_state([slackroll_state_frozen, slackroll_state_installed, slackroll_state_outdated],
-				slackroll_state_frozen, persistent_list, sys.argv[2:])
+		valid_origins = [slackroll_state_frozen, slackroll_state_installed, slackroll_state_outdated]
+		from_states_to_state(valid_origins, slackroll_state_frozen, persistent_list, sys.argv[2:])
 		sys.exit()
 
 	if operation == 'foreign':
