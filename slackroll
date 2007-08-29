@@ -1381,7 +1381,8 @@ try:
 				print '\tRemote:\t%s' % other.fullname
 			print
 		print 'End of list'
-		maybe_print_glibc_warning(persistent_list)
+		if operation == 'list-upgrades':
+			maybe_print_glibc_warning(persistent_list)
 		sys.exit()
 
 	if operation == 'list-transient':
