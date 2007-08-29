@@ -615,21 +615,32 @@ def not_pasture(pkg_list): # Returns packages not in pasture
 def not_main(pkg_list): # Returns packages not in the main tree
 	return [x for x in pkg_list if slackroll_main_indicator not in x.path]
 
-def print_in_states(states, persistent_list, header, print_state=False, warn_glibc=False): # Print package name if its state matches
+def pkgs_in_state(persistent_list, state_list): # Get persistent_list names with matching state
+	return [x for x in persistent_list if persistent_list[x] in state_list]
+
+def glibc_indicator_in(string_list): # Is the glibc indicator present in any of the strings?
+	for item in string_list:
+		if slackroll_glibc_indicator in item:
+			return True
+	return False
+
+def glibc_activity_pending(persistent_list): # True if any new, outdated or unavailable package has glibc indicator
+	return glibc_indicator_in(pkgs_in_state(persistent_list, [slackroll_state_new, slackroll_state_outdated, slackroll_state_unavailable]))
+
+def maybe_print_glibc_warning(persistent_list):
+	if glibc_activity_pending(persistent_list):
+		print_glibc_warning()
+
+def print_in_states(states, persistent_list, header, print_state=False): # Print package name if its state matches
 	print header
-	keys = [x for x in persistent_list if persistent_list[x] in states]
+	keys = pkgs_in_state(persistent_list, states)
 	keys.sort(cmp=pkg_name_cmp)
-	glibc_affected = False
 	for name in keys:
-		if slackroll_glibc_indicator in name:
-			glibc_affected = True
 		sys.stdout.write('    %s' % name)
 		if print_state:
 			sys.stdout.write(' (%s)' % slackroll_state_strings[persistent_list[name]])
 		print
 	print 'End of list'
-	if warn_glibc and glibc_affected:
-		print_glibc_warning()
 
 def print_keys(dictionary, header): # Print every dictionary key, sorted with pkg_name_cmp()
 	print header
@@ -795,11 +806,8 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 	is_real_install = (operation in ['install', 'reinstall'])
 	is_info = (operation == 'info')
 
-	# Warn the user on install and reinstall operations if there is glibc
-	# activity and they have not indicated glibc packages
-	if (is_real_install and len([x for x in args if slackroll_glibc_indicator in x]) == 0
-	    and len([x for x in persistent_list if persistent_list[x] in [slackroll_state_new, slackroll_state_outdated]
-		    				   and slackroll_glibc_indicator in x]) > 0):
+	# Warn the user on install and reinstall operations if there is glibc activity and they have not indicated glibc packages
+	if is_real_install and not glibc_indicator_in(args) and glibc_activity_pending(persistent_list):
 		print 'WARNING: it seems there is activity in glibc packages'
 		confirm_continue()
 
@@ -1294,7 +1302,7 @@ try:
 
 	if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
 		mirror = get_mirror()
-		names = [x for x in persistent_list if persistent_list[x] == slackroll_state_outdated]
+		names = pkgs_in_state(persistent_list, [slackroll_state_outdated])
 		names.sort(cmp=pkg_name_cmp)
 
 		if len(names) == 0:
@@ -1337,10 +1345,10 @@ try:
 	
 	if operation in ['list-upgrades', 'list-outdated-frozen']:
 		if operation == 'list-upgrades':
-			names = [x for x in persistent_list if persistent_list[x] == slackroll_state_outdated]
+			names = pkgs_in_state(persistent_list, [slackroll_state_outdated])
 		else: # list-outdated-frozen
-			names = [x for x in persistent_list if persistent_list[x] == slackroll_state_frozen
-								and not up_to_date(local_list[x], not_pasture(remote_list[x]))]
+			names = pkgs_in_state(persistent_list, [slackroll_state_frozen])
+			names = [x for x in names if not up_to_date(local_list[x], not_pasture(remote_list[x]))]
 
 		if len(names) == 0:
 			if operation == 'list-upgrades':
@@ -1355,14 +1363,11 @@ try:
 			print 'Would be outdated:'
 
 		names.sort(cmp=pkg_name_cmp)
-		glibc_affected = False
 		for name in names:
 			candidates = not_pasture(remote_list[name])
 			if len(candidates) == 0:
 				print '    %s: WARNING: only present in /pasture/\n' % name
 				continue
-			if slackroll_glibc_indicator in name:
-				glibc_affected = True
 			print '    %s:' % name
 			for pkg in local_list[name]:
 				print '\tLocal:\t%s' % pkg.idname
@@ -1370,13 +1375,13 @@ try:
 				print '\tRemote:\t%s' % other.fullname
 			print
 		print 'End of list'
-		if glibc_affected:
-			print_glibc_warning()
+		maybe_print_glibc_warning(persistent_list)
 		sys.exit()
 
 	if operation == 'list-transient':
 		print_in_states([slackroll_state_new, slackroll_state_unavailable, slackroll_state_outdated], persistent_list, 'Transient packages:',
-				print_state=True, warn_glibc=True)
+				print_state=True)
+		maybe_print_glibc_warning(persistent_list)
 		sys.exit()
 
 	if operation == 'list-alternatives':
@@ -1398,11 +1403,13 @@ try:
 		sys.exit()
 
 	if operation == 'list-new':
-		print_in_states([slackroll_state_new], persistent_list, 'New packages:', warn_glibc=True)
+		print_in_states([slackroll_state_new], persistent_list, 'New packages:')
+		maybe_print_glibc_warning(persistent_list)
 		sys.exit()
 
 	if operation == 'list-unavailable':
-		print_in_states([slackroll_state_unavailable], persistent_list, 'Unavailable packages:', warn_glibc=True)
+		print_in_states([slackroll_state_unavailable], persistent_list, 'Unavailable packages:')
+		maybe_print_glibc_warning(persistent_list)
 		sys.exit()
 
 	if operation == 'list-installed':
@@ -1422,7 +1429,8 @@ try:
 		sys.exit()
 	
 	if operation == 'list-outdated':
-		print_in_states([slackroll_state_outdated], persistent_list, 'Outdated packages:', warn_glibc=True)
+		print_in_states([slackroll_state_outdated], persistent_list, 'Outdated packages:')
+		maybe_print_glibc_warning(persistent_list)
 		sys.exit()
 	
 	if operation == 'list-local':
@@ -1439,12 +1447,12 @@ try:
 
 	if operation == 'new-not-installed':
 		from_states_to_state([slackroll_state_new], slackroll_state_notinstalled, persistent_list,
-				[x for x in persistent_list.iterkeys() if persistent_list[x] == slackroll_state_new])
+				pkgs_in_state(persistent_list, [slackroll_state_new]))
 		sys.exit()
 
 	if operation == 'unavailable-foreign':
 		from_states_to_state([slackroll_state_unavailable], slackroll_state_foreign, persistent_list,
-				[x for x in persistent_list.iterkeys() if persistent_list[x] == slackroll_state_unavailable])
+				pkgs_in_state(persistent_list, [slackroll_state_unavailable]))
 		sys.exit()
 
 	if operation == 'frozen':
@@ -1496,7 +1504,7 @@ try:
 		sys.exit()
 	
 	if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
-		names = [x for x in persistent_list if persistent_list[x] == slackroll_state_new]
+		names = pkgs_in_state(persistent_list, [slackroll_state_new])
 		names.sort(cmp=pkg_name_cmp)
 		if len(names) == 0:
 			print 'No new packages'
@@ -1552,7 +1560,7 @@ try:
 					sys.exit('ERROR: %s not present in local system' % name)
 				args.append(name)
 		else: # remove-unavailable
-			args = [x for x in persistent_list if persistent_list[x] == slackroll_state_unavailable]
+			args = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
 
 		if len(args) == 0:
 			print 'No unavailable packages'
