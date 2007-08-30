@@ -342,7 +342,7 @@ def get_remote_list(forced_rebuild): # Return list of remote packages from cache
 			value.append(pkg)
 			remote_list[name] = value
 		# Remove unpatched versions
-		for name in has_patch.iterkeys():
+		for name in has_patch:
 			remote_list[name] = not_main(remote_list[name])
 		try_dump(remote_list, slackroll_remotelist_filename)
 	return try_load(slackroll_remotelist_filename)
@@ -936,7 +936,7 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 	already_analyzed = dict()
 
 	# Go over packages present in local system and update their state or introduce them
-	for name in local_list.iterkeys():
+	for name in local_list:
 		already_analyzed[name] = True
 		if name in persistent_list:
 			# Update their state if needed
@@ -967,7 +967,7 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 		persistent_list.sync()
 	
 	# Go over remaining remote packages not already analyzed (hence, not present in local system)
-	for name in remote_list.iterkeys():
+	for name in remote_list:
 		if name in already_analyzed:
 			continue
 		already_analyzed[name] = True
@@ -984,7 +984,7 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 		persistent_list.sync()
 	
 	# Remaining packages, not present in local or remote systems, need to disappear
-	for name in persistent_list.keys():	# Must not use iterkeys()!
+	for name in persistent_list.keys():	# Must get keys before, as we are going to delete entries
 		if name in already_analyzed:
 			continue
 		del persistent_list[name]
@@ -1526,10 +1526,7 @@ try:
 			matching_pkgs = [x for x in matching_pkgs if x.name in local_list and x in local_list[x.name]]
 
 		if len(matching_pkgs) == 0:
-			if operation == 'remove-path':
-				print 'No matching local packages'
-			else:
-				print 'No matching packages'
+			print 'No matching packages'
 			sys.exit()
 
 		matching_pkgs.sort()
@@ -1553,7 +1550,7 @@ try:
 			args = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
 
 		if len(args) == 0:
-			print 'No unavailable packages'
+			print 'No packages to remove'
 			sys.exit()
 
 		to_be_removed = []
@@ -1601,8 +1598,8 @@ try:
 			matching_fullnames.sort()
 			if len(matching_fullnames) == 0:
 				print '    (No results)\n'
-				continue
-			print ''.join('    %s\n' % x for x in matching_fullnames)
+			else:
+				print ''.join('    %s\n' % x for x in matching_fullnames)
 		sys.exit()
 	
 except (KeyboardInterrupt, IOError, EOFError), error:
