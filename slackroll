@@ -1183,9 +1183,9 @@ try:
 
 	if operation == 'local-search':
 		print 'Reading contents of %s ...' % slackroll_local_pkgs_dir
-		contents = get_pkg_filelists()
-		filenames = contents.keys()
-		filenames.sort()
+		pkg_files_map = get_pkg_filelists()
+		local_pkgs_fn = pkg_files_map.keys()
+		local_pkgs_fn.sort()
 		for retxt in sys.argv[2:]:
 			results = False
 			try:
@@ -1193,17 +1193,12 @@ try:
 			except re.error:
 				sys.exit('ERROR: invalid regular expression: %s' % retxt)
 			print 'Searching for "%s":' % retxt
-			for filename in filenames:
-				name_printed = False
-				for path in contents[filename]:
-					if regexp.search(path) is not None:
-						if not name_printed:
-							print '    %s' % os.path.basename(filename)
-							name_printed = True
-						print '\t%s' % path
-						results = True
-				if name_printed:
-					print
+			for pkg_fn in local_pkgs_fn:
+				matching_paths = [x for x in pkg_files_map[pkg_fn] if regexp.search(x) is not None]
+				if len(matching_paths) > 0:
+					results = True
+					print '    %s' % os.path.basename(pkg_fn)
+					print ''.join('\t%s\n' % x for x in matching_paths)
 			if not results:
 				print '    (No results)\n'
 		sys.exit()
