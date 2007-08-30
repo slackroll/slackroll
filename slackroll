@@ -4,6 +4,7 @@
 import anydbm
 import cPickle
 import glob
+import operator
 import os
 import re
 import shelve
@@ -607,9 +608,7 @@ def choose_option(option_list): # Prompt user and return option index
 	return codes.index(chosen)
 
 def choose_pkg(pkg_list): # Returns chosen package or None
-	options = []
-	for x in xrange(len(pkg_list)):
-		options.append((str(x + 1), pkg_list[x].fullname))
+	options = [(str(x + 1), pkg_list[x].fullname) for x in xrange(len(pkg_list))]
 	chosen = choose_option(options)
 	return pkg_list[chosen]
 
@@ -712,11 +711,7 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 		print '    (No results)\n'
 
 def extract_dotnew_files(local_pkg_list): # Get .new files from multiple packages
-	dotnew_files = []
-	for pkg in local_pkg_list:
-		local_file = pkg.fullname
-		dotnew_files.extend(x for x in extract_file_list(local_file) if x.endswith(slackroll_new_suffix))
-	return dotnew_files
+	return reduce(operator.concat, [[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list])
 
 def old_file(dotnew_file): # Returns filename without .new suffix
 	return dotnew_file[:-(len(slackroll_new_suffix))]
@@ -800,9 +795,7 @@ def handle_dotnew_files_removal(dotnew_files):
 		return
 
 	old_files = [old_file(x) for x in dotnew_files]
-	all_files = []
-	all_files.extend(dotnew_files)
-	all_files.extend(old_files)
+	all_files = dotnew_files + old_files
 	all_files.sort()
 
 	for path in all_files:
@@ -878,12 +871,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
 	# For install and reinstall operations, trace legacy .new files
 	if is_real_install:
-		local_existing_pkgs = []
-		for pkg in chosen_pkgs:
-			name = pkg.name
-			if name in local_list:
-				local_existing_pkgs.extend(local_list[name])
-
+		local_existing_pkgs = reduce(operator.concat, [local_list[pkg.name] for pkg in chosen_pkgs if pkg.name in local_list])
 		legacy_dotnew = extract_dotnew_files(local_existing_pkgs)
 
 	# After selecting the packages, run the requested operation on them
@@ -1531,10 +1519,7 @@ try:
 			except re.error:
 				sys.exit('ERROR: invalid regular expression: %s' % retxt)
 
-		all_remotes = []
-		for name in remote_list.iterkeys():
-			all_remotes.extend(remote_list[name])
-
+		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list])
 		matching_pkgs = []
 		for pkg in all_remotes:
 			for regex in regexes:
@@ -1610,9 +1595,7 @@ try:
 		sys.exit()
 	
 	if operation == 'path-search':
-		all_remotes = []
-		for key in remote_list.iterkeys():
-			all_remotes.extend(remote_list[key])
+		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list])
 		for retxt in sys.argv[2:]:
 			try:
 				regexp = re.compile(retxt)
