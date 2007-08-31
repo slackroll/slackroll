@@ -630,18 +630,26 @@ def glibc_activity_pending(persistent_list): # True if any new, outdated or unav
 def maybe_print_glibc_watchout(persistent_list):
 	if glibc_activity_pending(persistent_list):
 		print '\nWATCH OUT: ACTIVITY IN GLIBC PACKAGES\n'
+		return True
+	return False
 
 def maybe_print_glibc_warning(persistent_list):
 	if glibc_activity_pending(persistent_list):
 		print 'WARNING: It seems there is activity in glibc packages'
+		return True
+	return False
 
 def maybe_print_new_warning(persistent_list):
 	if len(pkgs_in_state(persistent_list, [slackroll_state_new])) > 0:
 		print 'WARNING: There are new packages'
+		return True
+	return False
 
 def maybe_print_outdated_warning(persistent_list):
 	if len(pkgs_in_state(persistent_list, [slackroll_state_outdated])) > 0:
 		print 'WARNING: There are outdated packages'
+		return True
+	return False
 
 def print_in_states(states, persistent_list, header, noresults, print_state=False): # Print package name if its state matches
 	keys = pkgs_in_state(persistent_list, states)
