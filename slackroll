@@ -651,6 +651,9 @@ def maybe_print_outdated_warning(persistent_list):
 		return True
 	return False
 
+def confirm_continue():
+	raw_input('Press Ctrl+C to cancel or Enter to continue... ')
+
 def print_in_states(states, persistent_list, header, noresults, print_state=False): # Print package name if its state matches
 	keys = pkgs_in_state(persistent_list, states)
 	if len(keys) == 0:
@@ -823,9 +826,6 @@ def handle_dotnew_files_removal(dotnew_files):
 		chosen = choose_option(options)
 		if chosen == 1:
 			try_to_remove(path, fatal=False)
-
-def confirm_continue():
-	raw_input('Press Ctrl+C to cancel or Enter to continue... ')
 
 def install_operations_family(operation, args, local_list, remote_list, persistent_list, pasture=True):
 	is_real_install = (operation in ['install', 'reinstall'])
