@@ -832,8 +832,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 	is_info = (operation == 'info')
 
 	# Warn the user on install and reinstall operations if there is glibc activity and they have not indicated glibc packages
-	if is_real_install and not glibc_indicator_in(args) and glibc_activity_pending(persistent_list):
-		print 'WARNING: it seems there is activity in glibc packages'
+	if is_real_install and not glibc_indicator_in(args) and maybe_print_glibc_warning():
 		confirm_continue()
 
 	mirror = get_mirror()
@@ -1307,6 +1306,9 @@ try:
 		sys.exit()
 
 	if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
+		if operation == 'upgrade' and maybe_print_new_warning(persistent_list):
+			confirm_continue()
+
 		mirror = get_mirror()
 		names = pkgs_in_state(persistent_list, [slackroll_state_outdated])
 		names.sort(cmp=pkg_name_cmp)
@@ -1548,6 +1550,8 @@ try:
 
 		matching_pkgs.sort()
 		if operation == 'remove-path':
+			if maybe_print_new_warning(persistent_list) or maybe_print_outdated_warning(persistent_list):
+				confirm_continue()
 			remove_pkgs([x.local() for x in matching_pkgs])
 		else:
 			opname = operation.replace('-path', '')
@@ -1557,6 +1561,9 @@ try:
 		sys.exit()
 
 	if operation in ['remove', 'remove-unavailable']:
+		if maybe_print_new_warning(persistent_list) or maybe_print_outdated_warning(persistent_list):
+			confirm_continue()
+
 		if operation == 'remove':
 			args = []
 			for name in sys.argv[2:]:
