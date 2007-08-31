@@ -222,9 +222,6 @@ def write_self_file_version(): # Write self version to disk file
 	except (OSError, IOError):
 		sys.exit('ERROR: unable to write version to file %s' % slackroll_self_filename)
 
-def print_glibc_warning():
-	print '\nWATCH OUT: ACTIVITY IN GLIBC PACKAGES\n'
-
 def long_time_warning():
 	print 'WARNING: This operation may take a long time to complete'
 
@@ -632,7 +629,9 @@ def glibc_activity_pending(persistent_list): # True if any new, outdated or unav
 
 def maybe_print_glibc_warning(persistent_list):
 	if glibc_activity_pending(persistent_list):
-		print_glibc_warning()
+		print '\nWATCH OUT: ACTIVITY IN GLIBC PACKAGES\n'
+
+def maybe_print_new_warning(persistent_list)
 
 def print_in_states(states, persistent_list, header, noresults, print_state=False): # Print package name if its state matches
 	keys = pkgs_in_state(persistent_list, states)
