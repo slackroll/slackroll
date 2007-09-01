@@ -1407,20 +1407,28 @@ try:
 		sys.exit()
 
 	if operation == 'list-alternatives':
-		print 'Packages with alternatives:'
-		names = persistent_list.keys()
-		names.sort(cmp=pkg_name_cmp)
-		for name in names:
+		alternatives = dict()
+		for name in persistent_list:
 			versions = []
 			if name in remote_list:
 				versions.extend(remote_list[name])
 			if name in local_list:
 				versions.extend(x for x in local_list[name] if x not in versions)
 			if len(versions) > 1:
-				print '    %s:' % name
-				for ver in versions:
-					print '\t%s' % ver.fullname
-				print
+				alternatives[name] = versions
+
+		if len(alternatives) == 0:
+			print 'No packages with alternative versions'
+			sys.exit()
+
+		names = alternatives.keys()
+		names.sort(cmp=pkg_name_cmp)
+		print 'Packages with alternatives:'
+		for name in names:
+			print '    %s:' % name
+			for ver in alternatives[name]:
+				print '\t%s' % ver.fullname
+			print
 		print 'End of list'
 		sys.exit()
 
