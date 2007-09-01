@@ -745,7 +745,7 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 		print '    (No results)\n'
 
 def extract_dotnew_files(local_pkg_list): # Get .new files from multiple packages
-	return reduce(operator.concat, [[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list])
+	return reduce(operator.concat, [[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list], [])
 
 def old_file(dotnew_file): # Returns filename without .new suffix
 	return dotnew_file[:-(len(slackroll_new_suffix))]
@@ -901,7 +901,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
 	# For install and reinstall operations, trace legacy .new files
 	if is_real_install:
-		local_existing_pkgs = reduce(operator.concat, [local_list[pkg.name] for pkg in chosen_pkgs if pkg.name in local_list])
+		local_existing_pkgs = reduce(operator.concat, [local_list[pkg.name] for pkg in chosen_pkgs if pkg.name in local_list], [])
 		legacy_dotnew = extract_dotnew_files(local_existing_pkgs)
 
 	# After selecting the packages, run the requested operation on them
@@ -1547,7 +1547,7 @@ try:
 			except re.error:
 				sys.exit('ERROR: invalid regular expression: %s' % retxt)
 
-		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list])
+		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list], [])
 		matching_pkgs = []
 		for pkg in all_remotes:
 			for regex in regexes:
@@ -1625,7 +1625,7 @@ try:
 		sys.exit()
 	
 	if operation == 'path-search':
-		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list])
+		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list], [])
 		for retxt in sys.argv[2:]:
 			try:
 				regexp = re.compile(retxt)
