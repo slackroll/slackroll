@@ -465,7 +465,7 @@ def handle_writable_dir(dirname): # Make sure dirname is available and writable
 def yield_gnupg_exec_name():
 	for opt in slackroll_gnupg_exec_names:
 		try:
-			subprocess.call([opt, '--version'], stdout=('/dev/null'), stderr=subprocess.STDOUT)
+			subprocess.call([opt, '--version'], stdout=(file('/dev/null', 'w')), stderr=subprocess.STDOUT)
 			while True:
 				yield opt
 		except OSError:
