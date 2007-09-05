@@ -46,9 +46,9 @@
 
 		<p><strong>Question</strong>: SlackRoll using
 		the current working directory makes it very tedious
-		to <em>cd</em> into the chosen directory, and if you
-		forget it it may create directories and files in
-		the wrong location. Can you change this?</p>
+		to <em>cd</em> into the chosen directory and, if you
+		forget about it, it may create directories and files
+		in the wrong location. Can you change this?</p>
 
 		<p><strong>Answer</strong>: It's a design decision,
 		so you can have several package lists or mirrors with
@@ -166,11 +166,12 @@
 		useful enough for you, including SlackRoll. This is
 		because stable releases are easy to manage, given that
 		the only events they are exposed to are the release
-		of patches. It is extremely rare, but not impossible,
-		that a package is added to or removed from the tree of
-		a stable release. Any of the existing tools can easily
+		of patches. Any of the existing tools can easily
 		tell you which patches have been released and let you
-		automate the download and installation process.</p>
+		automate the download and installation process. It is
+		extremely rare, but not impossible, for a package to
+		be added to or removed from the tree of a stable
+		release.</p>
 
 		<p>On the other hand, you can be running the testing
 		tree of Slackware, also known as slackware-current.
@@ -185,7 +186,7 @@
 		of a blacklisting mechanism in favour of working with
 		two differentiated states: foreign and frozen. No other
 		tool, as far as I know, can deal with as many events
-		as SlackRoll. I can't think of any event that is not
+		as SlackRoll. I'm unable to imagine an event that is not
 		covered by SlackRoll.</p>
 
 		<p>Apart from the type of Slackware installation you're
@@ -263,7 +264,8 @@
 		package, install new packages, remove old ones, search for
 		package names or packages with a given tree component, list
 		alternative versions of packages, detect and warn you about
-		activity in <em>glibc</em> packages, etc.</p>
+		activity in <em>glibc</em> packages (giving them priority
+		while upgrading too), etc.</p>
 
 	</body>
 </html>
