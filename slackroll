@@ -70,7 +70,7 @@ slackroll_state_foreign = 5
 slackroll_state_outdated = 6
 slackroll_state_strings = ['new', 'unavailable', 'installed', 'not-installed', 'frozen', 'foreign', 'outdated']
 slackroll_transient_states = [slackroll_state_outdated, slackroll_state_new, slackroll_state_unavailable]
-slackroll_all_states = range(len(slackroll_state_strings))
+slackroll_all_states = [x for x in xrange(len(slackroll_state_strings))]
 
 slackroll_mirror_version_re = re.compile(r'/slackware-([^/]+)/')
 slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=%s'
