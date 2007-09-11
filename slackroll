@@ -481,7 +481,7 @@ def import_key(filename):
 		print 'Importing keys from %s ...' % filename
 		retcode = subprocess.call([gnupg_exec_name(), '--import', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
 		if retcode != 0:
-			raise OSError
+			raise OSError()
 	except OSError:
 		sys.exit('ERROR: unable to import keys in %s' % filename)
 
