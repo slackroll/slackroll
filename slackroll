@@ -73,6 +73,7 @@ slackroll_transient_states = [slackroll_state_outdated, slackroll_state_new, sla
 slackroll_all_states = [x for x in xrange(len(slackroll_state_strings))]
 
 slackroll_mirror_version_re = re.compile(r'/slackware-([^/]+)/')
+slackroll_pb_location = 'http://packages.slackware.it/'
 slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=%s'
 slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?<a[^>]*>(.+?)</a>.*?</div>.*?<div class="pkgdescr">(.+?)</div>.*?</div>'
 slackroll_pb_result_idname = 1
@@ -1205,8 +1206,7 @@ try:
 
 	if operation in ['pb-search', 'remote-search']:
 		slackver = get_version_from_mirror(get_mirror())
-		(scheme, netloc, path, parameters, query, fragment) = urlparse.urlparse(slackroll_pb_template_url)
-		print 'Using the Slackware Package Browser at %s://%s' % (scheme, netloc)
+		print 'Using the Slackware Package Browser at %s' % slackroll_pb_location
 		for name in sys.argv[2:]:
 			query_pkg_browser(slackver, name)
 		sys.exit()
