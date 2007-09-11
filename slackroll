@@ -171,7 +171,10 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
 	arch = matchobj.group(slackroll_pkg_re_arch)
 	build = matchobj.group(slackroll_pkg_re_build)
 	suffix = matchobj.group(slackroll_pkg_re_suffix)
-	size = (size_str is not None and long(size_str) or None)
+	try:
+		size = (size_str is not None and long(size_str) or None)
+	except ValueError:
+		raise SlackRollError('Invalid file size: %s' % size_str)
 	return SlackwarePackage(name, version, arch, build, path, suffix, size)
 
 def index_of(thelist, elem):
