@@ -44,18 +44,19 @@
 
 		<h2>Current working directory</h2>
 
-		<p><strong>Question</strong>: SlackRoll using
-		the current working directory makes it very tedious
-		to <em>cd</em> into the chosen directory and, if you
-		forget about it, it may create directories and files
+		<p><strong>Question</strong>: It's tedious to
+		<em>cd</em> into the chosen directory everytime
+		I want to use SlackRoll. Furthermore, if you forget
+		about it, SlackRoll may create directories and files
 		in the wrong location. Can you change this?</p>
 
 		<p><strong>Answer</strong>: It's a design decision,
 		so you can have several package lists or mirrors with
-		different configurations, making it more flexible.
-		If you detect you frequently make those mistakes or
-		would like to simplify the situation, you should
-		consider one of the following alternatives:</p>
+		different configurations, making it more flexible, as
+		well as giving you the option to choose the package
+		cache location. If you detect you frequently make those
+		mistakes or would like to simplify the situation,
+		you should consider one of the following alternatives:</p>
 
 		<p>Putting <em>slackroll</em> inside the chosen
 		directory, preventing mistakes by having to run it as
@@ -64,18 +65,17 @@
 		<p>Creating a script or shell function
 		to <em>cd</em> into the chosen directory
 		automatically. For example, I have the following
-		lines in my superuser <em>$HOME/.bashrc</em> file:</p>
+		line in my superuser <em>$HOME/.bashrc</em> file,
+		where <em>/var/slackroll</em> should be changed
+		by your directory of choice:</p>
 
 		<p><code>slackroll() { ( cd /var/slackroll &amp;&amp;
 			command slackroll "$@" ); }</code></p>
 
-		<p>Where <em>/var/slackroll</em> should be changed
-		for your chosen directory.</p>
-
 		<h2>Packages with nonstandard names</h2>
 
 		<p><strong>Question</strong>: While attempting to setup
-		SlackRoll I get "<em>Error: Nonstandard package name:
+		SlackRoll I get "<em>ERROR: Nonstandard package name:
 		&lt;package&gt;</em>". How can I solve this problem?</p>
 
 		<p><strong>Answer</strong>: It seems some people are
@@ -95,14 +95,9 @@
 		reported:</p>
 
 		<ul>
-			<li><em>pyfloppy-1.6-noarch.2AS</em>
-			(Should be <em>pyfloppy-1.6-noarch-2AS</em>?)</li>
-
-			<li><em>gammapage-0.5.i486-1AS</em>
-			(Should be <em>gammapage-0.5-i486-1AS</em>?)</li>
-
-			<li><em>scons-0.96.1-1.noarch</em>
-			(Should be <em>scons-0.96.1-noarch-1</em>?)</li>
+			<li><em>pyfloppy-1.6-noarch.2AS</em></li>
+			<li><em>gammapage-0.5.i486-1AS</em></li>
+			<li><em>scons-0.96.1-1.noarch</em></li>
 		</ul>
 
 		<p>Remember: it doesn't matter if it's an official
