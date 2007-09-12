@@ -434,13 +434,14 @@ def download_file(mirror, filepath, local_temp, local_final): # Does not exit on
 		hook = lambda a, b, c: download_report_hook(filename, a, b, c)
 		urllib.urlretrieve(full_url, local_temp, hook)
 		print
-		if not try_to_rename(local_temp, local_final):
-			raise SlackRollError('Error renaming %s to %s' % (local_temp, local_final))
+		if not try_to_rename(local_temp, local_final, fatal=False):
+			sys.stderr.write('ERROR: unable to rename %s to %s' % (local_temp, local_final))
+			raise SlackRollError('Rename error: %s => %s' % (local_temp, local_final))
 	except (IOError, socket.error):
-		sys.stderr.write('\nError: unable to download %s\n' % full_url)
+		sys.stderr.write('\nERROR: unable to download %s\n' % full_url)
 		raise SlackRollError('IOError or socket.error on %s' % full_url)
 	except urllib.ContentTooShortError:
-		sys.stderr.write('\nError: connection cut and file incomplete: %s\n' % full_url)
+		sys.stderr.write('\nERROR: connection cut and file incomplete: %s\n' % full_url)
 		raise SlackRollError('ContentTooShortError on %s' % full_url)
 
 def download(mirror, filepath, localdir): # Wrapper that does NOT exit on errors
