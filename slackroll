@@ -1526,11 +1526,9 @@ try:
 			for name in known:
 				print '    %s:' % name
 				if name in local_list:
-					for ver in local_list[name]:
-						print '\tLocal:\t%s' % ver.idname
+					print '\n'.join('\tLocal:\t%s' % ver.idname for ver in local_list[name])
 				if name in remote_list:
-					for ver in remote_list[name]:
-						print '\tRemote:\t%s' % ver.fullname
+					print '\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name])
 				print
 			print 'End of list'
 
