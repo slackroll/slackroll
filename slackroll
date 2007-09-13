@@ -846,25 +846,19 @@ def handle_dotnew_files_removal(dotnew_files):
 		if chosen == 1:
 			try_to_remove(path, fatal=False)
 
-def install_operations_family(operation, args, local_list, remote_list, persistent_list, pasture=True):
-	is_real_install = (operation in ['install', 'reinstall'])
-	is_info = (operation == 'info')
+def parse_pkg_arg(arg): # Returns (Is full name?, Name, SlackwarePackage or None) [Auxiliar of parse_install_args()]
+	try:
+		pkg = pkg_from_str(arg)
+		name = pkg.name
+		return (True, name, pkg)
+	except SlackRollError:
+		return (False, arg, None)
 
-	# Warn the user on install and reinstall operations if there is glibc activity and they have not indicated glibc packages
-	if is_real_install and not glibc_indicator_in(args) and maybe_print_glibc_warning(persistent_list):
-		confirm_continue()
-
-	mirror = get_mirror()
+def parse_install_args(args, is_info, pasture, local_list, remote_list, persistent_list): # Return chosen_pkgs [Auxiliar of install_operations_family()]
 	chosen_pkgs = []
 	for arg in args:
 		# Decide the type of argument (full name or simple name)
-		try:
-			pkg = pkg_from_str(arg)
-			name = pkg.name
-			is_full = True
-		except SlackRollError:
-			name = arg
-			is_full = False
+		(is_full, name, pkg) = parse_pkg_arg(arg)
 
 		if name not in persistent_list:
 			sys.exit('ERROR: unknown package %s' % name)
@@ -883,6 +877,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			if not is_info and name not in remote_list:
 				sys.exit('ERROR: unable to find remote package %s' % name)
 
+			# Create candidate list
 			candidates = []
 			if is_info and name in local_list:
 				candidates.extend(local_list[name])
@@ -892,6 +887,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			if not pasture: # Filter /pasture/ candidates if indicated
 				candidates = not_pasture(candidates)
 
+			# Choose among the candidates
 			if len(candidates) == 0:
 				print 'WARNING: %s only present in /pasture/' % name
 			elif len(candidates) == 1:
@@ -903,6 +899,20 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 				chosen = choose_pkg(candidates)
 				if chosen is not None:
 					chosen_pkgs.append(chosen)
+
+	return chosen_pkgs
+
+def install_operations_family(operation, args, local_list, remote_list, persistent_list, pasture=True):
+	is_real_install = (operation in ['install', 'reinstall'])
+	is_info = (operation == 'info')
+
+	# Warn the user on install and reinstall operations if there is glibc activity and they have not indicated glibc packages
+	if is_real_install and not glibc_indicator_in(args) and maybe_print_glibc_warning(persistent_list):
+		confirm_continue()
+
+	# Get mirror and parse arguments (package names or full versions)
+	mirror = get_mirror()
+	chosen_pkgs = parse_install_args(args, is_info, pasture, local_list, remote_list, persistent_list)
 
 	# For install and reinstall operations, trace legacy .new files
 	if is_real_install:
