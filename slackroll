@@ -1098,21 +1098,19 @@ broken-symlinks PATH...	Search for broken symlinks in local system
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
 
-# Auxiliars for verify_num_args()
-def plural(num): return ['s', ''][num == 1]
-def num_or_no(num): return ['no', str(num)][num > 0]
-
 def verify_num_args(opname, num, arg_list): # Verify number of arguments of a given operation (-1 means any nonzero quantity)
 	if num == -1:
 		if len(arg_list) == 0:
 			sys.exit('ERROR: %s expects more arguments' % opname)
 	else:
 		if len(arg_list) != num:
-			sys.exit('ERROR: %s expects %s argument%s' % (opname, num_or_no(num), plural(num)))
+			sys.exit('ERROR: %s expects %s argument%s' % (opname, ['no', str(num)][num > 0], ['s', ''][num == 1]))
 
-# Wrappers
-def verify_zero_args(opname, arg_list): return verify_num_args(opname, 0, arg_list)
-def verify_nonzero_args(opname, arg_list): return verify_num_args(opname, -1, arg_list)
+def verify_zero_args(opname, arg_list):
+	return verify_num_args(opname, 0, arg_list)
+
+def verify_nonzero_args(opname, arg_list):
+	return verify_num_args(opname, -1, arg_list)
 
 ### Main program ###
 try:
