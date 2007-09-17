@@ -1098,6 +1098,22 @@ broken-symlinks PATH...	Search for broken symlinks in local system
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
 
+# Auxiliars for verify_num_args()
+def plural(num): return ['s', ''][num == 1]
+def num_or_no(num): return ['no', str(num)][num > 0]
+
+def verify_num_args(opname, num, arg_list): # Verify number of arguments of a given operation (-1 means any nonzero quantity)
+	if num == -1:
+		if len(arg_list) == 0:
+			sys.exit('ERROR: %s expects more arguments' % opname)
+	else:
+		if len(arg_list) != num:
+			sys.exit('ERROR: %s expects %s argument%s' % (opname, num_or_no(num), plural(num)))
+
+# Wrappers
+def verify_zero_args(opname, arg_list): return verify_num_args(opname, 0, arg_list)
+def verify_nonzero_args(opname, arg_list): return verify_num_args(opname, -1, arg_list)
+
 ### Main program ###
 try:
 	local_list = None
@@ -1105,110 +1121,75 @@ try:
 	persistent_list = None
 	urllib._urlopener = SlackRollURLopener()
 
-	all_ops = [
-		'broken-symlinks',
-		'clean-cache',
-		'download',
-		'download-new',
-		'download-path',
-		'download-upgrades',
-		'foreign',
-		'frozen',
-		'help',
-		'import-key',
-		'info',
-		'info-new',
-		'info-path',
-		'install',
-		'install-new',
-		'install-path',
-		'installed',
-		'list-all',
-		'list-alternatives',
-		'list-foreign',
-		'list-frozen',
-		'list-installed',
-		'list-local',
-		'list-new',
-		'list-not-installed',
-		'list-outdated',
-		'list-outdated-frozen',
-		'list-remote',
-		'list-transient',
-		'list-unavailable',
-		'list-upgrades',
-		'list-versions',
-		'local-search',
-		'name-search',
-		'new',
-		'new-not-installed',
-		'not-installed',
-		'orphan-search',
-		'path-search',
-		'pb-search',
-		'reinstall',
-		'remote-search',
-		'remove',
-		'remove-path',
-		'remove-unavailable',
-		'urls-upgrades',
-		'state',
-		'touch',
-		'unavailable',
-		'unavailable-foreign',
-		'update',
-		'upgrade',
-		'urls',
-		'urls-new',
-		'urls-path',
-		'version',
-	]
-
-	no_args_ops = [
-		'clean-cache',
-		'download-new',
-		'download-upgrades',
-		'help',
-		'import-key',
-		'info-new',
-		'install-new',
-		'list-all',
-		'list-alternatives',
-		'list-foreign',
-		'list-frozen',
-		'list-installed',
-		'list-local',
-		'list-new',
-		'list-not-installed',
-		'list-outdated',
-		'list-outdated-frozen',
-		'list-remote',
-		'list-transient',
-		'list-unavailable',
-		'list-upgrades',
-		'new-not-installed',
-		'remove-unavailable',
-		'urls-upgrades',
-		'touch',
-		'unavailable-foreign',
-		'update',
-		'upgrade',
-		'urls-new',
-		'version',
-	]
+	op_verification = {
+		'broken-symlinks': verify_nonzero_args,
+		'clean-cache': verify_zero_args,
+		'download': verify_nonzero_args,
+		'download-new': verify_zero_args,
+		'download-path': verify_nonzero_args,
+		'download-upgrades': verify_zero_args,
+		'foreign': verify_nonzero_args,
+		'frozen': verify_nonzero_args,
+		'help': verify_zero_args,
+		'import-key': verify_zero_args,
+		'info': verify_nonzero_args,
+		'info-new': verify_zero_args,
+		'info-path': verify_nonzero_args,
+		'install': verify_nonzero_args,
+		'install-new': verify_zero_args,
+		'install-path': verify_nonzero_args,
+		'installed': verify_nonzero_args,
+		'list-all': verify_zero_args,
+		'list-alternatives': verify_zero_args,
+		'list-foreign': verify_zero_args,
+		'list-frozen': verify_zero_args,
+		'list-installed': verify_zero_args,
+		'list-local': verify_zero_args,
+		'list-new': verify_zero_args,
+		'list-not-installed': verify_zero_args,
+		'list-outdated': verify_zero_args,
+		'list-outdated-frozen': verify_zero_args,
+		'list-remote': verify_zero_args,
+		'list-transient': verify_zero_args,
+		'list-unavailable': verify_zero_args,
+		'list-upgrades': verify_zero_args,
+		'list-versions': verify_nonzero_args,
+		'local-search': verify_nonzero_args,
+		'name-search': verify_nonzero_args,
+		'new': verify_nonzero_args,
+		'new-not-installed': verify_zero_args,
+		'not-installed': verify_nonzero_args,
+		'orphan-search': verify_nonzero_args,
+		'path-search': verify_nonzero_args,
+		'pb-search': verify_nonzero_args,
+		'reinstall': verify_nonzero_args,
+		'remote-search': verify_nonzero_args,
+		'remove': verify_nonzero_args,
+		'remove-path': verify_nonzero_args,
+		'remove-unavailable': verify_zero_args,
+		'urls-upgrades': verify_zero_args,
+		'state': verify_nonzero_args,
+		'touch': verify_zero_args,
+		'unavailable': verify_nonzero_args,
+		'unavailable-foreign': verify_zero_args,
+		'update': verify_zero_args,
+		'upgrade': verify_zero_args,
+		'urls': verify_nonzero_args,
+		'urls-new': verify_zero_args,
+		'urls-path': verify_nonzero_args,
+		'version': verify_zero_args,
+	}
 
 	operation = sys.argv[1]
-	
-	if operation not in all_ops:
+	args = sys.argv[2:]
+
+	# Verify number of arguments
+	try:
+		op_verification[operation](operation, args)
+	except KeyError:
 		sys.stderr.write('ERROR: unknown operation: %s\n' % operation)
 		print_help()
 		sys.exit(slackroll_exit_failure)
-
-	if operation in no_args_ops and len(sys.argv[2:]) != 0:
-		sys.exit('ERROR: too many arguments for %s operation' % operation)
-
-	if operation not in no_args_ops and len(sys.argv[2:]) == 0:
-		sys.exit('ERROR: not enough arguments for %s operation' % operation)
 
 	if operation == 'help':
 		print_help()
@@ -1257,7 +1238,7 @@ try:
 
 		print 'Examining specified paths...'
 		tree = []
-		for path in sys.argv[2:]: # Iterate over specified paths
+		for path in args: # Iterate over specified paths
 			walk_append_if(path, is_not_link, tree)
 
 		# Detect orphans
@@ -1278,7 +1259,7 @@ try:
 
 		print '\nExamining specified paths...'
 		broken_symlinks = []
-		for path in sys.argv[2:]:
+		for path in args:
 			walk_append_if(path, is_broken_link, broken_symlinks)
 
 		print_list(broken_symlinks, 'Broken symlinks:', 'No broken symlinks found')
@@ -1326,7 +1307,6 @@ try:
 		sys.exit()
 
 	if operation == 'state':
-		args = sys.argv[2:]
 		known = dict((x, persistent_list[x]) for x in args if x in persistent_list)
 		print_in_states(slackroll_all_states, known, 'Package states:', None, print_state=True)
 		unknown = [x for x in args if x not in known]
@@ -1501,33 +1481,32 @@ try:
 
 	if operation == 'frozen':
 		valid_origins = [slackroll_state_frozen, slackroll_state_installed, slackroll_state_outdated]
-		from_states_to_state(valid_origins, slackroll_state_frozen, persistent_list, sys.argv[2:])
+		from_states_to_state(valid_origins, slackroll_state_frozen, persistent_list, args)
 		sys.exit()
 
 	if operation == 'foreign':
-		from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_foreign, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_foreign, persistent_list, args)
 		sys.exit()
 	
 	if operation == 'not-installed':
-		from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_notinstalled, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_notinstalled, persistent_list, args)
 		sys.exit()
 
 	if operation == 'unavailable':
-		from_states_to_state([slackroll_state_unavailable, slackroll_state_foreign], slackroll_state_unavailable, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_unavailable, slackroll_state_foreign], slackroll_state_unavailable, persistent_list, args)
 		sys.exit()
 
 	if operation == 'new':
-		from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_new, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_new, persistent_list, args)
 		sys.exit()
 
 	if operation == 'installed':
-		from_states_to_state([slackroll_state_installed, slackroll_state_frozen], slackroll_state_installed, persistent_list, sys.argv[2:])
+		from_states_to_state([slackroll_state_installed, slackroll_state_frozen], slackroll_state_installed, persistent_list, args)
 		analyze_changes(local_list, remote_list, persistent_list) # Forced because it may need to be marked as outdated
 		os.utime(slackroll_persistentlist_filename, None)
 		sys.exit()
 
 	if operation == 'list-versions':
-		args = sys.argv[2:]
 		known = [x for x in args if x in persistent_list]
 		unknown = [x for x in args if x not in known]
 
@@ -1546,7 +1525,7 @@ try:
 		sys.exit()
 
 	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
-		install_operations_family(operation, sys.argv[2:], local_list, remote_list, persistent_list)
+		install_operations_family(operation, args, local_list, remote_list, persistent_list)
 		sys.exit()
 	
 	if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
@@ -1561,7 +1540,7 @@ try:
 	
 	if operation in ['install-path', 'download-path', 'info-path', 'urls-path', 'remove-path']:
 		regexes = []
-		for retxt in sys.argv[2:]:
+		for retxt in args:
 			try:
 				regexes.append(re.compile(retxt))
 			except re.error:
@@ -1599,21 +1578,21 @@ try:
 			confirm_continue()
 
 		if operation == 'remove':
-			args = []
-			for name in sys.argv[2:]:
+			final_args = []
+			for name in args:
 				if name not in local_list:
 					sys.exit('ERROR: %s not present in local system' % name)
-				args.append(name)
+				final_args.append(name)
 		else: # remove-unavailable
-			args = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
+			final_args = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
 
-		if len(args) == 0:
+		if len(final_args) == 0:
 			print 'No packages to remove'
 			sys.exit()
 
 		to_be_removed = []
 		if operation == 'remove':
-			for name in args:
+			for name in final_args:
 				candidates = local_list[name]
 				if len(candidates) == 1:
 					to_be_removed.append(candidates[0])
@@ -1622,14 +1601,14 @@ try:
 				if chosen is not None:
 					to_be_removed.append(chosen)
 		else: # remove-unavailable
-			for name in args:
+			for name in final_args:
 				to_be_removed.extend(local_list[name])
 
 		remove_pkgs(to_be_removed)
 		sys.exit()
 
 	if operation == 'name-search':
-		for retxt in sys.argv[2:]:
+		for retxt in args:
 			results = False
 			try:
 				regexp = re.compile(retxt)
@@ -1646,7 +1625,7 @@ try:
 	
 	if operation == 'path-search':
 		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list], [])
-		for retxt in sys.argv[2:]:
+		for retxt in args:
 			try:
 				regexp = re.compile(retxt)
 			except re.error:
