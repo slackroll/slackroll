@@ -1106,12 +1106,6 @@ def verify_num_args(opname, num, arg_list): # Verify number of arguments of a gi
 		if len(arg_list) != num:
 			sys.exit('ERROR: %s expects %s argument%s' % (opname, ['no', str(num)][num > 0], ['s', ''][num == 1]))
 
-def verify_zero_args(opname, arg_list):
-	return verify_num_args(opname, 0, arg_list)
-
-def verify_nonzero_args(opname, arg_list):
-	return verify_num_args(opname, -1, arg_list)
-
 ### Main program ###
 try:
 	local_list = None
@@ -1119,63 +1113,63 @@ try:
 	persistent_list = None
 	urllib._urlopener = SlackRollURLopener()
 
-	op_verification = {
-		'broken-symlinks': verify_nonzero_args,
-		'clean-cache': verify_zero_args,
-		'download': verify_nonzero_args,
-		'download-new': verify_zero_args,
-		'download-path': verify_nonzero_args,
-		'download-upgrades': verify_zero_args,
-		'foreign': verify_nonzero_args,
-		'frozen': verify_nonzero_args,
-		'help': verify_zero_args,
-		'import-key': verify_zero_args,
-		'info': verify_nonzero_args,
-		'info-new': verify_zero_args,
-		'info-path': verify_nonzero_args,
-		'install': verify_nonzero_args,
-		'install-new': verify_zero_args,
-		'install-path': verify_nonzero_args,
-		'installed': verify_nonzero_args,
-		'list-all': verify_zero_args,
-		'list-alternatives': verify_zero_args,
-		'list-foreign': verify_zero_args,
-		'list-frozen': verify_zero_args,
-		'list-installed': verify_zero_args,
-		'list-local': verify_zero_args,
-		'list-new': verify_zero_args,
-		'list-not-installed': verify_zero_args,
-		'list-outdated': verify_zero_args,
-		'list-outdated-frozen': verify_zero_args,
-		'list-remote': verify_zero_args,
-		'list-transient': verify_zero_args,
-		'list-unavailable': verify_zero_args,
-		'list-upgrades': verify_zero_args,
-		'list-versions': verify_nonzero_args,
-		'local-search': verify_nonzero_args,
-		'name-search': verify_nonzero_args,
-		'new': verify_nonzero_args,
-		'new-not-installed': verify_zero_args,
-		'not-installed': verify_nonzero_args,
-		'orphan-search': verify_nonzero_args,
-		'path-search': verify_nonzero_args,
-		'pb-search': verify_nonzero_args,
-		'reinstall': verify_nonzero_args,
-		'remote-search': verify_nonzero_args,
-		'remove': verify_nonzero_args,
-		'remove-path': verify_nonzero_args,
-		'remove-unavailable': verify_zero_args,
-		'urls-upgrades': verify_zero_args,
-		'state': verify_nonzero_args,
-		'touch': verify_zero_args,
-		'unavailable': verify_nonzero_args,
-		'unavailable-foreign': verify_zero_args,
-		'update': verify_zero_args,
-		'upgrade': verify_zero_args,
-		'urls': verify_nonzero_args,
-		'urls-new': verify_zero_args,
-		'urls-path': verify_nonzero_args,
-		'version': verify_zero_args,
+	op_num_args = {	# Map of operations and their number of arguments (-1 means any nonzero quantity)
+		'broken-symlinks':	-1,
+		'clean-cache':		0,
+		'download':		-1,
+		'download-new':		0,
+		'download-path':	-1,
+		'download-upgrades':	0,
+		'foreign':		-1,
+		'frozen':		-1,
+		'help':			0,
+		'import-key':		0,
+		'info':			-1,
+		'info-new':		0,
+		'info-path':		-1,
+		'install':		-1,
+		'install-new':		0,
+		'install-path':		-1,
+		'installed':		-1,
+		'list-all':		0,
+		'list-alternatives':	0,
+		'list-foreign':		0,
+		'list-frozen':		0,
+		'list-installed':	0,
+		'list-local':		0,
+		'list-new':		0,
+		'list-not-installed':	0,
+		'list-outdated':	0,
+		'list-outdated-frozen':	0,
+		'list-remote':		0,
+		'list-transient':	0,
+		'list-unavailable':	0,
+		'list-upgrades':	0,
+		'list-versions':	-1,
+		'local-search':		-1,
+		'name-search':		-1,
+		'new':			-1,
+		'new-not-installed':	0,
+		'not-installed':	-1,
+		'orphan-search':	-1,
+		'path-search':		-1,
+		'pb-search':		-1,
+		'reinstall':		-1,
+		'remote-search':	-1,
+		'remove':		-1,
+		'remove-path':		-1,
+		'remove-unavailable':	0,
+		'urls-upgrades':	0,
+		'state':		-1,
+		'touch':		0,
+		'unavailable':		-1,
+		'unavailable-foreign':	0,
+		'update':		0,
+		'upgrade':		0,
+		'urls':			-1,
+		'urls-new':		0,
+		'urls-path':		-1,
+		'version':		0,
 	}
 
 	operation = sys.argv[1]
@@ -1183,7 +1177,7 @@ try:
 
 	# Verify number of arguments
 	try:
-		op_verification[operation](operation, args)
+		verify_num_args(operation, op_num_args[operation], args)
 	except KeyError:
 		sys.stderr.write('ERROR: unknown operation: %s\n' % operation)
 		print_help()
