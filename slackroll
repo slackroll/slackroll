@@ -1048,6 +1048,7 @@ help			Print this help
 version			Print the program version
 update			Download remote tree information
 import-key		Download and import the GPG key
+changelog		Displays the stored ChangeLog.txt
 upgrade			Upgrade system packages
 download-upgrades	Like 'upgrade' but without installing
 urls-upgrades		Like 'upgrade' but only printing URLs
@@ -1121,6 +1122,7 @@ try:
 
 	op_num_args = {	# Map of operations and their number of arguments (-1 means any nonzero quantity)
 		'broken-symlinks':	-1,
+		'changelog':		0,
 		'clean-cache':		0,
 		'download':		-1,
 		'download-new':		0,
@@ -1197,6 +1199,10 @@ try:
 		print 'SlackRoll v%s' % slackroll_version
 		sys.exit()
 
+	if operation == 'changelog':
+		changelog_to_pager()
+		sys.exit()
+
 	if operation in ['pb-search', 'remote-search']:
 		slackver = get_version_from_mirror(get_mirror())
 		print 'Using the Slackware Package Browser at %s' % slackroll_pb_location
@@ -1268,8 +1274,10 @@ try:
 
 	if operation == 'update':
 		mirror = get_mirror()
-		update_changelog(mirror)
+		updated = update_changelog(mirror)
 		download_or_exit(mirror, slackroll_filelist_filename, '.')
+		if updated:
+			changelog_to_pager()
 		sys.exit()
 
 	if operation == 'import-key':
