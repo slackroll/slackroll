@@ -1049,6 +1049,7 @@ version			Print the program version
 update			Download remote tree information
 import-key		Download and import the GPG key
 changelog		Displays the stored ChangeLog.txt
+download-changelog	Download the full ChangeLog.txt
 upgrade			Upgrade system packages
 download-upgrades	Like 'upgrade' but without installing
 urls-upgrades		Like 'upgrade' but only printing URLs
@@ -1125,6 +1126,7 @@ try:
 		'changelog':		0,
 		'clean-cache':		0,
 		'download':		-1,
+		'download-changelog':	0,
 		'download-new':		0,
 		'download-path':	-1,
 		'download-upgrades':	0,
@@ -1201,6 +1203,12 @@ try:
 
 	if operation == 'changelog':
 		changelog_to_pager()
+		sys.exit()
+
+	if operation == 'download-changelog':
+		mirror = get_mirror()
+		try_to_remove(slackroll_changelog_filename)
+		update_changelog(mirror)
 		sys.exit()
 
 	if operation in ['pb-search', 'remote-search']:
