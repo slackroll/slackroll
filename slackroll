@@ -570,10 +570,10 @@ def download_display_info(mirror, package): # Downloads info file and sends it t
 		sys.exit(slackroll_exit_failure)
 	try_to_remove(local_file)
 
-def update_changelog(mirror):
+def update_changelog(mirror): # Returns answer to "has it been updated?"
 	if not os.path.exists(slackroll_changelog_filename):
 		download_or_exit(mirror, slackroll_changelog_filename, '.')
-		return
+		return True
 
 	print_flush('Updating %s ... ' % slackroll_changelog_filename)
 
@@ -597,12 +597,13 @@ def update_changelog(mirror):
 
 	if len(lines) == 0:
 		print 'no new entries.'
-		return
+		return False
 	print 'new entries found.'
 	try:
 		file(slackroll_changelog_filename, 'w').writelines(lines)
 	except (OSError, IOError):
 		sys.exit('ERROR: unable to write to %s' % slackroll_changelog_filename)
+	return True
 
 def changelog_to_pager():
 	try:
