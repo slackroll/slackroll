@@ -604,6 +604,11 @@ def update_changelog(mirror):
 	except (OSError, IOError):
 		sys.exit('ERROR: unable to write to %s' % slackroll_changelog_filename)
 
+def changelog_to_pager():
+	try:
+		run_pager_on(slackroll_changelog_filename)
+	except SlackRollError:
+		sys.exit(slackroll_exit_failure)
 
 def print_urls(mirror, package):
 	url = package.url(mirror)
