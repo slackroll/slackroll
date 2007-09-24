@@ -570,8 +570,8 @@ def download_display_info(mirror, package): # Downloads info file and sends it t
 		sys.exit(slackroll_exit_failure)
 	try_to_remove(local_file)
 
-def update_changelog(mirror): # Returns answer to "has it been updated?"
-	if not os.path.exists(slackroll_changelog_filename):
+def update_changelog(mirror, full=False): # Returns answer to "has it been updated?"
+	if not os.path.exists(slackroll_changelog_filename) or full:
 		download_or_exit(mirror, slackroll_changelog_filename, '.')
 		return True
 
@@ -1206,9 +1206,7 @@ try:
 		sys.exit()
 
 	if operation == 'download-changelog':
-		mirror = get_mirror()
-		try_to_remove(slackroll_changelog_filename)
-		update_changelog(mirror)
+		update_changelog(get_mirror(), full=True)
 		sys.exit()
 
 	if operation in ['pb-search', 'remote-search']:
