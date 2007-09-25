@@ -952,7 +952,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 					info_file = pkg.fullname
 					run_pager_on(info_file)
 				except SlackRollError:
-					sys.exit('ERROR: unable to run pager on %s' % info_file)
+					sys.exit(slackroll_exit_failure)
 			else:
 				download_display_info(mirror, pkg)
 	
