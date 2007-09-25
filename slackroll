@@ -1190,7 +1190,7 @@ try:
 		verify_num_args(operation, op_num_args[operation], args)
 	except KeyError:
 		sys.stderr.write('ERROR: unknown operation: %s\n' % operation)
-		print_help()
+		sys.stderr.write('Use "help" operation to get a list\n')
 		sys.exit(slackroll_exit_failure)
 
 	if operation == 'help':
@@ -1663,5 +1663,6 @@ except (KeyboardInterrupt, IOError, EOFError), error:
 	sys.exit(slackroll_exit_failure)
 
 except IndexError:
-	print_help()
+	sys.stderr.write('ERROR: no operation given\n')
+	sys.stderr.write('Use "help" operation to get a list\n')
 	sys.exit(slackroll_exit_failure)
