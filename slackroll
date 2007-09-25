@@ -593,7 +593,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 			lines.append(new_line)
 		conn.close()
 	except (IOError, socket.error, urllib.ContentTooShortError):
-		sys.exit('ERROR: could not retrieve this URL: %s' % changelog_url)
+		sys.exit('\nERROR: unable to download %s' % changelog_url)
 
 	if len(lines) == 0:
 		print 'no new entries.'
