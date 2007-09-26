@@ -1698,6 +1698,7 @@ try:
 		sys.exit()
 
 	if operation == 'name-search':
+		interceptor = SlackRollOutputInterceptor()
 		for retxt in args:
 			results = False
 			try:
@@ -1711,6 +1712,7 @@ try:
 				print '    (No results)\n'
 				continue
 			print ''.join('    %s (%s)\n' % (x, slackroll_state_strings[persistent_list[x]]) for x in names)
+		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'path-search':
