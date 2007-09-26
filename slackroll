@@ -1654,10 +1654,6 @@ try:
 except (KeyboardInterrupt, IOError, EOFError), error:
 	if isinstance(error, KeyboardInterrupt):
 		sys.stderr.write('\nProgram aborted by user\n')
-	elif isinstance(error, IOError):
-		sys.stderr.write('\nIOError: Broken pipe?\n')
-	else:
-		sys.stderr.write('\nEOF found, exiting\n')
 	if persistent_list is not None:
 		persistent_list.close()
 	sys.exit(slackroll_exit_failure)
