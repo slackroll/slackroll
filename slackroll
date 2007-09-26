@@ -1463,16 +1463,16 @@ try:
 				print '\tRemote:\t%s' % other.fullname
 			print
 		print 'End of list'
+		interceptor.stop()
 		if operation == 'list-upgrades':
 			maybe_print_glibc_watchout(persistent_list)
-		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-transient':
 		interceptor = SlackRollOutputInterceptor()
 		print_in_states(slackroll_transient_states, persistent_list, 'Transient packages:', 'No transient packages found', print_state=True)
-		maybe_print_glibc_watchout(persistent_list)
 		interceptor.stop()
+		maybe_print_glibc_watchout(persistent_list)
 		sys.exit()
 
 	if operation == 'list-alternatives':
