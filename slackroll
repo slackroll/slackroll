@@ -1082,6 +1082,7 @@ class SlackRollOutputInterceptor(object): # Intercepts stdout and sends it to th
 		if not self.__active:
 			return
 		try:
+			sys.stdout.flush()
 			os.close(sys.stdout.fileno())
 			if self.__pager is not None:
 				self.__pager.wait()
