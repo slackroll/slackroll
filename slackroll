@@ -1055,6 +1055,42 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 		del persistent_list[name]
 		persistent_list.sync()
 
+class SlackRollOutputInterceptor(object): # Intercepts stdout and sends it to the pager if stdout is a terminal
+	__active = False
+	__old_stdout = None
+	__pager = None
+
+	def __init__(self):
+		if not os.isatty(sys.stdout.fileno()):
+			return
+		try:
+			self.__old_stdout = os.dup(sys.stdout.fileno())
+			(read_fd, new_stdout) = os.pipe()
+			os.dup2(new_stdout, sys.stdout.fileno())
+			os.close(new_stdout)
+			self.__pager = call_pager(read_fd, self.__old_stdout)
+			os.close(read_fd)
+			self.__active = True
+		except OSError, err:
+			sys.exit('ERROR: %s' % str(err))
+		except SlackRollError, err:
+			os.close(read_fd)
+			self.__active = True
+			self.stop()
+	
+	def stop(self):
+		if not self.__active:
+			return
+		try:
+			os.close(sys.stdout.fileno())
+			if self.__pager is not None:
+				self.__pager.wait()
+			os.dup2(self.__old_stdout, sys.stdout.fileno())
+			os.close(self.__old_stdout)
+			self.__active = False
+		except OSError, err:
+			sys.exit('ERROR: %s' % str(err))
+
 def print_help():
 	print """Available operations:
 
@@ -1492,7 +1528,9 @@ try:
 		sys.exit()
 
 	if operation == 'list-all':
+		interceptor = SlackRollOutputInterceptor()
 		print_keys(persistent_list, 'All packages:', 'No packages found')
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'new-not-installed':
