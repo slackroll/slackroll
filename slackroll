@@ -383,8 +383,8 @@ def call_pager(path_or_fd, output): # Call pager and return handler (does not ex
 		proc = subprocess.Popen(pager_list, stdin=input, stdout=output)
 		return proc
 	except OSError:
-		sys.stderr.write('ERROR: unable to run "%s" on %s\n' % (pager, file_path))
-		raise SlackRollError('OSError running pager on %s' % file_path)
+		sys.stderr.write('ERROR: unable to run "%s" on %s\n' % (pager, name))
+		raise SlackRollError('OSError running pager on %s' % name)
 
 def run_pager_on(file_path): # Does not exit on errors
 	proc = call_pager(file_path, sys.stdout)
