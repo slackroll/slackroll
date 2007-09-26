@@ -317,7 +317,7 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
 			local_list[name] = value
 		if len(dupes) > 0:
 			print 'WARNING: packages with two or more local versions should be frozen or foreign'
-			print_keys(dupes, 'WARNING: list of packages with two or more local versions:', None)
+			print_keys(dupes, 'WARNING: list of packages with two or more local versions:')
 		try_dump(local_list, slackroll_locallist_filename)
 	return try_load(slackroll_locallist_filename)
 
@@ -715,17 +715,23 @@ def print_in_states_or(states, persistent_list, header, message_on_empty, print_
 	print_in_states(states, persistent_list, header, print_state)
 	interceptor.stop()
 
-def print_keys(dictionary, header, noresults): # Print every dictionary key, sorted with pkg_name_cmp()
+def print_keys(dictionary, header): # Print every dictionary key, sorted with pkg_name_cmp()
 	keys = dictionary.keys()
 	if len(keys) == 0:
-		if noresults is not None:
-			print noresults
 		return
 	print header
 	keys.sort(cmp=pkg_name_cmp)
 	for key in keys:
 		print '    %s' % key
 	print 'End of list'
+
+def print_keys_or(dictionary, header, message_on_empty):
+	if len(dictionary.keys()) == 0:
+		print message_on_empty
+		return
+	interceptor = SlackRollOutputInterceptor()
+	print_keys(dictionary, header)
+	interceptor.stop()
 
 def print_list(the_list, header): # Print every list entry, sorted
 	if len(the_list) == 0:
@@ -1542,21 +1548,15 @@ try:
 		sys.exit()
 	
 	if operation == 'list-local':
-		interceptor = SlackRollOutputInterceptor()
-		print_keys(local_list, 'Local packages:', 'No local packages found')
-		interceptor.stop()
+		print_keys_or(local_list, 'Local packages:', 'No local packages found')
 		sys.exit()
 
 	if operation == 'list-remote':
-		interceptor = SlackRollOutputInterceptor()
-		print_keys(remote_list, 'Remote packages:', 'No remote packages found')
-		interceptor.stop()
+		print_keys_or(remote_list, 'Remote packages:', 'No remote packages found')
 		sys.exit()
 
 	if operation == 'list-all':
-		interceptor = SlackRollOutputInterceptor()
-		print_keys(persistent_list, 'All packages:', 'No packages found')
-		interceptor.stop()
+		print_keys_or(persistent_list, 'All packages:', 'No packages found')
 		sys.exit()
 
 	if operation == 'new-not-installed':
