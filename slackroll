@@ -163,7 +163,7 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
 	matchobj = slackroll_pkg_re.match(path_or_name)
 
 	if matchobj is None:
-		raise SlackRollError('Nonstandard package name: %s' % path_or_name)
+		raise SlackRollError('nonstandard package name: %s' % path_or_name)
 
 	path = matchobj.group(slackroll_pkg_re_path)
 	name = matchobj.group(slackroll_pkg_re_name)
@@ -174,7 +174,7 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
 	try:
 		size = (size_str is not None and long(size_str) or None)
 	except ValueError:
-		raise SlackRollError('Invalid file size: %s' % size_str)
+		raise SlackRollError('invalid file size: %s' % size_str)
 	return SlackwarePackage(name, version, arch, build, path, suffix, size)
 
 def index_of(thelist, elem):
@@ -379,7 +379,7 @@ def call_pager(path_or_fd, output): # Call pager and return handler (does not ex
 			name = 'descriptor %s' % input
 		else:
 			sys.stderr.write('ERROR: internal error in call_pager()\n')
-			raise SlackRollError('Internal error in call_pager()')
+			raise SlackRollError('internal error in call_pager()')
 		proc = subprocess.Popen(pager_list, stdin=input, stdout=output)
 		return proc
 	except OSError:
@@ -450,7 +450,7 @@ def download_file(mirror, filepath, local_temp, local_final): # Does not exit on
 		print
 		if not try_to_rename(local_temp, local_final, fatal=False):
 			sys.stderr.write('ERROR: unable to rename %s to %s' % (local_temp, local_final))
-			raise SlackRollError('Rename error: %s => %s' % (local_temp, local_final))
+			raise SlackRollError('rename error: %s => %s' % (local_temp, local_final))
 	except (IOError, socket.error):
 		sys.stderr.write('\nERROR: unable to download %s\n' % full_url)
 		raise SlackRollError('IOError or socket.error on %s' % full_url)
@@ -706,7 +706,7 @@ def print_in_states(states, persistent_list, header, print_state): # Print packa
 			print '    %s' % name
 	print 'End of list'
 
-def print_in_states_or(states, persistent_list, header, message_on_empty, print_state):
+def print_in_states_or(states, persistent_list, header, message_on_empty, print_state): # Idem using interceptor and a message if no matches
 	keys = pkgs_in_state(persistent_list, states)
 	if len(keys) == 0:
 		print message_on_empty
@@ -725,7 +725,7 @@ def print_keys(dictionary, header): # Print every dictionary key, sorted with pk
 		print '    %s' % key
 	print 'End of list'
 
-def print_keys_or(dictionary, header, message_on_empty):
+def print_keys_or(dictionary, header, message_on_empty): # Idem using interceptor and a message if no keys
 	if len(dictionary.keys()) == 0:
 		print message_on_empty
 		return
@@ -742,7 +742,7 @@ def print_list(the_list, header): # Print every list entry, sorted
 		print '    %s' % entry
 	print 'End of list'
 
-def print_list_or(the_list, header, message_on_emtpy):
+def print_list_or(the_list, header, message_on_emtpy): # Idem using interceptor and a message if empty list
 	if len(the_list) == 0:
 		print message_on_emtpy
 		return
@@ -868,7 +868,7 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 				chosen = choose_option(options)
 				break
 
-def handle_dotnew_files_removal(dotnew_files):
+def handle_dotnew_files_removal(dotnew_files): # Prompt the user about .new files left behind by removepkg
 	if len(dotnew_files) == 0:
 		return
 
@@ -885,7 +885,7 @@ def handle_dotnew_files_removal(dotnew_files):
 		if chosen == 1:
 			try_to_remove(path, fatal=False)
 
-def parse_pkg_arg(arg): # Returns (Is full name?, Name, SlackwarePackage or None) [Auxiliar of parse_install_args()]
+def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage or None) -- auxiliar of parse_install_args()
 	try:
 		pkg = pkg_from_str(arg)
 		name = pkg.name
@@ -893,7 +893,7 @@ def parse_pkg_arg(arg): # Returns (Is full name?, Name, SlackwarePackage or None
 	except SlackRollError:
 		return (False, arg, None)
 
-def parse_install_args(args, is_info, pasture, local_list, remote_list, persistent_list): # Return chosen_pkgs [Auxiliar of install_operations_family()]
+def parse_install_args(args, is_info, pasture, local_list, remote_list, persistent_list): # Return chosen_pkgs -- auxiliar of install_operations_family()
 	chosen_pkgs = []
 	for arg in args:
 		# Decide the type of argument (full name or simple name)
