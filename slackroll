@@ -367,14 +367,28 @@ def get_version_from_mirror(mirror): # Extract Slackware version from mirror URL
 		sys.exit('ERROR: unable to extract Slackware version from mirror name')
 	return match.group(1)
 
-def run_pager_on(file_path): # Does not exit on errors
+def call_pager(path_or_fd, output): # Call pager and return handler (does not exit on errors)
 	try:
 		pager = get_pager()
 		pager_list = pager.split()
-		subprocess.call(pager_list, stdin=file(file_path, 'r'))
+		if isinstance(path_or_fd, str):
+			input = file(path_or_fd, 'r')
+			name = path_or_fd
+		elif isinstance(path_or_fd, int):
+			input = path_or_fd
+			name = 'descriptor %s' % input
+		else:
+			sys.stderr.write('ERROR: internal error in call_pager()\n')
+			raise SlackRollError('Internal error in call_pager()')
+		proc = subprocess.Popen(pager_list, stdin=input, stdout=output)
+		return proc
 	except OSError:
 		sys.stderr.write('ERROR: unable to run "%s" on %s\n' % (pager, file_path))
 		raise SlackRollError('OSError running pager on %s' % file_path)
+
+def run_pager_on(file_path): # Does not exit on errors
+	proc = call_pager(file_path, sys.stdout)
+	proc.wait()
 
 def run_visual_on(file_path): # Does not exit on errors
 	visual = get_env_or('VISUAL', None)
