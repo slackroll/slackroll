@@ -693,11 +693,9 @@ def maybe_print_outdated_warning(persistent_list):
 def confirm_continue():
 	raw_input('Press Ctrl+C to cancel or Enter to continue... ')
 
-def print_in_states(states, persistent_list, header, noresults, print_state=False): # Print package name if its state matches
+def print_in_states(states, persistent_list, header, print_state): # Print package name if its state matches
 	keys = pkgs_in_state(persistent_list, states)
 	if len(keys) == 0:
-		if noresults is not None:
-			print noresults
 		return
 	print header
 	keys.sort(cmp=pkg_name_cmp)
@@ -707,6 +705,15 @@ def print_in_states(states, persistent_list, header, noresults, print_state=Fals
 		else:
 			print '    %s' % name
 	print 'End of list'
+
+def print_in_states_or(states, persistent_list, header, message_on_empty, print_state):
+	keys = pkgs_in_state(persistent_list, states)
+	if len(keys) == 0:
+		print message_on_empty
+		return
+	interceptor = SlackRollOutputInterceptor()
+	print_in_states(states, persistent_list, header, print_state)
+	interceptor.stop()
 
 def print_keys(dictionary, header, noresults): # Print every dictionary key, sorted with pkg_name_cmp()
 	keys = dictionary.keys()
@@ -720,16 +727,22 @@ def print_keys(dictionary, header, noresults): # Print every dictionary key, sor
 		print '    %s' % key
 	print 'End of list'
 
-def print_list(the_list, header, noresults): # Print every list entry, sorted
+def print_list(the_list, header): # Print every list entry, sorted
 	if len(the_list) == 0:
-		if noresults is not None:
-			print noresults
 		return
 	print header
 	the_list.sort()
 	for entry in the_list:
 		print '    %s' % entry
 	print 'End of list'
+
+def print_list_or(the_list, header, message_on_emtpy):
+	if len(the_list) == 0:
+		print message_on_emtpy
+		return
+	interceptor = SlackRollOutputInterceptor()
+	print_list(the_list, header)
+	interceptor.stop()
 
 def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): # Changes state if it matches
 	dest_st_name = slackroll_state_strings[dest_state]
@@ -743,7 +756,7 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 		persistent_list[name] = dest_state
 		persistent_list.sync()
 	unknown = [x for x in pkg_names if x not in known]
-	print_list(unknown, 'Unknown packages:', None)
+	print_list(unknown, 'Unknown packages:')
 
 def query_pkg_browser(version, name): # Query package browser on given file with given Slackware version
 	searchstr = '"%s"' % name
@@ -1315,9 +1328,7 @@ try:
 				orphans.append(name)
 
 		# Print results
-		interceptor = SlackRollOutputInterceptor()
-		print_list(orphans, 'Orphan files:', 'No orphan files found')
-		interceptor.stop()
+		print_list_or(orphans, 'Orphan files:', 'No orphan files found')
 		sys.exit()
 	
 	if operation == 'broken-symlinks':
@@ -1329,9 +1340,7 @@ try:
 		for path in args:
 			walk_append_if(path, is_broken_link, broken_symlinks)
 
-		interceptor = SlackRollOutputInterceptor()
-		print_list(broken_symlinks, 'Broken symlinks:', 'No broken symlinks found')
-		interceptor.stop()
+		print_list_or(broken_symlinks, 'Broken symlinks:', 'No broken symlinks found')
 		sys.exit()
 
 	# Some operations below need to have the temporary directory available to download stuff
@@ -1379,9 +1388,9 @@ try:
 
 	if operation == 'state':
 		known = dict((x, persistent_list[x]) for x in args if x in persistent_list)
-		print_in_states(slackroll_all_states, known, 'Package states:', None, print_state=True)
+		print_in_states(slackroll_all_states, known, 'Package states:', True)
 		unknown = [x for x in args if x not in known]
-		print_list(unknown, 'Unknown packages:', None)
+		print_list(unknown, 'Unknown packages:')
 		sys.exit()
 
 	if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
@@ -1469,9 +1478,7 @@ try:
 		sys.exit()
 
 	if operation == 'list-transient':
-		interceptor = SlackRollOutputInterceptor()
-		print_in_states(slackroll_transient_states, persistent_list, 'Transient packages:', 'No transient packages found', print_state=True)
-		interceptor.stop()
+		print_in_states_or(slackroll_transient_states, persistent_list, 'Transient packages:', 'No transient packages found', True)
 		maybe_print_glibc_watchout(persistent_list)
 		sys.exit()
 
@@ -1504,47 +1511,33 @@ try:
 		sys.exit()
 
 	if operation == 'list-new':
-		interceptor = SlackRollOutputInterceptor()
-		print_in_states([slackroll_state_new], persistent_list, 'New packages:', 'No new packages found')
-		interceptor.stop()
+		print_in_states_or([slackroll_state_new], persistent_list, 'New packages:', 'No new packages found', False)
 		maybe_print_glibc_watchout(persistent_list)
 		sys.exit()
 
 	if operation == 'list-unavailable':
-		interceptor = SlackRollOutputInterceptor()
-		print_in_states([slackroll_state_unavailable], persistent_list, 'Unavailable packages:', 'No unavailable packages found')
-		interceptor.stop()
+		print_in_states_or([slackroll_state_unavailable], persistent_list, 'Unavailable packages:', 'No unavailable packages found', False)
 		maybe_print_glibc_watchout(persistent_list)
 		sys.exit()
 
 	if operation == 'list-installed':
-		interceptor = SlackRollOutputInterceptor()
-		print_in_states([slackroll_state_installed], persistent_list, 'Installed packages:', 'No installed packages found')
-		interceptor.stop()
+		print_in_states_or([slackroll_state_installed], persistent_list, 'Installed packages:', 'No installed packages found', False)
 		sys.exit()
 
 	if operation == 'list-not-installed':
-		interceptor = SlackRollOutputInterceptor()
-		print_in_states([slackroll_state_notinstalled], persistent_list, 'Not installed packages:', 'No not-installed packages found')
-		interceptor.stop()
+		print_in_states_or([slackroll_state_notinstalled], persistent_list, 'Not installed packages:', 'No not-installed packages found', False)
 		sys.exit()
 
 	if operation == 'list-frozen':
-		interceptor = SlackRollOutputInterceptor()
-		print_in_states([slackroll_state_frozen], persistent_list, 'Frozen packages:', 'No frozen packages found')
-		interceptor.stop()
+		print_in_states_or([slackroll_state_frozen], persistent_list, 'Frozen packages:', 'No frozen packages found', False)
 		sys.exit()
 
 	if operation == 'list-foreign':
-		interceptor = SlackRollOutputInterceptor()
-		print_in_states([slackroll_state_foreign], persistent_list, 'Foreign packages:', 'No foreign packages found')
-		interceptor.stop()
+		print_in_states_or([slackroll_state_foreign], persistent_list, 'Foreign packages:', 'No foreign packages found', False)
 		sys.exit()
 	
 	if operation == 'list-outdated':
-		interceptor = SlackRollOutputInterceptor()
-		print_in_states([slackroll_state_outdated], persistent_list, 'Outdated packages:', 'No outdated packages found')
-		interceptor.stop()
+		print_in_states_or([slackroll_state_outdated], persistent_list, 'Outdated packages:', 'No outdated packages found', False)
 		maybe_print_glibc_watchout(persistent_list)
 		sys.exit()
 	
@@ -1618,7 +1611,7 @@ try:
 				print
 			print 'End of list'
 
-		print_list(unknown, 'Unknown packages:', None)
+		print_list(unknown, 'Unknown packages:')
 		sys.exit()
 
 	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
