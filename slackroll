@@ -1244,7 +1244,9 @@ try:
 		sys.exit(slackroll_exit_failure)
 
 	if operation == 'help':
+		interceptor = SlackRollOutputInterceptor()
 		print_help()
+		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'version':
@@ -1271,6 +1273,7 @@ try:
 		pkg_files_map = get_pkg_filelists()
 		local_pkgs_fn = pkg_files_map.keys()
 		local_pkgs_fn.sort()
+		interceptor = SlackRollOutputInterceptor()
 		for retxt in sys.argv[2:]:
 			results = False
 			try:
@@ -1286,6 +1289,7 @@ try:
 					print ''.join('\t%s\n' % x for x in matching_paths)
 			if not results:
 				print '    (No results)\n'
+		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'orphan-search':
@@ -1310,7 +1314,9 @@ try:
 				orphans.append(name)
 
 		# Print results
+		interceptor = SlackRollOutputInterceptor()
 		print_list(orphans, 'Orphan files:', 'No orphan files found')
+		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'broken-symlinks':
@@ -1322,7 +1328,9 @@ try:
 		for path in args:
 			walk_append_if(path, is_broken_link, broken_symlinks)
 
+		interceptor = SlackRollOutputInterceptor()
 		print_list(broken_symlinks, 'Broken symlinks:', 'No broken symlinks found')
+		interceptor.stop()
 		sys.exit()
 
 	# Some operations below need to have the temporary directory available to download stuff
@@ -1435,6 +1443,7 @@ try:
 				print 'No frozen packages would be outdated'
 			sys.exit()
 
+		interceptor = SlackRollOutputInterceptor()
 		if operation == 'list-upgrades':
 			print 'Available upgrades:'
 		else: # list-outdated-frozen
@@ -1455,11 +1464,14 @@ try:
 		print 'End of list'
 		if operation == 'list-upgrades':
 			maybe_print_glibc_watchout(persistent_list)
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-transient':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states(slackroll_transient_states, persistent_list, 'Transient packages:', 'No transient packages found', print_state=True)
 		maybe_print_glibc_watchout(persistent_list)
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-alternatives':
@@ -1479,6 +1491,7 @@ try:
 
 		names = alternatives.keys()
 		names.sort(cmp=pkg_name_cmp)
+		interceptor = SlackRollOutputInterceptor()
 		print 'Packages with alternatives:'
 		for name in names:
 			print '    %s:' % name
@@ -1486,45 +1499,64 @@ try:
 				print '\t%s' % ver.fullname
 			print
 		print 'End of list'
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-new':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states([slackroll_state_new], persistent_list, 'New packages:', 'No new packages found')
+		interceptor.stop()
 		maybe_print_glibc_watchout(persistent_list)
 		sys.exit()
 
 	if operation == 'list-unavailable':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states([slackroll_state_unavailable], persistent_list, 'Unavailable packages:', 'No unavailable packages found')
+		interceptor.stop()
 		maybe_print_glibc_watchout(persistent_list)
 		sys.exit()
 
 	if operation == 'list-installed':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states([slackroll_state_installed], persistent_list, 'Installed packages:', 'No installed packages found')
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-not-installed':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states([slackroll_state_notinstalled], persistent_list, 'Not installed packages:', 'No not-installed packages found')
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-frozen':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states([slackroll_state_frozen], persistent_list, 'Frozen packages:', 'No frozen packages found')
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-foreign':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states([slackroll_state_foreign], persistent_list, 'Foreign packages:', 'No foreign packages found')
+		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'list-outdated':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states([slackroll_state_outdated], persistent_list, 'Outdated packages:', 'No outdated packages found')
+		interceptor.stop()
 		maybe_print_glibc_watchout(persistent_list)
 		sys.exit()
 	
 	if operation == 'list-local':
+		interceptor = SlackRollOutputInterceptor()
 		print_keys(local_list, 'Local packages:', 'No local packages found')
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-remote':
+		interceptor = SlackRollOutputInterceptor()
 		print_keys(remote_list, 'Remote packages:', 'No remote packages found')
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-all':
@@ -1672,6 +1704,7 @@ try:
 		sys.exit()
 
 	if operation == 'name-search':
+		interceptor = SlackRollOutputInterceptor()
 		for retxt in args:
 			results = False
 			try:
@@ -1685,10 +1718,12 @@ try:
 				print '    (No results)\n'
 				continue
 			print ''.join('    %s (%s)\n' % (x, slackroll_state_strings[persistent_list[x]]) for x in names)
+		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'path-search':
 		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list], [])
+		interceptor = SlackRollOutputInterceptor()
 		for retxt in args:
 			try:
 				regexp = re.compile(retxt)
@@ -1701,6 +1736,7 @@ try:
 				print '    (No results)\n'
 			else:
 				print ''.join('    %s\n' % x for x in matching_fullnames)
+		interceptor.stop()
 		sys.exit()
 	
 except (KeyboardInterrupt, IOError, EOFError), error:
