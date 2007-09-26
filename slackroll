@@ -1357,7 +1357,7 @@ try:
 		updated = update_changelog(mirror)
 		download_or_exit(mirror, slackroll_filelist_filename, '.')
 		if updated:
-			changelog_to_pager()
+			print 'You should now use the "changelog" operation'
 		sys.exit()
 
 	if operation == 'import-key':
