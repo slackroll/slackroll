@@ -41,8 +41,7 @@ slackroll_source_indicator = '/source/'
 slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
 slackroll_main_indicator = '/slackware/'
-slackroll_glibc_indicator = 'glibc'
-slackroll_prioritized_pkgs = ['glibc-solibs', 'glibc-zoneinfo', 'glibc', 'glibc-profile', 'glibc-i18n']
+slackroll_prioritized_pkgs = ['glibc-solibs', 'sed', 'pkgtools']
 
 slackroll_self_filename = 'self'
 slackroll_mirror_filename = 'mirror'
@@ -657,24 +656,24 @@ def not_main(pkg_list): # Returns packages not in the main tree
 def pkgs_in_state(persistent_list, state_list): # Get persistent_list names with matching state
 	return [x for x in persistent_list if persistent_list[x] in state_list]
 
-def glibc_indicator_in(string_list): # Is the glibc indicator present in any of the strings?
-	for item in string_list:
-		if slackroll_glibc_indicator in item:
+def key_pkg_in(name_list): # Does any name match with a prioritized package?
+	for item in name_list:
+		if item in slackroll_prioritized_pkgs:
 			return True
 	return False
 
-def glibc_activity_pending(persistent_list): # True if any new, outdated or unavailable package has glibc indicator
-	return glibc_indicator_in(pkgs_in_state(persistent_list, slackroll_transient_states))
+def key_pkg_activity_pending(persistent_list): # True if any new, outdated or unavailable package is prioritized
+	return key_pkg_in(pkgs_in_state(persistent_list, slackroll_transient_states))
 
-def maybe_print_glibc_watchout(persistent_list):
-	if glibc_activity_pending(persistent_list):
-		print '\nWATCH OUT: ACTIVITY IN GLIBC PACKAGES\n'
+def maybe_print_key_pkg_watchout(persistent_list):
+	if key_pkg_activity_pending(persistent_list):
+		print '\nWATCH OUT: ACTIVITY IN KEY SYSTEM PACKAGES\n'
 		return True
 	return False
 
-def maybe_print_glibc_warning(persistent_list):
-	if glibc_activity_pending(persistent_list):
-		print 'WARNING: It seems there is activity in glibc packages'
+def maybe_print_key_pkg_warning(persistent_list):
+	if key_pkg_activity_pending(persistent_list):
+		print 'WARNING: It seems there is activity in key system packages'
 		return True
 	return False
 
@@ -945,8 +944,8 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 	is_real_install = (operation in ['install', 'reinstall'])
 	is_info = (operation == 'info')
 
-	# Warn the user on install and reinstall operations if there is glibc activity and they have not indicated glibc packages
-	if is_real_install and not glibc_indicator_in(args) and maybe_print_glibc_warning(persistent_list):
+	# Warn the user on install and reinstall operations if there is key package activity and they have not indicated key packages
+	if is_real_install and not key_pkg_in(args) and maybe_print_key_pkg_warning(persistent_list):
 		confirm_continue()
 
 	# Get mirror and parse arguments (package names or full versions)
@@ -1480,12 +1479,12 @@ try:
 		print 'End of list'
 		interceptor.stop()
 		if operation == 'list-upgrades':
-			maybe_print_glibc_watchout(persistent_list)
+			maybe_print_key_pkg_watchout(persistent_list)
 		sys.exit()
 
 	if operation == 'list-transient':
 		print_in_states_or(slackroll_transient_states, persistent_list, 'Transient packages:', 'No transient packages found', True)
-		maybe_print_glibc_watchout(persistent_list)
+		maybe_print_key_pkg_watchout(persistent_list)
 		sys.exit()
 
 	if operation == 'list-alternatives':
@@ -1518,12 +1517,12 @@ try:
 
 	if operation == 'list-new':
 		print_in_states_or([slackroll_state_new], persistent_list, 'New packages:', 'No new packages found', False)
-		maybe_print_glibc_watchout(persistent_list)
+		maybe_print_key_pkg_watchout(persistent_list)
 		sys.exit()
 
 	if operation == 'list-unavailable':
 		print_in_states_or([slackroll_state_unavailable], persistent_list, 'Unavailable packages:', 'No unavailable packages found', False)
-		maybe_print_glibc_watchout(persistent_list)
+		maybe_print_key_pkg_watchout(persistent_list)
 		sys.exit()
 
 	if operation == 'list-installed':
@@ -1544,7 +1543,7 @@ try:
 	
 	if operation == 'list-outdated':
 		print_in_states_or([slackroll_state_outdated], persistent_list, 'Outdated packages:', 'No outdated packages found', False)
-		maybe_print_glibc_watchout(persistent_list)
+		maybe_print_key_pkg_watchout(persistent_list)
 		sys.exit()
 	
 	if operation == 'list-local':
