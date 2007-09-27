@@ -319,17 +319,18 @@
 		operation will provide a summary of activity. It should output
 		an empty list once you have sorted out any changes.</p>
 
-		<p>Watch out for upgrades in <em>glibc</em> packages,
-		the one with highest priority being <em>glibc-solibs</em>.
-		They should always be the first ones to be installed,
-		even before new packages. You can use the <em>install</em>
-		operation to manually upgrade them first, either
-		by giving the package name only, which should work in
-		most cases, or a specific package version. Some operations,
-		like <em>install</em>, accept specific package versions
+		<p>Watch out for upgrades in the <em>glibc-solibs</em>,
+		<em>sed</em> and <em>pkgtools</em> packages. They
+		should always be the first ones to be installed or
+		upgraded in that order, even before new packages. You
+		can use the <em>install</em> operation to manually
+		upgrade them first, either by giving the package
+		name only, which should work in most cases, or a
+		specific package version. Some operations, like
+		<em>install</em>, accept specific package versions
 		and are copy/paste friendly. Specifying the package
-		version is optional but will make sure you are installing
-		the <em>glibc</em> version you really want.</p>
+		version is optional but will make sure you are
+		installing the package version you really want.</p>
 
 		<p>Also, remember to run the <em>clean-cache</em> operation
 		from time to time to get rid of old and outdated package
