@@ -206,7 +206,7 @@
 		<h2><a name="getting_started" />Getting started</h2>
 
 		<p><strong>slackroll</strong> requires <em>python</em>,
-		<em>pkgtools</em>, <em>gnupg</em>, <em>vim</em> and a
+		<em>pkgtools</em>, <em>gnupg (or gnupg2)</em>, <em>vim</em> and a
 		pager (<em>less</em> by default) to operate properly.</p>
 
 		<p>It should be noted that you can start using
@@ -315,9 +315,12 @@
 		recommended.</p>
 
 		<p>In every case you should <em>update</em> whenever the
-		remote tree is changed. Then, the <em>list-transient</em>
-		operation will provide a summary of activity. It should output
-		an empty list once you have sorted out any changes.</p>
+		remote tree is changed. Then, you should read the
+		changelog with the <em>changelog</em> operation
+		if there are new entries and, finally, the
+		<em>list-transient</em> operation will provide a
+		summary of activity. There should be no transient packages
+		after you're finished.</p>
 
 		<p>Watch out for upgrades in the <em>glibc-solibs</em>,
 		<em>sed</em> and <em>pkgtools</em> packages. They
