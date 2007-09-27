@@ -537,9 +537,12 @@ def remove_pkgs(pkg_list):
 		remove_pkg(pkg.idname)
 	handle_dotnew_files_removal(dotnew_files)
 
+def is_readable_file(filepath):
+	return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
+
 def package_in_cache(package): # Check if package is in ./packages
 	filepath = os.path.join(slackroll_pkgs_dir, package.archivename)
-	return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
+	return is_readable_file(filepath)
 
 def download_verify(mirror, package): # Download package, signature and verify it
 	tempdir = get_temp_dir()
