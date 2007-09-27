@@ -1154,6 +1154,7 @@ foreign PKG...		Mark packages as foreign
 install PKG...		Install packages or specific package versions
 install-new		Install all new packages
 install-path REGEX...	Install all packages with matching path
+install-foreign PATH...	Install a foreign package from disk
 reinstall PKG...	Same as 'install' but reinstalls if needed
 download PKG...		Download packages or specific package versions
 download-new		Download all new packages
@@ -1210,6 +1211,7 @@ try:
 		'info-new':		0,
 		'info-path':		-1,
 		'install':		-1,
+		'install-foreign':	-1,
 		'install-new':		0,
 		'install-path':		-1,
 		'installed':		-1,
@@ -1663,6 +1665,35 @@ try:
 			fullnames = [x.fullname for x in matching_pkgs]
 			install_operations_family(opname, fullnames, local_list, remote_list, persistent_list)
 
+		sys.exit()
+	
+	if operation == 'install-foreign':
+		# Verify readable files
+		bad_files = [x for x in args if not is_readable_file(x)]
+		if len(bad_files) > 0:
+			sys.stderr.write('ERROR: the following items are not readable files:\n')
+			sys.stderr.write(''.join('ERROR:    %s\n' % x for x in bad_files))
+			sys.exit(slackroll_exit_failure)
+
+		# Verify and get package names
+		try:
+			pkgs = [pkg_from_str(x) for x in args]
+		except SlackRollError, err:
+			sys.exit('ERROR: %s' % err)
+
+		# The packages must not be present in persistent list or be foreign already
+		bad_pkgs = [x for x in pkgs if x.name in persistent_list and persistent_list[pkg.name] != slackroll_state_foreign]
+		if len(bad_pkgs) > 0:
+			sys.stderr.write('ERROR: the following packages are known and not foreign\n')
+			sys.stderr.write(''.join('ERROR:    %s' % x.name for x in bad_pkgs))
+			sys.exit(slackroll_exit_failure)
+
+		# Install and mark
+		for arg in args:
+			upgrade_or_install(arg, False)
+		for pkg in pkgs:
+			persistent_list[pkg.name] = slackroll_state_foreign
+			persistent_list.sync()
 		sys.exit()
 
 	if operation in ['remove', 'remove-unavailable']:
