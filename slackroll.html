@@ -332,6 +332,13 @@
 		version is optional but will make sure you are
 		installing the package version you really want.</p>
 
+		<p>When installing or upgrading foreign packages,
+		you can use <strong>installpkg</strong> or
+		<strong>upgradepkg</strong> and then mark them as
+		foreign if needed. However, you can also install
+		them using the <em>install-foreign</em> operation to
+		save time and avoid problems.</p>
+
 		<p>Also, remember to run the <em>clean-cache</em> operation
 		from time to time to get rid of old and outdated package
 		archives stored in the package cache.</p>
@@ -346,9 +353,8 @@
 		to new versions with <em>upgrade</em>. Finally, list
 		unavailable packages with <em>list-unavailable</em> and
 		remove them or mark them as foreign if a new foreign
-		package is present in the list (which may happen if you
-		had forgotten to mark it as foreign when you installed
-		it).</p>
+		package is present in the list. This may happen if you
+		had forgotten to mark it when you installed it.</p>
 
 		<h3>Stable tree</h3>
 
