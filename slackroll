@@ -1682,7 +1682,7 @@ try:
 			sys.exit('ERROR: %s' % err)
 
 		# The packages must not be present in persistent list or be foreign already
-		bad_pkgs = [x for x in pkgs if x.name in persistent_list and persistent_list[pkg.name] != slackroll_state_foreign]
+		bad_pkgs = [x for x in pkgs if x.name in persistent_list and persistent_list[x.name] != slackroll_state_foreign]
 		if len(bad_pkgs) > 0:
 			sys.stderr.write('ERROR: the following packages are known and not foreign\n')
 			sys.stderr.write(''.join('ERROR:    %s' % x.name for x in bad_pkgs))
