@@ -27,6 +27,12 @@ directory of choice:
 slackroll() { ( cd /var/slackroll && command slackroll "$@" ); }
 ------------------------------------------------------------------
 
+If you use a shell function or script like the previous one, do not forget
+that the program will be running from its working directory. This affects
+some operations that expect to receive paths as their arguments. If you
+attempt to use relative paths it may not work. For those operations,
+you can use absolute paths or prepend every path with +\`pwd\`+ or +$(pwd)+.
+
 Packages with nonstandard names
 -------------------------------
 
@@ -72,10 +78,10 @@ local copy of the remote tree. Can I coordinate this with SlackRoll?
 chunks in curly braces by the appropriate contents.
 
 ------------------------------------------------------
-SLACKROLL_DIR={path to slackroll working directory}
-LOCAL_MIRROR_DIR={path to local copy of the tree}
+SLACKROLL_DIR={ path to slackroll working directory }
+LOCAL_MIRROR_DIR={ path to local copy of the tree }
 
-{rsync command(s)}
+{ rsync command(s) }
 
 cd $SLACKROLL_DIR
 slackroll update

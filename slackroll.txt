@@ -30,7 +30,7 @@ you don't get lost.
 
 +slackroll+ works with the current directory. It doesn't work with a fixed
 system directory like, let's say, +/var/slackroll+. You can use
-+/var/slackroll+ if you want. You have to choose a directory and cd to it
++/var/slackroll+ if you want. You have to choose a directory and +cd+ to it
 before running the program. Want to use something inside +/var+? Inside
 +/root+? Inside +/media+? Whatever floats your boat.
 
