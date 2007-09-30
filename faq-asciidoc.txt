@@ -1,0 +1,180 @@
+SlackRoll Frequently Asked Questions
+====================================
+
+Current working directory
+-------------------------
+
+*Question*: It's tedious to +cd+ into the chosen directory everytime I want to
+use SlackRoll. Furthermore, if you forget about it, SlackRoll may create
+directories and files in the wrong location. Can you change this?
+
+*Answer*: It's a design decision, so you can have several package lists or
+mirrors with different configurations, making it more flexible, as well as
+giving you the option to choose the package cache location. If you detect
+you frequently make those mistakes or would like to simplify the
+situation, you should consider one of the following alternatives:
+
+Putting +slackroll+ inside the chosen directory, preventing mistakes by
+having to run it as +./slackroll+.
+
+Creating a script or shell function to +cd+ into the chosen directory
+automatically. For example, I have the following line in my superuser
++$HOME/.bashrc+ file, where +/var/slackroll+ should be changed by your
+directory of choice:
+
+------------------------------------------------------------------
+slackroll() { ( cd /var/slackroll && command slackroll "$@" ); }
+------------------------------------------------------------------
+
+Packages with nonstandard names
+-------------------------------
+
+*Question*: While attempting to setup SlackRoll I get _"ERROR: Nonstandard
+package name: <package>"_. How can I solve this problem?
+
+*Answer*: It seems some people are using packages that don't follow the
+Slackware package name convention of _name-version-arch-build_. I think it
+is wrong to have a package that doesn't follow the convention. SlackRoll
+needs to parse the package names to extract the different components.
+These packages make it very difficult or impossible, so they are rejected.
+There is no way to create an algorithm to analyze those names properly.
+The problem should be solved by removing that package, renaming the
+package archive to have a standard name and then installing it again.
+
+Some examples of invalid package names I have seen reported:
+
+* pyfloppy-1.6-noarch.2AS
+* gammapage-0.5.i486-1AS
+* scons-0.96.1-1.noarch
+
+Remember: it doesn't matter if it's an official package or a foreign or
+custom one. It should follow the naming convention.
+
+Saving the list of URLs
+-----------------------
+
+*Question*: Using the +urls+ or +urls-upgrades+ operation I want to save the URL
+list to a text file. However, if I use shell redirections and SlackRoll
+prompts me to select a specific package version, I can't see the
+questions. Is there an easy way of doing this?
+
+*Answer*: Yes. Pipe the output of SlackRoll to +tee url-list.txt+ and then
+edit the file to remove the extra lines.
+
+Coordinating with rsync
+-----------------------
+
+*Question*: I normally get my remote packages using rsync, so as to keep a
+local copy of the remote tree. Can I coordinate this with SlackRoll?
+
+*Answer*: Yes. I would use a script like the following one, replacing the
+chunks in curly braces by the appropriate contents.
+
+------------------------------------------------------
+SLACKROLL_DIR={path to slackroll working directory}
+LOCAL_MIRROR_DIR={path to local copy of the tree}
+
+{rsync command(s)}
+
+cd $SLACKROLL_DIR
+slackroll update
+rm -f packages/*
+for pkg in $( slackroll path-search '' | grep '\.tgz$' ); do
+    ln -sf $LOCAL_MIRROR_DIR/$pkg ./packages
+done
+------------------------------------------------------
+
+This will synchronize your local copy of the remote tree and then populate
+the SlackRoll package cache with symbolic links to the package archives
+located inside your local copy of the Slackware remote tree. From the
+point of view of SlackRoll, it's like if it had already downloaded every
+package.
+
+Comparing SlackRoll to other tools
+----------------------------------
+
+*Question*: What are the differences between SlackRoll and other tools like
+slapt-get, swaret or slackpkg?
+
+*Answer*: That's a hard question which is better answered by exposing the
+features of SlackRoll. In any case, it should be clarified that you can
+run two types of Slackware installations. On the one hand you have stable
+releases. If you are going to run a stable release any tool will probably
+be useful enough for you, including SlackRoll. This is because stable
+releases are easy to manage, given that the only events they are exposed
+to are the release of patches. Any of the existing tools can easily tell
+you which patches have been released and let you automate the download and
+installation process. It is extremely rare, but not impossible, for a
+package to be added to or removed from the tree of a stable release.
+
+On the other hand, you can be running the testing tree of Slackware, also
+known as slackware-current. In this case, in my humble opinion, SlackRoll
+is the best tool. This is because SlackRoll lets you track almost any
+event happening in the testing tree, be it packages being added, removed
+or upgraded, including the events of a foreign package getting an official
+version and the removal of a package for which a customized version was
+installed. This is possible thanks to its package states foundation and
+the absence of a blacklisting mechanism in favour of working with two
+differentiated states: foreign and frozen. No other tool, as far as I
+know, can deal with as many events as SlackRoll. I'm unable to imagine an
+event that is not covered by SlackRoll.
+
+Apart from the type of Slackware installation you're running, there's the
+issue of using external repositories like the one from LinuxPackages.net.
+I wouldn't recommend using it because, in my own experience, too many
+packages from that site have been built on nonstandard systems. Some of
+them have weird dependencies and other ones simply won't work in your
+system, because they are submitted by people running many unofficial
+builds of official packages. I am not saying that they are all faulty, but
+the failure rate I've been getting is simply too high, always in my
+opinion. If you want to use these external repositories you want to run
+*slapt-get*, but take into account your resulting system can in many cases
+not be considered Slackware anymore, due to the high number of unofficial
+builds you will be running. It will be something close to Slackware. A
+customized Slackware if you prefer.
+
+If you are not going to use external repositories, or packages from those
+external repositories are the exception in your system, the dependency
+mechanism of slapt-get is useless, and you may well be runing SlackRoll,
+which tracks more events. Another point of failure in slapt-get is that it
+uses a version comparisson algorithm to decide if a package should be
+upgraded or not. It can fail and, more commonly, it fails to detect
+package reverts, which happen from time to time in slackware-current,
+forcing you to pay a lot of attention to the change log.
+
+Compared to the shell-based *swaret* (there's a new swaret being developed
+in Perl), SlackRoll lacks tracking binary dependencies, but it compensates
+that lack by letting you query the Slackware Package Browser from the
+command line comfortably. Apart from that, swaret is incredibly slow and
+CPU hungry even when it's only downloading files from the network, and
+doesn't come close to tracking as many events as SlackRoll. SlackRoll is,
+in my humble opinion, a clear winner over swaret unless you absolutely
+love the binary dependency resolution it provides. For me that's a minor
+feature. The Perl implementation is supposed to be basically the same, but
+solving the high CPU usage problem. If that's the case, SlackRoll would
+still be a much better option, in my opinion, because swaret still doesn't
+do glibc upgrades properly, does not detect removed packages, etc.
+
+SlackRoll's closest friend is *slackpkg*, included in the /extra/ tree. You
+can think of it like a very much improved slackpkg that works faster,
+detects more corner cases and has more features. If you run slackpkg, do
+not hesitate to give SlackRoll a try.
+
+Finally, in general, SlackRoll is at least as fast or faster than any of
+the above tools, specially faster than the ones that are big shell scripts
+(slackpkg and swaret). It downloads less metadata than any other, because
+it only needs FILELIST.TXT and, for convenience, the new entries from the
+change log (indeed, it only downloads the new entries). It detects more
+events, which is specially useful when running slackware-current. And it
+has some useful features no other tool has, like the operations to detect
+orphan files and broken symlinks. You won't have to run grep on the
+contents of /var/log/packages anymore, because it has a local search
+operation, and also a remote search operation that lets you query the
+Slackware Package Browser comfortably from the command line and receive
+the results on your terminal. And it also lets you choose which package
+version to install when there are several ones available. It lets you
+upgrade individual packages or every upgradeable package, install new
+packages, remove old ones, search for package names or packages with a
+given tree component, list alternative versions of packages, detect and
+warn you about activity in glibc packages (giving them priority while
+upgrading too), etc.

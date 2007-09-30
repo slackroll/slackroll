@@ -1,0 +1,596 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.2.1" />
+<style type="text/css">
+/* Debug borders */
+p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
+/*
+  border: 1px solid red;
+*/
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+}
+
+strong {
+  font-weight: bold;
+}
+
+tt {
+  color: navy;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  font-family: sans-serif;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  border-bottom: 2px solid silver;
+  padding-top: 0.5em;
+}
+
+div.sectionbody {
+  font-family: serif;
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+span#email {
+}
+span#revision {
+  font-family: sans-serif;
+}
+
+div#footer {
+  font-family: sans-serif;
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble,
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-right: 10%;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.5em;
+  margin-bottom: 2.5em;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  font-family: sans-serif;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+
+div.listingblock {
+  margin-right: 0%;
+}
+div.listingblock > div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock > div.content {
+  padding-left: 2.0em;
+}
+
+div.attribution {
+  text-align: right;
+}
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 2px solid silver;
+}
+
+div.exampleblock > div.content {
+  border-left: 2px solid silver;
+  padding: 0.5em;
+}
+
+div.verseblock div.content {
+  white-space: pre;
+}
+
+div.imageblock div.content { padding-left: 0; }
+div.imageblock img { border: 1px solid silver; }
+span.image img { border-style: none; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: italic;
+}
+dd > *:first-child {
+  margin-top: 0;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.olist2 {
+  list-style-type: lower-alpha;
+}
+
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+tfoot {
+  font-weight: bold;
+}
+
+div.hlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hlist td {
+  padding-bottom: 5px;
+}
+td.hlist1 {
+  vertical-align: top;
+  font-style: italic;
+  padding-right: 0.8em;
+}
+td.hlist2 {
+  vertical-align: top;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+
+div#toctitle {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+/* Workarounds for IE6's broken and incomplete CSS2. */
+
+div.sidebar-content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+div.sidebar-title, div.image-title {
+  font-family: sans-serif;
+  font-weight: bold;
+  margin-top: 0.0em;
+  margin-bottom: 0.5em;
+}
+
+div.listingblock div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock-content {
+  padding-left: 2.0em;
+}
+
+div.exampleblock-content {
+  border-left: 2px solid silver;
+  padding-left: 0.5em;
+}
+
+/* IE6 sets dynamically generated links as visited. */
+div#toc a:visited { color: blue; }
+</style>
+<title>SlackRoll: Manage a Slackware system</title>
+</head>
+<body>
+<div id="header">
+<h1>SlackRoll: Manage a Slackware system</h1>
+<span id="author">Ricardo Garcia</span><br />
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="sidebarblock">
+<div class="sidebar-content">
+<ul>
+<li>
+<p>
+<a href="#audience">Target audience</a>
+</p>
+</li>
+<li>
+<p>
+<a href="#before">Before you start</a>
+</p>
+</li>
+<li>
+<p>
+<a href="#download">Get SlackRoll</a>
+</p>
+</li>
+<li>
+<p>
+<a href="#starting">Getting started</a>
+</p>
+</li>
+<li>
+<p>
+<a href="#daily">Normal operation</a>
+</p>
+</li>
+<li>
+<p>
+<a href="#feedback">Feedback</a>
+</p>
+</li>
+</ul>
+</div></div>
+</div>
+</div>
+<h2><a id="audience"></a>Target audience</h2>
+<div class="sectionbody">
+<p><tt>slackroll</tt> is a package or update manager for Slackware systems. It does
+not provide dependency checking and uses <tt>pkgtools</tt> to install or upgrade
+packages. It's designed to work with official mirrors. If you have a
+Slackware system mainly composed of official packages and a handful of
+unofficial packages, <tt>slackroll</tt> can help you manage it and keep in touch
+with the remote tree. It tries to know when new packages appear, when
+packages are removed and when packages are upgraded.</p>
+</div>
+<h2><a id="before"></a>Before you start</h2>
+<div class="sectionbody">
+<p>So you have decided to try <tt>slackroll</tt>. Let me introduce a few concepts so
+you don't get lost.</p>
+<p><tt>slackroll</tt> works with the current directory. It doesn't work with a fixed
+system directory like, let's say, <tt>/var/slackroll</tt>. You can use
+<tt>/var/slackroll</tt> if you want. You have to choose a directory and cd to it
+before running the program. Want to use something inside <tt>/var</tt>? Inside
+<tt>/root</tt>? Inside <tt>/media</tt>? Whatever floats your boat.</p>
+<p>In the following text I'm going to be talking about packages. For package,
+we are going to understand a named piece of software, without having any
+specific version unless I explicitly mention it. A package can be <tt>bash</tt> or
+<tt>kdewebdev</tt> or <tt>gcc-gfortran</tt>, for example.</p>
+<p>Each package is in one of several possible states. The program tries to
+keep a persistent "database" that associates each package with its state.
+When it runs, it analyzes the list of packages present in your system, the
+list of remote packages, and tries to keep the persistent database updated
+by introducing new entries, deleting old ones and changing the state of
+some of those entries.</p>
+<h3>States to avoid</h3>
+<h4>NEW</h4>
+<p>A package is in this state when it's present in the remote tree
+and it wasn't present before. If you detect you have packages in
+this state you should decide if you want to install them or mark
+them as not installed. This state lets you see which packages are
+being added to the remote tree.</p>
+<h4>UNAVAILABLE</h4>
+<p>Sorry if this name is somehow confusing. A package is in this
+state when it's present in your system, but not in the remote
+tree. You should decide if you want to remove them from your
+system or mark them as foreign packages. This state lets you see
+which packages are being removed from the remote tree.</p>
+<h4>OUTDATED</h4>
+<p>A package is outdated if it's present in your system and in the
+remote tree, but the local version does not match any relevant one
+in the remote tree. The program will try to upgrade these
+packages.</p>
+<h3>Normal states</h3>
+<h4>INSTALLED</h4>
+<p>A package is installed if it's present in your system and in the
+remote tree, and the local version is not outdated. Very common
+state, as you can suppose.</p>
+<h4>NOT INSTALLED</h4>
+<p>A package is not installed if it's a known package which is not
+present in your system but exists in the remote tree. It's also a
+very common state.</p>
+<h4>FROZEN</h4>
+<p>No package will enter the frozen state unless you mark it so. It
+should be used for packages present in your system and in the
+remote tree, but that you don't want to upgrade automatically.
+This state can be used for packages which are not meant to be
+upgraded automatically or ever, like <tt>aaa_elflibs</tt> and others, and
+probably for customized versions of official packages. For
+example, my custom build of <tt>freetype</tt> is marked as frozen. You must
+pay attention to these packages, as upgrades to them will be
+silently ignored. You may find the <tt>list-versions</tt> and
+<tt>list-outdated-frozen</tt> operations useful to detect version
+mismatches between your local copy and the ones in the remote
+tree. Having a package in the frozen state does not prevent you
+from using the install operation to download and install a
+different version. If the package ever disappears from the remote
+tree, it will be marked as unavailable and you will probably see
+it. You could continue to use it by marking it as foreign if you
+wish.</p>
+<h4>FOREIGN</h4>
+<p>No package will enter the foreign state unless you mark it so. It
+should be used for packages that do not exist in the remote tree
+but that, unlike unavailable packages, are present in your system
+on purpose. For example, the mplayer package in my system is
+marked as foreign. A foreign package will be marked as installed
+or outdated if it ever appears in the remote tree, becoming a
+candidate for upgrading. Hopefully, you'll notice this fact. You
+could still use your own version instead of the remote (official)
+one by marking it as frozen.</p>
+</div>
+<h2><a id="download"></a>Get SlackRoll</h2>
+<div class="sectionbody">
+<p><a href="http://sourceforge.net/project/showfiles.php?group_id=197236">slackroll</a>
+is a self-contained Python script released to the public domain.
+Drop it somewhere like <tt>/usr/local/sbin</tt> or <tt>/usr/local/bin</tt>, give it
+execution permissions and you will be ready. The available tarball
+contains the program alone. Initially I uploaded the file directly, but
+the SourceForge release system didn't let me use the same filename again,
+so I opted for a simple tarball with the version number in its name. If
+you'd prefer another distribution method just drop me an email message.</p>
+</div>
+<h2><a id="starting"></a>Getting started</h2>
+<div class="sectionbody">
+<p><tt>slackroll</tt> requires <tt>python</tt>, <tt>pkgtools</tt>, <tt>gnupg</tt> (or <tt>gnupg2</tt>),
+<tt>vim</tt> and a pager (<tt>less</tt> by default) to operate properly.</p>
+<p>It should be noted that you can start using <tt>slackroll</tt> whenever you want,
+but my advice is to do it when your system is under control and there are
+no upgrades pending. This will give you a chance of configuring the
+program and setting the package states properly without making serious
+mistakes.</p>
+<p>You should first choose a working directory and a Slackware mirror. Take
+into account <tt>slackroll</tt> will store downloaded packages in a subdirectory of
+the chosen one, so you will probably need to have a good amount of space
+available for them in there. Create the directory, change to it and echo
+the mirror name to a file named mirror.</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>echo 'http://slackware.osuosl.org/slackware-current/' &gt;mirror</tt></pre>
+</div></div>
+<p><strong>Do not forget the trailing slash!</strong> Great. You are ready to start. Retrieve
+the remote GPG key from the mirror to add it to your keyring. Having the
+GPG key is required, and it's safe to do this step even if the key is
+already in your keyring, supposing you trust the mirror you chose. If you
+don't, get the GPG key by other means and add it to your keyring, skipping
+this step.</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>slackroll import-key</tt></pre>
+</div></div>
+<p>Retrieve information about the remote packages. You'll have to perform
+this step every time Patrick Volkerding changes the remote tree.</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>slackroll update</tt></pre>
+</div></div>
+<p>Finally, you could start checking if there are new packages, unavailable
+packages or upgrades. However, the first time you use <tt>slackroll</tt>, any
+package not installed in your system will be marked as new, every foreign
+package will be marked as unavailable, and every customized package will
+probably be a candidate for upgrading if you try to do so. If you have
+your system under control (and I hope you do!), you can in most cases
+blindly mark all new packages as not installed. There's a command to do
+it, being a common first operation.</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>slackroll new-not-installed</tt></pre>
+</div></div>
+<p>In most cases, you can also mark any unavailable packages as foreign.
+However, the number of foreign packages is usually quite low, and
+forgetting to uninstall a package which has been removed is a very common
+mistake, so my advice is to review the list of unavailable packages by
+hand, detecting which ones may not be foreign packages and need to be
+uninstalled.</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>slackroll list-unavailable</tt></pre>
+</div></div>
+<p>Once you've got rid of old packages (using <strong>removepkg</strong> or the <tt>remove</tt>
+operation), mark the rest as foreign packages.</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>slackroll unavailable-foreign</tt></pre>
+</div></div>
+<p>Some people like to "blacklist" packages so they are not upgraded
+normally. Almost always, you want to do this with the package <tt>aaa_elflibs</tt>
+if it's present in your system, and maybe with some other packages. If you
+don't want them to be upgraded normally, they belong to the frozen state.
+Mark them as frozen. The same applies to customized builds of official
+packages.</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>slackroll frozen aaa_elflibs</tt></pre>
+</div></div>
+<p>The frozen operation accepts a list of packages as its arguments. You
+don't need to issue a separate command for each one of them.</p>
+<p>Regarding customized versions of official packages, there are at least
+three ways of dealing with them. Some people prefer to give them version
+names that match the official ones, despite being customized builds, and
+keep them in the installed state. The program will want to upgrade them
+automatically in that case, and maybe the official version will overwrite
+the custom one after an upgrade, before you rebuild it. Some other people
+prefer to do the same but putting the package in the frozen state. In that
+case, <tt>list-outdated-frozen</tt> is useful to detect version mismatches between
+your local copy and the remote ones. Finally, some other people prefer to
+give them custom version names, normally via personalized build numbers
+that usually include some packager initials, and mark them as frozen. In
+that case, <tt>list-versions</tt> can help you see if your local copy needs to be
+rebuilt for a new version.</p>
+</div>
+<h2><a id="daily"></a>Normal operation</h2>
+<div class="sectionbody">
+<p>You can run <tt>slackroll help</tt> to get a full list of operations and a brief
+description of each one. This program is not a perfect tool. I think it
+can handle almost every situation and be told to do exactly what you want,
+but reading the change log and subscribing to the <tt>slackware-security</tt>
+mailing list is highly recommended.</p>
+<p>In every case you should <tt>update</tt> whenever the remote tree is changed. Then,
+you should read the changelog with the <tt>changelog</tt> operation if there are
+new entries and, finally, the <tt>list-transient</tt> operation will provide a
+summary of activity. There should be no transient packages after you're
+finished.</p>
+<p>Watch out for upgrades in the <tt>glibc-solibs</tt>, <tt>sed</tt> and <tt>pkgtools</tt> packages.
+They should always be the first ones to be installed or upgraded in that
+order, even before new packages. You can use the <tt>install</tt> operation to
+manually upgrade them first, either by giving the package name only, which
+should work in most cases, or a specific package version. Some operations,
+like <tt>install</tt>, accept specific package versions and are copy/paste
+friendly. Specifying the package version is optional but will make sure
+you are installing the package version you really want.</p>
+<p>When installing or upgrading foreign packages, you can use <strong>installpkg</strong> or
+<strong>upgradepkg</strong> and then mark them as foreign if needed. However, you can also
+install them using the <tt>install-foreign</tt> operation to save time and avoid
+problems.</p>
+<p>Also, remember to run the <tt>clean-cache</tt> operation from time to time to get
+rid of old and outdated package archives stored in the package cache.</p>
+<h3>Rolling tree (slackware-current)</h3>
+<p>Apart from the <tt>list-transient</tt> operation, you can check for new packages
+with <tt>list-new</tt>. Decide to download and install them with <tt>install</tt> or mark
+them as not installed with <tt>not-installed</tt>. List possible upgrades with
+<tt>list-upgrades</tt> and upgrade to new versions with <tt>upgrade</tt>. Finally, list
+unavailable packages with <tt>list-unavailable</tt> and remove them or mark them as
+foreign if a new foreign package is present in the list. This may happen
+if you had forgotten to mark it when you installed it (and this is the reason
+why the <tt>install-foreign</tt> operation exists).</p>
+<h3>Stable tree</h3>
+<p>Mostly the same, but in the stable tree it's extremely rare to see
+packages being removed or being added to the tree, so you probably won't
+need to run <tt>list-new</tt> or <tt>list-unavailable</tt>, but you never know. The
+<tt>list-transient</tt> operation may be useful to detect these rare cases.</p>
+</div>
+<h2><a id="feedback"></a>Feedback, questions, bug reports</h2>
+<div class="sectionbody">
+<p>I'm all open for good bug reports and general feedback but I'm, as always,
+reluctant to change the main program concepts, like adding support for
+multiple mirrors, or adding dependency support or probably adding more
+package states. I also know the program currently can't be used to upgrade
+the system in non-interactive mode (like calling it from a cron entry).
+That is very unlikely to change, because when there's an upgrade, there's
+no easy way to decide which version should be installed if a package has a
+version in the main tree, another one in <tt>/extra/</tt> and another one in
+<tt>/testing/</tt>, so it's always going to need user input.</p>
+<p>If you have a question, you should first read the <a href="faq.html">FAQ</a>. For other
+questions, comments or suggestions, my <a href="http://freshmeat.net/~rg3/">contact
+information</a> can be found at freshmeat.net. Keep in mind I'm using
+the program under <tt>slackware-current</tt>. If you detect a problem under
+the stable version, please report it as soon as possible because it
+may go unnoticed to me.</p>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 30-Sep-2007 17:39:07 CEST
+</div>
+</div>
+</body>
+</html>
