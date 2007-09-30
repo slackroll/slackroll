@@ -1,5 +1,6 @@
 SlackRoll Frequently Asked Questions
 ====================================
+Ricardo Garcia
 
 Current working directory
 -------------------------
