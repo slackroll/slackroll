@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+for file in *.txt; do
+	asciidoc -a linkcss - <"$file" >"doc/${file%.txt}.html"
+done
