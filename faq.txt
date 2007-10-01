@@ -37,8 +37,8 @@ you can use absolute paths or prepend every path with +\`pwd\`+ or +$(pwd)+.
 Packages with nonstandard names
 -------------------------------
 
-*Question*: While attempting to setup SlackRoll I get _"ERROR: Nonstandard
-package name: <package>"_. How can I solve this problem?
+*Question*: While attempting to setup SlackRoll I get '"ERROR: Nonstandard
+package name: <package>"'. How can I solve this problem?
 
 *Answer*: It seems some people are using packages that don't follow the
 Slackware package name convention of _name-version-arch-build_. I think it

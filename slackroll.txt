@@ -147,9 +147,9 @@ the chosen one, so you will probably need to have a good amount of space
 available for them in there. Create the directory, change to it and echo
 the mirror name to a file named mirror.
 
---------------------------------------------------------------
+..............................................................
 echo 'http://slackware.osuosl.org/slackware-current/' >mirror
---------------------------------------------------------------
+..............................................................
 
 *Do not forget the trailing slash!* Great. You are ready to start. Retrieve
 the remote GPG key from the mirror to add it to your keyring. Having the
@@ -158,16 +158,16 @@ already in your keyring, supposing you trust the mirror you chose. If you
 don't, get the GPG key by other means and add it to your keyring, skipping
 this step.
 
-----------------------------------------------------------
+..........................................................
 slackroll import-key
-----------------------------------------------------------
+..........................................................
 
 Retrieve information about the remote packages. You'll have to perform
 this step every time Patrick Volkerding changes the remote tree.
 
-----------------------------------------------------------
+..........................................................
 slackroll update
-----------------------------------------------------------
+..........................................................
 
 Finally, you could start checking if there are new packages, unavailable
 packages or upgrades. However, the first time you use +slackroll+, any
@@ -178,9 +178,9 @@ your system under control (and I hope you do!), you can in most cases
 blindly mark all new packages as not installed. There's a command to do
 it, being a common first operation.
 
-----------------------------------------------------------
+..........................................................
 slackroll new-not-installed
-----------------------------------------------------------
+..........................................................
 
 In most cases, you can also mark any unavailable packages as foreign.
 However, the number of foreign packages is usually quite low, and
@@ -189,16 +189,16 @@ mistake, so my advice is to review the list of unavailable packages by
 hand, detecting which ones may not be foreign packages and need to be
 uninstalled.
 
-----------------------------------------------------------
+..........................................................
 slackroll list-unavailable
-----------------------------------------------------------
+..........................................................
 
 Once you've got rid of old packages (using *removepkg* or the +remove+
 operation), mark the rest as foreign packages.
 
-----------------------------------------------------------
+..........................................................
 slackroll unavailable-foreign
-----------------------------------------------------------
+..........................................................
 
 Some people like to "blacklist" packages so they are not upgraded
 normally. Almost always, you want to do this with the package +aaa_elflibs+
@@ -207,9 +207,9 @@ don't want them to be upgraded normally, they belong to the frozen state.
 Mark them as frozen. The same applies to customized builds of official
 packages.
 
-----------------------------------------------------------
+..........................................................
 slackroll frozen aaa_elflibs
-----------------------------------------------------------
+..........................................................
 
 The frozen operation accepts a list of packages as its arguments. You
 don't need to issue a separate command for each one of them.
