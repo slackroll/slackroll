@@ -2,17 +2,8 @@ SlackRoll: Manage a Slackware system
 ====================================
 Ricardo Garcia
 
-*******************************
-* <<audience,Target audience>>
-* <<before,Before you start>>
-* <<download,Get SlackRoll>>
-* <<starting,Getting started>>
-* <<daily,Normal operation>>
-* <<feedback,Feedback>>
-*******************************
-
-[[audience]]Target audience
----------------------------
+Target audience
+---------------
 
 +slackroll+ is a package or update manager for Slackware systems. It does
 not provide dependency checking and uses +pkgtools+ to install or upgrade
@@ -22,8 +13,8 @@ unofficial packages, +slackroll+ can help you manage it and keep in touch
 with the remote tree. It tries to know when new packages appear, when
 packages are removed and when packages are upgraded.
 
-[[before]]Before you start
---------------------------
+Before you start
+----------------
 
 So you have decided to try +slackroll+. Let me introduce a few concepts so
 you don't get lost.
@@ -126,8 +117,8 @@ candidate for upgrading. Hopefully, you'll notice this fact. You
 could still use your own version instead of the remote (official)
 one by marking it as frozen.
 
-[[download]]Get SlackRoll
--------------------------
+Get SlackRoll
+-------------
 
 http://sourceforge.net/project/showfiles.php?group_id=197236[slackroll]
 is a self-contained Python script released to the public domain.
@@ -138,8 +129,8 @@ the SourceForge release system didn't let me use the same filename again,
 so I opted for a simple tarball with the version number in its name. If
 you'd prefer another distribution method just drop me an email message.
 
-[[starting]]Getting started
----------------------------
+Getting started
+---------------
 
 +slackroll+ requires +python+, +pkgtools+, +gnupg+ (or +gnupg2+),
 +vim+ and a pager (+less+ by default) to operate properly.
@@ -237,8 +228,8 @@ that usually include some packager initials, and mark them as frozen. In
 that case, +list-versions+ can help you see if your local copy needs to be
 rebuilt for a new version.
 
-[[daily]]Normal operation
--------------------------
+Normal operation
+----------------
 
 You can run +slackroll help+ to get a full list of operations and a brief
 description of each one. This program is not a perfect tool. I think it
@@ -289,8 +280,8 @@ packages being removed or being added to the tree, so you probably won't
 need to run +list-new+ or +list-unavailable+, but you never know. The
 +list-transient+ operation may be useful to detect these rare cases.
 
-[[feedback]]Feedback, questions, bug reports
---------------------------------------------
+Feedback, questions, bug reports
+--------------------------------
 
 I'm all open for good bug reports and general feedback but I'm, as always,
 reluctant to change the main program concepts, like adding support for

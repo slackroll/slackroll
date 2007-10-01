@@ -15,11 +15,12 @@ giving you the option to choose the package cache location. If you detect
 you frequently make those mistakes or would like to simplify the
 situation, you should consider one of the following alternatives:
 
-Putting +slackroll+ inside the chosen directory, preventing mistakes by
+* Putting +slackroll+ inside the chosen directory, preventing mistakes by
 having to run it as +./slackroll+.
+* Creating a script or shell function to +cd+ into the chosen directory
+automatically.
 
-Creating a script or shell function to +cd+ into the chosen directory
-automatically. For example, I have the following line in my superuser
+For example, I have the following line in my superuser
 +$HOME/.bashrc+ file, where +/var/slackroll+ should be changed by your
 directory of choice:
 
@@ -77,7 +78,7 @@ local copy of the remote tree. Can I coordinate this with SlackRoll?
 *Answer*: Yes. I would use a script like the following one, replacing the
 chunks in curly braces by the appropriate contents.
 
-------------------------------------------------------
+----------------------------------------------------------------
 SLACKROLL_DIR={ path to slackroll working directory }
 LOCAL_MIRROR_DIR={ path to local copy of the tree }
 
@@ -89,7 +90,7 @@ rm -f packages/*
 for pkg in $( slackroll path-search '' | grep '\.tgz$' ); do
     ln -sf $LOCAL_MIRROR_DIR/$pkg ./packages
 done
-------------------------------------------------------
+----------------------------------------------------------------
 
 This will synchronize your local copy of the remote tree and then populate
 the SlackRoll package cache with symbolic links to the package archives
