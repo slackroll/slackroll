@@ -701,11 +701,13 @@ def print_in_states(states, persistent_list, header, print_state): # Print packa
 		return
 	print header
 	keys.sort(cmp=pkg_name_cmp)
-	for name in keys:
-		if print_state:
-			print '    %s (%s)' % (name, slackroll_state_strings[persistent_list[name]])
-		else:
-			print '    %s' % name
+	if print_state:
+		fmt = '    %%-%ss (%%s)' % max(len(x) for x in keys)
+		items = [(x, slackroll_state_strings[persistent_list[x]]) for x in keys]
+	else:
+		fmt = '    %s'
+		items = keys
+	print '\n'.join(fmt % x for x in items)
 	print 'End of list'
 
 def print_in_states_or(states, persistent_list, header, message_on_empty, print_state): # Idem using interceptor and a message if no matches
@@ -1744,7 +1746,8 @@ try:
 			if len(names) == 0:
 				print '    (No results)\n'
 				continue
-			print ''.join('    %s (%s)\n' % (x, slackroll_state_strings[persistent_list[x]]) for x in names)
+			format = '    %%-%ss (%%s)\n' % max(len(x) for x in names)
+			print ''.join(format % (x, slackroll_state_strings[persistent_list[x]]) for x in names)
 		interceptor.stop()
 		sys.exit()
 	
