@@ -1733,22 +1733,14 @@ try:
 		sys.exit()
 
 	if operation == 'name-search':
-		interceptor = SlackRollOutputInterceptor()
-		for retxt in args:
-			results = False
-			try:
-				regexp = re.compile(retxt)
-			except re.error:
-				sys.exit('ERROR: invalid regular expression: %s' % retxt)
-			print 'Searching for "%s":' % retxt
-			names = [x for x in persistent_list if regexp.search(x) is not None]
-			names.sort(cmp=pkg_name_cmp)
-			if len(names) == 0:
-				print '    (No results)\n'
-				continue
-			format = '    %%-%ss (%%s)\n' % max(len(x) for x in names)
-			print ''.join(format % (x, slackroll_state_strings[persistent_list[x]]) for x in names)
-		interceptor.stop()
+		all_regexes = '|'.join('(%s)' % x for x in args)
+		try:
+			regexp = re.compile(all_regexes)
+		except re.error:
+			sys.exit('ERROR: invalid regular expression')
+
+		plist_subset = dict([(x, persistent_list[x]) for x in persistent_list if regexp.search(x) is not None])
+		print_in_states_or(slackroll_all_states, plist_subset, 'Matching packages:', 'No matching packages found', True)
 		sys.exit()
 	
 	if operation == 'path-search':
