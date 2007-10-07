@@ -1758,21 +1758,15 @@ try:
 		sys.exit()
 	
 	if operation == 'path-search':
+		all_regexes = '|'.join('(%s)' % x for x in args)
+		try:
+			regexp = re.compile(all_regexes)
+		except re.error:
+			sys.exit('ERROR: invalid regular expression')
+
 		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list], [])
-		interceptor = SlackRollOutputInterceptor()
-		for retxt in args:
-			try:
-				regexp = re.compile(retxt)
-			except re.error:
-				sys.exit('ERROR: invalid regular expression: %s' % retxt)
-			print 'Searching for "%s":' % retxt
-			matching_fullnames = [x.fullname for x in all_remotes if regexp.search(x.path) is not None]
-			matching_fullnames.sort()
-			if len(matching_fullnames) == 0:
-				print '    (No results)\n'
-			else:
-				print ''.join('    %s\n' % x for x in matching_fullnames)
-		interceptor.stop()
+		matching_fullnames = [x.fullname for x in all_remotes if regexp.search(x.path) is not None]
+		print_list_or(matching_fullnames, 'Matching packages:', 'No matching packages found')
 		sys.exit()
 	
 except (KeyboardInterrupt, IOError, EOFError), error:
