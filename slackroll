@@ -1334,7 +1334,7 @@ try:
 		if len(matches) == 0:
 			print 'No matching files found'
 			sys.exit()
-		output_lines = sum(len(files) + 2 for (name, files) in matches) + 3 # Header, footer and prompt
+		output_lines = sum(len(files) + 2 for (name, files) in matches) + 3 # ((header + blank) for each) + (header, footer, prompt)
 		needs_interceptor = too_many_lines(output_lines)
 		if needs_interceptor:
 			interceptor = SlackRollOutputInterceptor()
