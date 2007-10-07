@@ -817,19 +817,26 @@ def print_list_or(the_list, header, message_on_emtpy): # Idem using interceptor 
 	print_list(the_list, header)
 	interceptor.stop()
 
+def error_unknown_packages(name_list): # Print package names as unknown and exit with error
+	sys.stderr.write('ERROR: Unknown packages:\n%s\n' % '\n'.join('    %s' % x for x in name_list))
+	sys.stderr.write('End of list\n')
+	sys.exit(slackroll_exit_failure)
+
+def maybe_error_unknown_packages(name_list):
+	if len(name_list) > 0:
+		error_unknown_packages(name_list)
+
 def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): # Changes state if it matches
+	maybe_error_unknown_packages([x for x in pkg_names if x not in persistent_list])
 	dest_st_name = slackroll_state_strings[dest_state]
 	print 'Marking packages as %s...' % dest_st_name
-	known = [x for x in pkg_names if x in persistent_list]
-	for name in known:
+	for name in pkg_names:
 		cur_st = persistent_list[name]
 		if cur_st not in orig_states:
 			print '%s: cannot change state from %s to %s' % (name, slackroll_state_strings[cur_st], dest_st_name)
 			continue
 		persistent_list[name] = dest_state
 		persistent_list.sync()
-	unknown = [x for x in pkg_names if x not in known]
-	print_list(unknown, 'Unknown packages:')
 
 def query_pkg_browser(version, name): # Query package browser on given file with given Slackware version
 	searchstr = '"%s"' % name
@@ -961,13 +968,12 @@ def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage o
 		return (False, arg, None)
 
 def parse_install_args(args, is_info, pasture, local_list, remote_list, persistent_list): # Return chosen_pkgs -- auxiliar of install_operations_family()
+	maybe_error_unknown_packages([x for x in args if x not in persistent_list])
+
 	chosen_pkgs = []
 	for arg in args:
 		# Decide the type of argument (full name or simple name)
 		(is_full, name, pkg) = parse_pkg_arg(arg)
-
-		if name not in persistent_list:
-			sys.exit('ERROR: unknown package %s' % name)
 
 		if is_full:
 			# Specific version given
@@ -1005,7 +1011,6 @@ def parse_install_args(args, is_info, pasture, local_list, remote_list, persiste
 				chosen = choose_pkg(candidates)
 				if chosen is not None:
 					chosen_pkgs.append(chosen)
-
 	return chosen_pkgs
 
 def install_operations_family(operation, args, local_list, remote_list, persistent_list, pasture=True):
@@ -1340,7 +1345,7 @@ try:
 			interceptor = SlackRollOutputInterceptor()
 		print 'Matching files:'
 		for (name, files) in matches:
-			print '    %s:' % name
+			print '    %s:' % os.path.basename(name)
 			print ''.join('\t%s\n' % x for x in files)
 		print 'End of list'
 		if needs_interceptor:
@@ -1428,10 +1433,8 @@ try:
 		sys.exit()
 
 	if operation == 'state':
-		known = dict((x, persistent_list[x]) for x in args if x in persistent_list)
-		print_in_states(slackroll_all_states, known, 'Package states:', True)
-		unknown = [x for x in args if x not in known]
-		print_list(unknown, 'Unknown packages:')
+		maybe_error_unknown_packages([x for x in args if x not in persistent_list])
+		print_in_states(slackroll_all_states, args, 'Package states:', True)
 		sys.exit()
 
 	if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
@@ -1632,21 +1635,16 @@ try:
 		sys.exit()
 
 	if operation == 'list-versions':
-		known = [x for x in args if x in persistent_list]
-		unknown = [x for x in args if x not in known]
-
-		if len(known) > 0:
-			print 'Available versions:'
-			for name in known:
-				print '    %s:' % name
-				if name in local_list:
-					print '\n'.join('\tLocal:\t%s' % ver.idname for ver in local_list[name])
-				if name in remote_list:
-					print '\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name])
-				print
-			print 'End of list'
-
-		print_list(unknown, 'Unknown packages:')
+		maybe_error_unknown_packages([x for x in args if x not in persistent_list])
+		print 'Available versions:'
+		for name in known:
+			print '    %s:' % name
+			if name in local_list:
+				print '\n'.join('\tLocal:\t%s' % ver.idname for ver in local_list[name])
+			if name in remote_list:
+				print '\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name])
+			print
+		print 'End of list'
 		sys.exit()
 
 	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
