@@ -212,6 +212,12 @@ def getwinsize(): # Returns terminal (rows, columns)
 	(ws_row, ws_col, ws_xpixel, ws_ypixel) = struct.unpack('HHHH', buffer)
 	return (ws_row, ws_col)
 
+def too_many_lines(numlines): # Returns True if lines do not fit in screen
+	if not os.isatty(sys.stdout.fileno()):
+		return False
+	(rows, cols) = getwinsize()
+	return (numlines > rows)
+
 def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 	return pkg_from_name_and_size(path_or_name, None)
 
@@ -1315,27 +1321,30 @@ try:
 		sys.exit()
 
 	if operation == 'local-search':
+		all_regexes = '|'.join('(%s)' % x for x in args)
+		try:
+			regexp = re.compile(all_regexes)
+		except re.error:
+			sys.exit('ERROR: invalid regular expression')
+
 		print 'Reading contents of %s ...' % slackroll_local_pkgs_dir
 		pkg_files_map = get_pkg_filelists()
-		local_pkgs_fn = pkg_files_map.keys()
-		local_pkgs_fn.sort()
-		interceptor = SlackRollOutputInterceptor()
-		for retxt in args:
-			results = False
-			try:
-				regexp = re.compile(retxt)
-			except re.error:
-				sys.exit('ERROR: invalid regular expression: %s' % retxt)
-			print 'Searching for "%s":' % retxt
-			for pkg_fn in local_pkgs_fn:
-				matching_paths = [x for x in pkg_files_map[pkg_fn] if regexp.search(x) is not None]
-				if len(matching_paths) > 0:
-					results = True
-					print '    %s' % os.path.basename(pkg_fn)
-					print ''.join('\t%s\n' % x for x in matching_paths)
-			if not results:
-				print '    (No results)\n'
-		interceptor.stop()
+		matches = [(x, [y for y in pkg_files_map[x] if regexp.search(y) is not None]) for x in pkg_files_map]
+		matches = [(name, files) for (name, files) in matches if len(files) > 0]
+		if len(matches) == 0:
+			print 'No matching files found'
+			sys.exit()
+		output_lines = sum(len(files) + 2 for (name, files) in matches) + 3 # Header, footer and prompt
+		needs_interceptor = too_many_lines(output_lines)
+		if needs_interceptor:
+			interceptor = SlackRollOutputInterceptor()
+		print 'Matching files:'
+		for (name, files) in matches:
+			print '    %s:' % name
+			print ''.join('\t%s\n' % x for x in files)
+		print 'End of list'
+		if needs_interceptor:
+			interceptor.stop()
 		sys.exit()
 	
 	if operation == 'orphan-search':
