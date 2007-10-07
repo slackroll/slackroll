@@ -1310,7 +1310,7 @@ try:
 	if operation in ['pb-search', 'remote-search']:
 		slackver = get_version_from_mirror(get_mirror())
 		print 'Using the Slackware Package Browser at %s' % slackroll_pb_location
-		for name in sys.argv[2:]:
+		for name in args:
 			query_pkg_browser(slackver, name)
 		sys.exit()
 
@@ -1320,7 +1320,7 @@ try:
 		local_pkgs_fn = pkg_files_map.keys()
 		local_pkgs_fn.sort()
 		interceptor = SlackRollOutputInterceptor()
-		for retxt in sys.argv[2:]:
+		for retxt in args:
 			results = False
 			try:
 				regexp = re.compile(retxt)
