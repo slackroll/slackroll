@@ -818,8 +818,8 @@ def print_list_or(the_list, header, message_on_emtpy): # Idem using interceptor 
 	interceptor.stop()
 
 def error_unknown_packages(name_list): # Print package names as unknown and exit with error
-	sys.stderr.write('ERROR: Unknown packages:\n%s\n' % '\n'.join('    %s' % x for x in name_list))
-	sys.stderr.write('End of list\n')
+	sys.stderr.write('ERROR: Unknown packages\n%s\n' % '\n'.join('ERROR:    %s' % x for x in name_list))
+	sys.stderr.write('ERROR: End of list\n')
 	sys.exit(slackroll_exit_failure)
 
 def maybe_error_unknown_packages(name_list):
@@ -1345,7 +1345,7 @@ try:
 			interceptor = SlackRollOutputInterceptor()
 		print 'Matching files:'
 		for (name, files) in matches:
-			print '    %s:' % os.path.basename(name)
+			print '    %s' % os.path.basename(name)
 			print ''.join('\t%s\n' % x for x in files)
 		print 'End of list'
 		if needs_interceptor:
@@ -1434,7 +1434,8 @@ try:
 
 	if operation == 'state':
 		maybe_error_unknown_packages([x for x in args if x not in persistent_list])
-		print_in_states(slackroll_all_states, args, 'Package states:', True)
+		plist_subset = dict([(x, persistent_list[x]) for x in args])
+		print_in_states(slackroll_all_states, plist_subset, 'Package states:', True)
 		sys.exit()
 
 	if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
@@ -1637,7 +1638,7 @@ try:
 	if operation == 'list-versions':
 		maybe_error_unknown_packages([x for x in args if x not in persistent_list])
 		print 'Available versions:'
-		for name in known:
+		for name in args:
 			print '    %s:' % name
 			if name in local_list:
 				print '\n'.join('\tLocal:\t%s' % ver.idname for ver in local_list[name])
