@@ -1655,20 +1655,14 @@ try:
 		sys.exit()
 	
 	if operation in ['install-path', 'download-path', 'info-path', 'urls-path', 'remove-path']:
-		regexes = []
-		for retxt in args:
-			try:
-				regexes.append(re.compile(retxt))
-			except re.error:
-				sys.exit('ERROR: invalid regular expression: %s' % retxt)
+		all_regexes = '|'.join('(%s)' % x for x in args)
+		try:
+			regexp = re.compile(all_regexes)
+		except re.error:
+			sys.exit('ERROR: invalid regular expression')
 
 		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list], [])
-		matching_pkgs = []
-		for pkg in all_remotes:
-			for regex in regexes:
-				if regex.search(pkg.path) is not None:
-					matching_pkgs.append(pkg)
-					break
+		matching_pkgs = [x for x in all_remotes if regexp.search(x.path) is not None]
 
 		if operation == 'remove-path': # Filter out packages not present in local system
 			matching_pkgs = [x for x in matching_pkgs if x.name in local_list and x in local_list[x.name]]
