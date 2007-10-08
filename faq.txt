@@ -26,6 +26,8 @@ directory of choice:
 
 ------------------------------------------------------------------
 slackroll() { ( cd /var/slackroll && command slackroll "$@" ); }
+
+
 ------------------------------------------------------------------
 
 If you use a shell function or script like the previous one, do not forget
@@ -90,6 +92,8 @@ rm -f packages/*
 for pkg in $( slackroll path-search '' | grep '\.tgz$' ); do
     ln -sf $LOCAL_MIRROR_DIR/$pkg ./packages
 done
+
+
 ----------------------------------------------------------------
 
 This will synchronize your local copy of the remote tree and then populate
