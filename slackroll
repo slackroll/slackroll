@@ -3,6 +3,7 @@
 # License: Public domain code
 import anydbm
 import cPickle
+import cStringIO
 import fcntl
 import glob
 import operator
@@ -158,66 +159,6 @@ class SlackRollURLopener(urllib.FancyURLopener):
 	def http_error_default(self, url, fp, errcode, errmsg, headers):
 		raise IOError('%s: %s' % (errcode, errmsg))
 
-class SlackRollOutputInterceptor(object): # Intercepts stdout and sends it to the pager if stdout is a terminal
-	__active = False
-	__old_stdout = None
-	__pager = None
-
-	def __init__(self):
-		if not os.isatty(sys.stdout.fileno()):
-			return
-		try:
-			self.__old_stdout = os.dup(sys.stdout.fileno())
-			(read_fd, new_stdout) = os.pipe()
-			os.dup2(new_stdout, sys.stdout.fileno())
-			os.close(new_stdout)
-			self.__pager = call_pager(read_fd, self.__old_stdout)
-			os.close(read_fd)
-			self.__active = True
-		except OSError, err:
-			sys.exit('ERROR: %s' % str(err))
-		except SlackRollError, err:
-			os.close(read_fd)
-			self.__active = True
-			self.stop()
-	
-	def stop(self):
-		if not self.__active:
-			return
-		try:
-			sys.stdout.flush()
-			os.close(sys.stdout.fileno())
-			if self.__pager is not None:
-				self.__pager.wait()
-			os.dup2(self.__old_stdout, sys.stdout.fileno())
-			os.close(self.__old_stdout)
-			self.__active = False
-		except OSError, err:
-			sys.exit('ERROR: %s' % str(err))
-
-def getwinsize(): # Returns terminal (rows, columns)
-	# XXX - Weird code
-	#
-	# This code needs to invoke the TIOCGWINSZ ioctl and read 4 unsigned
-	# short values that would be written to a struct. In C, you pass
-	# the struct pointer as an argument to ioctl() and read the struct
-	# members after the call, but in Python we need to pass a string
-	# buffer that will be copied and modified by the underlying call,
-	# and then returned. This string needs to be parsed and interpreted
-	# into 4 values. The struct module eases this task. The 4 variables
-	# are given the same name they have in the C winsize structure.
-
-	bufsize = struct.calcsize('HHHH')
-	buffer = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, '\x00' * bufsize)
-	(ws_row, ws_col, ws_xpixel, ws_ypixel) = struct.unpack('HHHH', buffer)
-	return (ws_row, ws_col)
-
-def too_many_lines(numlines): # Returns True if lines do not fit in screen
-	if not os.isatty(sys.stdout.fileno()):
-		return False
-	(rows, cols) = getwinsize()
-	return (numlines > rows)
-
 def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
 	return pkg_from_name_and_size(path_or_name, None)
 
@@ -280,14 +221,14 @@ def get_self_file_version(): # Get self version from disk file
 	try:
 		data = file(slackroll_self_filename, 'r').read()
 		return long(data)
-	except (OSError, IOError, ValueError):
-		sys.exit('ERROR: unable to read version from file %s' % slackroll_self_filename)
+	except (OSError, IOError, ValueError), err:
+		sys.exit('ERROR: %s' % err)
 
 def write_self_file_version(): # Write self version to disk file
 	try:
 		file(slackroll_self_filename, 'w').write('%s\n' % slackroll_version)
-	except (OSError, IOError):
-		sys.exit('ERROR: unable to write version to file %s' % slackroll_self_filename)
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 
 def long_time_warning():
 	print 'WARNING: This operation may take a long time to complete'
@@ -298,8 +239,8 @@ def interpret_results_warning():
 def get_mtime_or_exit(path):
 	try:
 		return os.path.getmtime(path)
-	except OSError:
-		sys.exit('ERROR: unable to get modification time for %s' % path)
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 
 def newer_than(path1, path2): # path1 modification time more recent than path2 modification time?
 	reftime = get_mtime_or_exit(path1)
@@ -311,14 +252,14 @@ def newer_than(path1, path2): # path1 modification time more recent than path2 m
 def try_dump(object, filepath): # cPickle.dump()
 	try:
 		cPickle.dump(object, file(filepath, 'wb'), -1)
-	except (OSError, IOError, cPickle.PickleError):
-		sys.exit('ERROR: unable to dump object to file %s' % filepath)
+	except (OSError, IOError, cPickle.PickleError), err:
+		sys.exit('ERROR: %s' % err)
 
 def try_load(filepath): # cPickle.load()
 	try:
 		return cPickle.load(file(filepath, 'rb'))
-	except (OSError, IOError, cPickle.PickleError):
-		sys.exit('ERROR: unable to load object from file %s' % filepath)
+	except (OSError, IOError, cPickle.PickleError), err:
+		sys.exit('ERROR: %s' % err)
 
 def extract_file_list(filename): # Extracts the file list from a local info file
 	try:
@@ -327,15 +268,15 @@ def extract_file_list(filename): # Extracts the file list from a local info file
 		return paths
 	except ValueError:
 		sys.exit('ERROR: unable to find file list marker in %s' % filename)
-	except (OSError, IOError):
-		sys.exit('ERROR: unable to read contents from %s' % filename)
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 
 def get_pkg_filelists(): # Return a dictionary of filename->filelist from /var/log/packages
 	if newer_than(slackroll_local_pkgs_dir, slackroll_pkg_files_filename):
 		try:
 			filenames = glob.glob(slackroll_local_pkgs_glob)
-		except (OSError, IOError):
-			sys.exit('ERROR: unable to get local package list')
+		except (OSError, IOError), err:
+			sys.exit('ERROR: %s' % err)
 		contents = dict()
 		for filename in filenames:
 			contents[filename] = extract_file_list(filename)
@@ -346,8 +287,8 @@ def get_normalized_known_files(): # Return a set of known files for orphan-searc
 	if newer_than(slackroll_local_pkgs_dir, slackroll_known_files):
 		try:
 			filenames = glob.glob(slackroll_local_pkgs_glob)
-		except (OSError, IOError):
-			sys.exit('ERROR: unable to get local package list')
+		except (OSError, IOError), err:
+			sys.exit('ERROR: %s' % err)
 		known_files = set()
 		for pkg in filenames:
 			for path in extract_file_list(pkg):
@@ -389,8 +330,8 @@ def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
 		matches = [slackroll_filelist_pkg_re.match(x) for x in lines]
 		nm_sz = [(x.group(slackroll_filelist_pkg_str), x.group(slackroll_filelist_pkg_size)) for x in matches if x is not None]
 		return [pkg_from_name_and_size(nm, sz) for (nm, sz) in nm_sz if slackroll_source_indicator not in nm]
-	except IOError:
-		sys.exit('ERROR: could not read %s' % slackroll_filelist_filename)
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 
 def get_remote_list(forced_rebuild): # Return list of remote packages from cached list, updating if needed
 	if newer_than(slackroll_filelist_filename, slackroll_remotelist_filename) or forced_rebuild:
@@ -415,13 +356,13 @@ def get_mirror(): # From the 'mirror' file
 	try:
 		lines = file(slackroll_mirror_filename, 'r').readlines()
 		if len(lines) != 1:
-			raise IOError()
+			raise ValueError('more than one line on mirror file')
 		mirror = lines[0].strip()
 		if len(mirror) == 0:
-			raise IOError()
+			raise ValueError('mirror is empty')
 		return mirror
-	except IOError:
-		sys.exit('ERROR: %s unreadable or wrong format' % slackroll_mirror_filename)
+	except (OSError, IOError, ValueError), err:
+		sys.exit('ERROR: %s' % err)
 
 def get_version_from_mirror(mirror): # Extract Slackware version from mirror URL
 	match = slackroll_mirror_version_re.search(mirror)
@@ -429,28 +370,66 @@ def get_version_from_mirror(mirror): # Extract Slackware version from mirror URL
 		sys.exit('ERROR: unable to extract Slackware version from mirror name')
 	return match.group(1)
 
-def call_pager(path_or_fd, output): # Call pager and return handler (does not exit on errors)
+def call_pager(): # Call pager and return handler
 	try:
 		pager = get_pager()
 		pager_list = pager.split()
-		if isinstance(path_or_fd, str):
-			input = file(path_or_fd, 'r')
-			name = path_or_fd
-		elif isinstance(path_or_fd, int):
-			input = path_or_fd
-			name = 'descriptor %s' % input
-		else:
-			sys.stderr.write('ERROR: internal error in call_pager()\n')
-			raise SlackRollError('internal error in call_pager()')
-		proc = subprocess.Popen(pager_list, stdin=input, stdout=output)
+		proc = subprocess.Popen(pager_list, stdin=subprocess.PIPE)
 		return proc
-	except OSError:
-		sys.stderr.write('ERROR: unable to run "%s" on %s\n' % (pager, name))
-		raise SlackRollError('OSError running pager on %s' % name)
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 
-def run_pager_on(file_path): # Does not exit on errors
-	proc = call_pager(file_path, sys.stdout)
-	proc.wait()
+def getwinsize(): # Returns terminal (rows, columns)
+	# XXX - Weird code
+	#
+	# This code needs to invoke the TIOCGWINSZ ioctl and read 4 unsigned
+	# short values that would be written to a struct. In C, you pass
+	# the struct pointer as an argument to ioctl() and read the struct
+	# members after the call, but in Python we need to pass a string
+	# buffer that will be copied and modified by the underlying call,
+	# and then returned. This string needs to be parsed and interpreted
+	# into 4 values. The struct module eases this task. The 4 variables
+	# are given the same name they have in the C winsize structure.
+
+	bufsize = struct.calcsize('HHHH')
+	buffer = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, '\x00' * bufsize)
+	(ws_row, ws_col, ws_xpixel, ws_ypixel) = struct.unpack('HHHH', buffer)
+	return (ws_row, ws_col)
+
+def too_many_lines(numlines): # Returns True if lines do not fit in screen
+	if not sys.stdout.isatty():
+		return False
+	(rows, cols) = getwinsize()
+	return (numlines > rows)
+
+class SlackRollOutputInterceptor(object): # Intercepts stdout and uses a pager if the output is too long
+	__was_not_tty = None
+	__old_stdout = None
+	__buffer = None
+
+	def __init__(self):
+		if not sys.stdout.isatty():
+			self.__was_not_tty = True
+			return
+		self.__buffer = cStringIO.StringIO()
+		self.__old_stdout = sys.stdout
+		sys.stdout = self.__buffer
+	
+	def stop(self):
+		if self.__was_not_tty:
+			return
+		sys.stdout = self.__old_stdout
+		self.__old_stdout = None
+		output = self.__buffer.getvalue()
+		self.__buffer.close()
+		numlines = output.count('\n') + 1
+		if too_many_lines(numlines):
+			proc = call_pager()
+			proc.stdin.write(output)
+			proc.stdin.close()
+			proc.wait()
+		else:
+			sys.stdout.write(output)
 
 def run_visual_on(file_path): # Does not exit on errors
 	visual = get_env_or('VISUAL', None)
@@ -460,14 +439,14 @@ def run_visual_on(file_path): # Does not exit on errors
 	visual_list = visual.split()
 	try:
 		subprocess.call(visual_list + [file_path])
-	except OSError:
-		sys.stderr.write('ERROR: unable to run %s on %s\n' % (visual, file_path))
+	except (OSError, IOError), err:
+		sys.stderr.write('ERROR: %s\n' % err)
 
 def run_vimdiff_on(oldfile, newfile): # Does not exit on errors
 	try:
 		subprocess.call(['vimdiff', oldfile, newfile])
-	except OSError:
-		sys.stderr.write('ERROR: unable to run vimdiff on %s and %s\n' % (oldfile, newfile))
+	except (OSError, IOError), err:
+		sys.stderr.write('ERROR: %s\n' % err)
 
 def try_to_remove(file_path, fatal=True): # When it returns, it is True if file does not exist on exit
 	if not os.path.exists(file_path):
@@ -475,8 +454,8 @@ def try_to_remove(file_path, fatal=True): # When it returns, it is True if file 
 	try:
 		os.remove(file_path)
 		return True
-	except OSError:
-		sys.stderr.write('ERROR: unable to remove %s\n' % file_path)
+	except (OSError, IOError), err:
+		sys.stderr.write('ERROR: %s\n' % err)
 		if fatal:
 			sys.exit(slackroll_exit_failure)
 		return False
@@ -487,8 +466,8 @@ def try_to_rename(src, dest, fatal=True): # When it returns, it is True if file 
 	try:
 		os.rename(src, dest)
 		return True
-	except OSError:
-		sys.stderr.write('ERROR: unable to rename %s to %s\n' % (src, dest))
+	except (OSError, IOError), err:
+		sys.stderr.write('ERROR: %s\n' % err)
 		if fatal:
 			sys.exit(slackroll_exit_failure)
 		return False
@@ -513,12 +492,9 @@ def download_file(mirror, filepath, local_temp, local_final): # Does not exit on
 		if not try_to_rename(local_temp, local_final, fatal=False):
 			sys.stderr.write('ERROR: unable to rename %s to %s' % (local_temp, local_final))
 			raise SlackRollError('rename error: %s => %s' % (local_temp, local_final))
-	except (IOError, socket.error):
-		sys.stderr.write('\nERROR: unable to download %s\n' % full_url)
-		raise SlackRollError('IOError or socket.error on %s' % full_url)
-	except urllib.ContentTooShortError:
-		sys.stderr.write('\nERROR: connection cut and file incomplete: %s\n' % full_url)
-		raise SlackRollError('ContentTooShortError on %s' % full_url)
+	except (OSError, IOError, socket.error, urllib.ContentTooShortError), err:
+		sys.stderr.write('\nERROR: %s\n' % err)
+		raise SlackRollError(str(err))
 
 def download(mirror, filepath, localdir): # Wrapper that does NOT exit on errors
 	name = os.path.basename(filepath)
@@ -536,8 +512,8 @@ def handle_writable_dir(dirname): # Make sure dirname is available and writable
 	if not os.path.exists(dirname):
 		try:
 			os.mkdir(dirname)
-		except OSError:
-			sys.exit('ERROR: cannot create directory %s' % dirname)
+		except (OSError, IOError), err:
+			sys.exit('ERROR: %s' % err)
 	if not os.path.isdir(dirname):
 		sys.exit('ERROR: %s exists but is not a directory' % dirname)
 	if not os.access(dirname, os.R_OK | os.W_OK):
@@ -549,7 +525,7 @@ def yield_gnupg_exec_name():
 			subprocess.call([opt, '--version'], stdout=(file('/dev/null', 'w')), stderr=subprocess.STDOUT)
 			while True:
 				yield opt
-		except OSError:
+		except (OSError, IOError):
 			pass
 	sys.exit('ERROR: unable to run GnuPG')
 
@@ -561,9 +537,9 @@ def import_key(filename):
 		print 'Importing keys from %s ...' % filename
 		retcode = subprocess.call([gnupg_exec_name(), '--import', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
 		if retcode != 0:
-			raise OSError()
-	except OSError:
-		sys.exit('ERROR: unable to import keys in %s' % filename)
+			raise SlackRollError('GnuPG exited with error when importing key')
+	except (OSError, IOError, SlackRollError), err:
+		sys.exit('ERROR: %s' % err)
 
 def verify_signature(filename):	# Does not exit on errors
 	try:
@@ -572,9 +548,9 @@ def verify_signature(filename):	# Does not exit on errors
 		if retcode != 0:
 			sys.stderr.write('ERROR: signature verification failed: %s\n' % filename)
 			raise SlackRollError('GnuPG exited with status code %s' % retcode)
-	except OSError:
-		sys.stderr.write('ERROR: unable to run GnuPG\n')
-		raise SlackRollError('OSError running GnuPG to verify signature')
+	except (OSError, IOError), err:
+		sys.stderr.write('ERROR: %s\n' % err)
+		raise SlackRollError(str(err))
 
 def upgrade_or_install(filename, reinstall): # upgradepkg
 	try:
@@ -582,8 +558,8 @@ def upgrade_or_install(filename, reinstall): # upgradepkg
 		retcode = subprocess.call(['/sbin/upgradepkg', '--install-new'] + (reinstall and ['--reinstall'] or []) + [filename])
 		if retcode != 0:
 			sys.exit('ERROR: installation failed: %s' % filename)
-	except OSError:
-		sys.exit('ERROR: unable to install %s' % filename)
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 
 def remove_pkg(removepkg_arg): # removepkg
 	try:
@@ -591,8 +567,8 @@ def remove_pkg(removepkg_arg): # removepkg
 		retcode = subprocess.call(['/sbin/removepkg', removepkg_arg])
 		if retcode != 0:
 			sys.exit('ERROR: removal failed: %s' % removepkg_arg)
-	except OSError:
-		sys.exit('ERROR: unable to remove %s' % removepkg_arg)
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 
 def remove_pkgs(pkg_list):
 	dotnew_files = extract_dotnew_files(pkg_list)
@@ -637,17 +613,14 @@ def download_verify_install(mirror, package, reinstall=False):
 		sys.exit(slackroll_exit_failure)
 	upgrade_or_install(local_name, reinstall)
 
-def download_display_info(mirror, package): # Downloads info file and sends it to the pager
+def get_remote_info(mirror, package): # Downloads info file and returns its contents
 	suffix_len = len(slackroll_info_suffix)
 	remote_file = package.fullname[:-suffix_len] + slackroll_info_suffix
 	local_file = os.path.basename(remote_file)
 	download_or_exit(mirror, remote_file, '.')
-	try:
-		run_pager_on(local_file)
-	except SlackRollError:
-		try_to_remove(local_file)
-		sys.exit(slackroll_exit_failure)
+	data = file(local_file, 'r').read()
 	try_to_remove(local_file)
+	return data
 
 def update_changelog(mirror, full=False): # Returns answer to "has it been updated?"
 	if not os.path.exists(slackroll_changelog_filename) or full:
@@ -658,8 +631,8 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 
 	try: # Only read until last known entry
 		limit = file(slackroll_changelog_filename, 'r').readline()
-	except (OSError, IOError):
-		sys.exit('ERROR: unable to read first line of %s' % slackroll_changelog_filename)
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 
 	changelog_url = urlparse.urljoin(mirror, slackroll_changelog_filename)
 	lines = []
@@ -671,8 +644,8 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 				break
 			lines.append(new_line)
 		conn.close()
-	except (IOError, socket.error, urllib.ContentTooShortError):
-		sys.exit('\nERROR: unable to download %s' % changelog_url)
+	except (OSError, IOError, socket.error, urllib.ContentTooShortError), err:
+		sys.exit('\nERROR: %s' % err)
 
 	if len(lines) == 0:
 		print 'no new entries.'
@@ -680,15 +653,17 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 	print 'new entries found.'
 	try:
 		file(slackroll_changelog_filename, 'w').writelines(lines)
-	except (OSError, IOError):
-		sys.exit('ERROR: unable to write to %s' % slackroll_changelog_filename)
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 	return True
 
-def changelog_to_pager():
+def display_changelog():
 	try:
-		run_pager_on(slackroll_changelog_filename)
-	except SlackRollError:
-		sys.exit(slackroll_exit_failure)
+		interceptor = SlackRollOutputInterceptor()
+		sys.stdout.write(file(slackroll_changelog_filename, 'r').read())
+		interceptor.stop()
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 
 def print_urls(mirror, package):
 	url = package.url(mirror)
@@ -838,21 +813,23 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 		persistent_list[name] = dest_state
 		persistent_list.sync()
 
-def query_pkg_browser(version, name): # Query package browser on given file with given Slackware version
-	searchstr = '"%s"' % name
-	print 'Searching for %s:' % searchstr
+def query_pkg_browser(version, searchstr): # Query package browser on given file with given Slackware version
 	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
 	try:
 		data = urllib.urlopen(url).read()
-	except (IOError, socket.error, urllib.ContentTooShortError):
-		sys.exit('ERROR: unable to search using this URL: %s' % url)
+	except (OSError, IOError, socket.error, urllib.ContentTooShortError), err:
+		sys.exit('ERROR: %s' % err)
 
 	# Extract results from answer webpage
 	data = re.sub(r'(?s)<!--.*?-->', '', data) # Strip HTML comments
 	has_results = False
+	header_printed = False
 	
 	for match in re.finditer(slackroll_pb_result_re, data):
 		has_results = True
+		if not header_printed:
+			print 'Results for %s:' % searchstr
+			header_printed = True
 		pkgstr = match.group(slackroll_pb_result_idname)
 		pkgcontents = match.group(slackroll_pb_result_files)
 
@@ -860,6 +837,7 @@ def query_pkg_browser(version, name): # Query package browser on given file with
 		print ''.join('\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents)))
 	
 	if not has_results:
+		print 'Results for %s:' % searchstr
 		print '    (No results)\n'
 
 def extract_dotnew_files(local_pkg_list): # Get .new files from multiple packages
@@ -896,8 +874,8 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 			try:
 				new_exists = os.path.exists(newfile)
 				old_exists = os.path.exists(oldfile)
-			except (OSError, IOError):
-				sys.stderr.write('ERROR: unable to review state of %s\n' % newfile)
+			except (OSError, IOError), err:
+				sys.stderr.write('ERROR: %s\n' % err)
 				break
 
 			print '\n%s %s' % (['Reviewing', 'Still reviewing'][pair_iterations > 1], newfile)
@@ -1050,16 +1028,20 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			handle_dotnew_files_installation(dotnew_files)
 
 	else:	# info operation
+		info_map = dict()
 		for pkg in chosen_pkgs:
-			name = pkg.name
-			if name in local_list and pkg in local_list[name]:
-				try:
-					info_file = pkg.fullname
-					run_pager_on(info_file)
-				except SlackRollError:
-					sys.exit(slackroll_exit_failure)
-			else:
-				download_display_info(mirror, pkg)
+			try:
+				name = pkg.name
+				if name in local_list and pkg in local_list[name]:
+					info_map[pkg.fullname] = file(pkg.fullname, 'r').read()
+				else:
+					info_map[pkg.fullname] = get_remote_info(mirror, pkg)
+			except (OSError, IOError), err:
+				sys.exit('ERROR: %s' % err)
+		interceptor = SlackRollOutputInterceptor()
+		for key in info_map:
+			print info_map[key]
+		interceptor.stop()
 	
 	# Review legacy .new files left behind
 	if is_real_install:
@@ -1147,7 +1129,7 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 		persistent_list.sync()
 
 def print_help():
-	print """Available operations:
+	help_text = """Available operations:
 
 help			Print this help
 version			Print the program version
@@ -1211,6 +1193,9 @@ broken-symlinks PATH...	Search for broken symlinks in local system
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
+	interceptor = SlackRollOutputInterceptor()
+	print help_text
+	interceptor.stop()
 
 def verify_num_args(opname, num, arg_list): # Verify number of arguments of a given operation (-1 means any nonzero quantity)
 	if num == -1:
@@ -1301,9 +1286,7 @@ try:
 		sys.exit(slackroll_exit_failure)
 
 	if operation == 'help':
-		interceptor = SlackRollOutputInterceptor()
 		print_help()
-		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'version':
@@ -1311,7 +1294,7 @@ try:
 		sys.exit()
 
 	if operation == 'changelog':
-		changelog_to_pager()
+		display_changelog()
 		sys.exit()
 
 	if operation == 'download-changelog':
@@ -1321,8 +1304,13 @@ try:
 	if operation in ['pb-search', 'remote-search']:
 		slackver = get_version_from_mirror(get_mirror())
 		print 'Using the Slackware Package Browser at %s' % slackroll_pb_location
+		term = sys.stdout
+		interceptor = SlackRollOutputInterceptor()
 		for name in args:
-			query_pkg_browser(slackver, name)
+			searchstr = '"%s"' % name
+			print >>term, "Searching for %s..." % searchstr
+			query_pkg_browser(slackver, searchstr)
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'local-search':
@@ -1334,22 +1322,20 @@ try:
 
 		print 'Reading contents of %s ...' % slackroll_local_pkgs_dir
 		pkg_files_map = get_pkg_filelists()
+
 		matches = [(x, [y for y in pkg_files_map[x] if regexp.search(y) is not None]) for x in pkg_files_map]
 		matches = [(name, files) for (name, files) in matches if len(files) > 0]
 		if len(matches) == 0:
 			print 'No matching files found'
 			sys.exit()
-		output_lines = sum(len(files) + 2 for (name, files) in matches) + 3 # ((header + blank) for each) + (header, footer, prompt)
-		needs_interceptor = too_many_lines(output_lines)
-		if needs_interceptor:
-			interceptor = SlackRollOutputInterceptor()
+
+		interceptor = SlackRollOutputInterceptor()
 		print 'Matching files:'
 		for (name, files) in matches:
 			print '    %s' % os.path.basename(name)
 			print ''.join('\t%s\n' % x for x in files)
 		print 'End of list'
-		if needs_interceptor:
-			interceptor.stop()
+		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'orphan-search':
@@ -1435,7 +1421,7 @@ try:
 	if operation == 'state':
 		maybe_error_unknown_packages([x for x in args if x not in persistent_list])
 		plist_subset = dict([(x, persistent_list[x]) for x in args])
-		print_in_states(slackroll_all_states, plist_subset, 'Package states:', True)
+		print_in_states_or(slackroll_all_states, plist_subset, 'Package states:', 'INTERNAL ERROR: no packages specified', True)
 		sys.exit()
 
 	if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
@@ -1517,14 +1503,17 @@ try:
 				print '\tRemote:\t%s' % other.fullname
 			print
 		print 'End of list'
-		interceptor.stop()
+
 		if operation == 'list-upgrades':
 			maybe_print_key_pkg_watchout(persistent_list)
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-transient':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states_or(slackroll_transient_states, persistent_list, 'Transient packages:', 'No transient packages found', True)
 		maybe_print_key_pkg_watchout(persistent_list)
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-alternatives':
@@ -1556,13 +1545,17 @@ try:
 		sys.exit()
 
 	if operation == 'list-new':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states_or([slackroll_state_new], persistent_list, 'New packages:', 'No new packages found', False)
 		maybe_print_key_pkg_watchout(persistent_list)
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-unavailable':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states_or([slackroll_state_unavailable], persistent_list, 'Unavailable packages:', 'No unavailable packages found', False)
 		maybe_print_key_pkg_watchout(persistent_list)
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'list-installed':
@@ -1582,8 +1575,10 @@ try:
 		sys.exit()
 	
 	if operation == 'list-outdated':
+		interceptor = SlackRollOutputInterceptor()
 		print_in_states_or([slackroll_state_outdated], persistent_list, 'Outdated packages:', 'No outdated packages found', False)
 		maybe_print_key_pkg_watchout(persistent_list)
+		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'list-local':
@@ -1637,6 +1632,7 @@ try:
 
 	if operation == 'list-versions':
 		maybe_error_unknown_packages([x for x in args if x not in persistent_list])
+		interceptor = SlackRollOutputInterceptor()
 		print 'Available versions:'
 		for name in args:
 			print '    %s:' % name
@@ -1646,6 +1642,7 @@ try:
 				print '\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name])
 			print
 		print 'End of list'
+		interceptor.stop()
 		sys.exit()
 
 	if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
