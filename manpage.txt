@@ -1,0 +1,12 @@
+slackroll(1)
+============
+
+== NAME ==
+
+slackroll - A package or update manager for Slackware Linux
+
+== SYNOPSIS ==
+
+slackroll COMMAND [ARG ...]
+
+include::contents.txt[]

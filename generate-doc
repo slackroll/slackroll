@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-for file in *.txt; do
-	asciidoc -a linkcss - <"$file" >"doc/${file%.txt}.html"
-done
+asciidoc -a linkcss - <index.txt >doc/index.html
+asciidoc -a linkcss - <faq.txt >doc/faq.html
+asciidoc -b docbook -d manpage - <manpage.txt | xsltproc --nonet -o doc/slackroll.1 http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
