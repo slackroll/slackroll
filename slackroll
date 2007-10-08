@@ -1045,9 +1045,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 	
 	# Review legacy .new files left behind
 	if is_real_install:
-		previous = frozenset(legacy_dotnew)
-		current = frozenset(dotnew_files)
-		handle_dotnew_files_removal(list(previous - current))
+		handle_dotnew_files_removal(list(frozenset(legacy_dotnew) - frozenset(dotnew_files)))
 
 def walk_append_if(root, condition, output): # Walk with os.walk() and append if entries make condition true
 	abspath = os.path.abspath(root)
@@ -1709,12 +1707,20 @@ try:
 			sys.stderr.write(''.join('ERROR:    %s' % x.name for x in bad_pkgs))
 			sys.exit(slackroll_exit_failure)
 
+		# Get .new files from old packages
+		prev_dotnew = extract_dotnew_files(reduce(operator.concat, [local_list[x.name] for x in pkgs if x.name in local_list], []))
+
 		# Install and mark
 		for arg in args:
 			upgrade_or_install(arg, False)
 		for pkg in pkgs:
 			persistent_list[pkg.name] = slackroll_state_foreign
 			persistent_list.sync()
+
+		# Go over .new files
+		cur_dotnew = extract_dotnew_files([x.local() for x in pkgs])
+		handle_dotnew_files_installation(cur_dotnew)
+		handle_dotnew_files_removal(list(frozenset(prev_dotnew) - frozenset(cur_dotnew)))
 		sys.exit()
 
 	if operation in ['remove', 'remove-unavailable']:
