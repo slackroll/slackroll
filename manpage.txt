@@ -9,4 +9,4 @@ slackroll - A package or update manager for Slackware Linux
 
 slackroll COMMAND [ARG ...]
 
-include::contents.txt[]
+include::tutorial.txt[]
