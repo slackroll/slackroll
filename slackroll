@@ -740,8 +740,8 @@ def print_in_states(states, persistent_list, header, print_state): # Print packa
 	print header
 	keys.sort(cmp=pkg_name_cmp)
 	if print_state:
-		fmt = '    %%-%ss (%%s)' % max(len(x) for x in keys)
-		items = [(x, slackroll_state_strings[persistent_list[x]]) for x in keys]
+		fmt = '    %%-%ss  %%s' % max(len(x) for x in slackroll_state_strings)
+		items = [(slackroll_state_strings[persistent_list[x]], x) for x in keys]
 	else:
 		fmt = '    %s'
 		items = keys
