@@ -31,11 +31,12 @@ slackroll_pkg_re_arch = 4
 slackroll_pkg_re_build = 5
 slackroll_pkg_re_suffix = 6
 
-slackroll_default_temp_dir = './tmp'
-slackroll_pkgs_dir_all_glob = './packages/*'
+slackroll_base_dir = os.path.curdir
+slackroll_default_temp_dir = os.path.join(slackroll_base_dir, 'tmp')
+slackroll_pkgs_dir_all_glob = os.path.join(slackroll_base_dir, 'packages', '*')
 slackroll_pkgs_dir_glob = '%s.tgz' % slackroll_pkgs_dir_all_glob
 slackroll_pkgs_dir = os.path.dirname(slackroll_pkgs_dir_glob)
-slackroll_local_pkgs_glob = '/var/log/packages/*'
+slackroll_local_pkgs_glob = os.path.join(os.path.sep, 'var', 'log', 'packages', '*')
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 slackroll_local_pkg_filelist_marker = 'FILE LIST:\n'
 slackroll_filelist_pkg_re = re.compile(r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+(\d+)\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\./.+/[^/]+-[^/-]+-[^/-]+-[^/-]+\.tgz)$')
@@ -47,16 +48,19 @@ slackroll_patch_indicator = '/patches/'
 slackroll_main_indicator = '/slackware/'
 slackroll_prioritized_pkgs = ['glibc-solibs', 'sed', 'pkgtools']
 
-slackroll_self_filename = 'self'
-slackroll_mirror_filename = 'mirror'
-slackroll_persistentlist_filename = 'persistent.db'
-slackroll_locallist_filename = 'local.db'
-slackroll_remotelist_filename = 'remote.db'
-slackroll_pkg_files_filename = 'pkgfiles.db'
-slackroll_known_files = 'knownfiles.db'
+slackroll_self_filename = os.path.join(slackroll_base_dir, 'self')
+slackroll_mirror_filename = os.path.join(slackroll_base_dir, 'mirror')
+slackroll_persistentlist_filename = os.path.join(slackroll_base_dir, 'persistent.db')
+slackroll_locallist_filename = os.path.join(slackroll_base_dir, 'local.db')
+slackroll_remotelist_filename = os.path.join(slackroll_base_dir, 'remote.db')
+slackroll_pkg_files_filename = os.path.join(slackroll_base_dir, 'pkgfiles.db')
+slackroll_known_files = os.path.join(slackroll_base_dir, 'knownfiles.db')
 slackroll_filelist_filename = 'FILELIST.TXT'
 slackroll_changelog_filename = 'ChangeLog.txt'
+slackroll_local_filelist = os.path.join(slackroll_base_dir, slackroll_filelist_filename)
+slackroll_local_changelog = os.path.join(slackroll_base_dir, slackroll_changelog_filename)
 slackroll_gpgkey_filename = 'GPG-KEY'
+slackroll_local_gpgkey = os.path.join(slackroll_base_dir, slackroll_gpgkey_filename)
 slackroll_temp_suffix = '.part'
 slackroll_signature_suffix = '.asc'
 slackroll_info_suffix = '.txt'
@@ -326,7 +330,7 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
 
 def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
 	try:
-		lines = file(slackroll_filelist_filename, 'r').readlines()
+		lines = file(slackroll_local_filelist, 'r').readlines()
 		matches = [slackroll_filelist_pkg_re.match(x) for x in lines]
 		nm_sz = [(x.group(slackroll_filelist_pkg_str), x.group(slackroll_filelist_pkg_size)) for x in matches if x is not None]
 		return [pkg_from_name_and_size(nm, sz) for (nm, sz) in nm_sz if slackroll_source_indicator not in nm]
@@ -334,7 +338,7 @@ def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
 		sys.exit('ERROR: %s' % err)
 
 def get_remote_list(forced_rebuild): # Return list of remote packages from cached list, updating if needed
-	if newer_than(slackroll_filelist_filename, slackroll_remotelist_filename) or forced_rebuild:
+	if newer_than(slackroll_local_filelist, slackroll_remotelist_filename) or forced_rebuild:
 		print 'Rebuilding remote packages list...'
 		remote_list = dict()
 		has_patch = set()
@@ -400,7 +404,7 @@ def too_many_lines(numlines): # Returns True if lines do not fit in screen
 	if not sys.stdout.isatty():
 		return False
 	(rows, cols) = getwinsize()
-	return (numlines > rows)
+	return (numlines >= rows)
 
 class SlackRollOutputInterceptor(object): # Intercepts stdout and uses a pager if the output is too long
 	__was_not_tty = None
@@ -422,7 +426,7 @@ class SlackRollOutputInterceptor(object): # Intercepts stdout and uses a pager i
 		self.__old_stdout = None
 		output = self.__buffer.getvalue()
 		self.__buffer.close()
-		numlines = output.count('\n') + 1
+		numlines = output.count('\n')
 		if too_many_lines(numlines):
 			proc = call_pager()
 			proc.stdin.write(output)
@@ -461,8 +465,6 @@ def try_to_remove(file_path, fatal=True): # When it returns, it is True if file 
 		return False
 
 def try_to_rename(src, dest, fatal=True): # When it returns, it is True if file could be renamed
-	if not os.path.exists(src):
-		return False
 	try:
 		os.rename(src, dest)
 		return True
@@ -490,7 +492,6 @@ def download_file(mirror, filepath, local_temp, local_final): # Does not exit on
 		urllib.urlretrieve(full_url, local_temp, hook)
 		print
 		if not try_to_rename(local_temp, local_final, fatal=False):
-			sys.stderr.write('ERROR: unable to rename %s to %s' % (local_temp, local_final))
 			raise SlackRollError('rename error: %s => %s' % (local_temp, local_final))
 	except (OSError, IOError, socket.error, urllib.ContentTooShortError), err:
 		sys.stderr.write('\nERROR: %s\n' % err)
@@ -522,7 +523,7 @@ def handle_writable_dir(dirname): # Make sure dirname is available and writable
 def yield_gnupg_exec_name():
 	for opt in slackroll_gnupg_exec_names:
 		try:
-			subprocess.call([opt, '--version'], stdout=(file('/dev/null', 'w')), stderr=subprocess.STDOUT)
+			subprocess.call([opt, '--version'], stdout=(file(os.path.devnull, 'w')), stderr=subprocess.STDOUT)
 			while True:
 				yield opt
 		except (OSError, IOError):
@@ -535,7 +536,7 @@ def gnupg_exec_name():
 def import_key(filename):
 	try:
 		print 'Importing keys from %s ...' % filename
-		retcode = subprocess.call([gnupg_exec_name(), '--import', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
+		retcode = subprocess.call([gnupg_exec_name(), '--import', filename], stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
 		if retcode != 0:
 			raise SlackRollError('GnuPG exited with error when importing key')
 	except (OSError, IOError, SlackRollError), err:
@@ -544,7 +545,7 @@ def import_key(filename):
 def verify_signature(filename):	# Does not exit on errors
 	try:
 		print 'Verifying signature %s ... ' % os.path.basename(filename)
-		retcode = subprocess.call([gnupg_exec_name(), '--verify', filename], stdout=file('/dev/null', 'w'), stderr=subprocess.STDOUT)
+		retcode = subprocess.call([gnupg_exec_name(), '--verify', filename], stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
 		if retcode != 0:
 			sys.stderr.write('ERROR: signature verification failed: %s\n' % filename)
 			raise SlackRollError('GnuPG exited with status code %s' % retcode)
@@ -614,23 +615,22 @@ def download_verify_install(mirror, package, reinstall=False):
 	upgrade_or_install(local_name, reinstall)
 
 def get_remote_info(mirror, package): # Downloads info file and returns its contents
-	suffix_len = len(slackroll_info_suffix)
-	remote_file = package.fullname[:-suffix_len] + slackroll_info_suffix
-	local_file = os.path.basename(remote_file)
-	download_or_exit(mirror, remote_file, '.')
+	remote_file = package.fullname[:-len(slackroll_info_suffix)] + slackroll_info_suffix
+	local_file = os.path.join(slackroll_base_dir, os.path.basename(remote_file))
+	download_or_exit(mirror, remote_file, slackroll_base_dir)
 	data = file(local_file, 'r').read()
 	try_to_remove(local_file)
 	return data
 
 def update_changelog(mirror, full=False): # Returns answer to "has it been updated?"
-	if not os.path.exists(slackroll_changelog_filename) or full:
-		download_or_exit(mirror, slackroll_changelog_filename, '.')
+	if not os.path.exists(slackroll_local_changelog) or full:
+		download_or_exit(mirror, slackroll_changelog_filename, slackroll_base_dir)
 		return True
 
 	print_flush('Updating %s ... ' % slackroll_changelog_filename)
 
 	try: # Only read until last known entry
-		limit = file(slackroll_changelog_filename, 'r').readline()
+		limit = file(slackroll_local_changelog, 'r').readline()
 	except (OSError, IOError), err:
 		sys.exit('ERROR: %s' % err)
 
@@ -652,7 +652,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 		return False
 	print 'new entries found.'
 	try:
-		file(slackroll_changelog_filename, 'w').writelines(lines)
+		file(slackroll_local_changelog, 'w').writelines(lines)
 	except (OSError, IOError), err:
 		sys.exit('ERROR: %s' % err)
 	return True
@@ -660,7 +660,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 def display_changelog():
 	try:
 		interceptor = SlackRollOutputInterceptor()
-		sys.stdout.write(file(slackroll_changelog_filename, 'r').read())
+		sys.stdout.write(file(slackroll_local_changelog, 'r').read())
 		interceptor.stop()
 	except (OSError, IOError), err:
 		sys.exit('ERROR: %s' % err)
@@ -1381,15 +1381,15 @@ try:
 	if operation == 'update':
 		mirror = get_mirror()
 		updated = update_changelog(mirror)
-		download_or_exit(mirror, slackroll_filelist_filename, '.')
+		download_or_exit(mirror, slackroll_filelist_filename, slackroll_base_dir)
 		if updated:
 			print 'You should now use the "changelog" operation'
 		sys.exit()
 
 	if operation == 'import-key':
-		download_or_exit(get_mirror(), slackroll_gpgkey_filename, '.')
-		import_key(slackroll_gpgkey_filename)
-		try_to_remove(slackroll_gpgkey_filename)
+		download_or_exit(get_mirror(), slackroll_gpgkey_filename, slackroll_base_dir)
+		import_key(slackroll_local_gpgkey)
+		try_to_remove(slackroll_local_gpgkey)
 		sys.exit()
 
 	# Every operation below needs an updated persistent database
