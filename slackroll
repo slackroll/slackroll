@@ -940,6 +940,10 @@ def handle_dotnew_files_removal(dotnew_files): # Prompt the user about .new file
 		if chosen == 1:
 			try_to_remove(path, fatal=False)
 
+def handle_dotnew_files_both(prev_dotnew, cur_dotnew): # Handle installation and removal of pairs left behind
+	handle_dotnew_files_installation(cur_dotnew)
+	handle_dotnew_files_removal(list(frozenset(prev_dotnew) - frozenset(cur_dotnew)))
+
 def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage or None) -- auxiliar of parse_install_args()
 	try:
 		pkg = pkg_from_str(arg)
@@ -1006,9 +1010,9 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 	mirror = get_mirror()
 	chosen_pkgs = parse_install_args(args, is_info, pasture, local_list, remote_list, persistent_list)
 
-	# For install and reinstall operations, trace legacy .new files
+	# For install and reinstall operations save list of existing .new file pairs
 	if is_real_install:
-		legacy_dotnew = extract_dotnew_files(concat([local_list[pkg.name] for pkg in chosen_pkgs if pkg.name in local_list]))
+		prev_dotnew = extract_dotnew_files(concat([local_list[pkg.name] for pkg in chosen_pkgs if pkg.name in local_list]))
 
 	# After selecting the packages, run the requested operation on them
 	if operation in ['install', 'reinstall', 'download', 'urls']:
@@ -1023,11 +1027,6 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			action = lambda x: print_urls(mirror, x)
 		for pkg in chosen_pkgs:
 			action(pkg)
-
-		# Review installed .new files
-		if is_real_install:
-			dotnew_files = extract_dotnew_files([x.local() for x in chosen_pkgs])
-			handle_dotnew_files_installation(dotnew_files)
 
 	else:	# info operation
 		info_map = dict()
@@ -1045,9 +1044,10 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			print info_map[key]
 		interceptor.stop()
 	
-	# Review legacy .new files left behind
+	# Review installed .new files
 	if is_real_install:
-		handle_dotnew_files_removal(list(frozenset(legacy_dotnew) - frozenset(dotnew_files)))
+		cur_dotnew = extract_dotnew_files([x.local() for x in chosen_pkgs])
+		handle_dotnew_files_both(prev_dotnew, cur_dotnew)
 
 def walk_append_if(root, condition, output): # Walk with os.walk() and append if entries make condition true
 	abspath = os.path.abspath(root)
@@ -1720,8 +1720,7 @@ try:
 
 		# Go over .new files
 		cur_dotnew = extract_dotnew_files([x.local() for x in pkgs])
-		handle_dotnew_files_installation(cur_dotnew)
-		handle_dotnew_files_removal(list(frozenset(prev_dotnew) - frozenset(cur_dotnew)))
+		handle_dotnew_files_both(prev_dotnew, cur_dotnew)
 		sys.exit()
 
 	if operation in ['remove', 'remove-unavailable']:
