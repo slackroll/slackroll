@@ -206,6 +206,9 @@ def print_flush(message):
 	sys.stdout.write(message)
 	sys.stdout.flush()
 
+def concat(list_of_lists):
+	return reduce(operator.concat, list_of_lists, [])
+
 def get_env_or(varname, defval):
 	value = os.getenv(varname)
 	if value is None:
@@ -841,7 +844,7 @@ def query_pkg_browser(version, searchstr): # Query package browser on given file
 		print '    (No results)\n'
 
 def extract_dotnew_files(local_pkg_list): # Get .new files from multiple packages
-	return reduce(operator.concat, [[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list], [])
+	return concat([[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list])
 
 def old_file(dotnew_file): # Returns filename without .new suffix
 	return dotnew_file[:-(len(slackroll_new_suffix))]
@@ -1005,8 +1008,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
 	# For install and reinstall operations, trace legacy .new files
 	if is_real_install:
-		local_existing_pkgs = reduce(operator.concat, [local_list[pkg.name] for pkg in chosen_pkgs if pkg.name in local_list], [])
-		legacy_dotnew = extract_dotnew_files(local_existing_pkgs)
+		legacy_dotnew = extract_dotnew_files(concat([local_list[pkg.name] for pkg in chosen_pkgs if pkg.name in local_list]))
 
 	# After selecting the packages, run the requested operation on them
 	if operation in ['install', 'reinstall', 'download', 'urls']:
@@ -1664,8 +1666,7 @@ try:
 		except re.error:
 			sys.exit('ERROR: invalid regular expression')
 
-		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list], [])
-		matching_pkgs = [x for x in all_remotes if regexp.search(x.path) is not None]
+		matching_pkgs = [x for x in concat([remote_list[x] for x in remote_list]) if regexp.search(x.path) is not None]
 
 		if operation == 'remove-path': # Filter out packages not present in local system
 			matching_pkgs = [x for x in matching_pkgs if x.name in local_list and x in local_list[x.name]]
@@ -1708,7 +1709,7 @@ try:
 			sys.exit(slackroll_exit_failure)
 
 		# Get .new files from old packages
-		prev_dotnew = extract_dotnew_files(reduce(operator.concat, [local_list[x.name] for x in pkgs if x.name in local_list], []))
+		prev_dotnew = extract_dotnew_files(concat([local_list[x.name] for x in pkgs if x.name in local_list]))
 
 		# Install and mark
 		for arg in args:
@@ -1775,8 +1776,7 @@ try:
 		except re.error:
 			sys.exit('ERROR: invalid regular expression')
 
-		all_remotes = reduce(operator.concat, [remote_list[x] for x in remote_list], [])
-		matching_fullnames = [x.fullname for x in all_remotes if regexp.search(x.path) is not None]
+		matching_fullnames = [x.fullname for x in concat([remote_list[x] for x in remote_list]) if regexp.search(x.path) is not None]
 		print_list_or(matching_fullnames, 'Matching packages:', 'No matching packages found')
 		sys.exit()
 	
