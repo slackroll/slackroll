@@ -796,8 +796,8 @@ def print_list_or(the_list, header, message_on_emtpy): # Idem using interceptor 
 	interceptor.stop()
 
 def error_unknown_packages(name_list): # Print package names as unknown and exit with error
-	sys.stderr.write('ERROR: Unknown packages\n%s\n' % '\n'.join('ERROR:    %s' % x for x in name_list))
-	sys.stderr.write('ERROR: End of list\n')
+	sys.stderr.write('ERROR: The following packages are unknown:\n')
+	sys.stderr.write(''.join('ERROR:    %s\n' % x for x in name_list))
 	sys.exit(slackroll_exit_failure)
 
 def maybe_error_unknown_packages(name_list):
@@ -953,8 +953,6 @@ def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage o
 		return (False, arg, None)
 
 def parse_install_args(args, is_info, pasture, local_list, remote_list, persistent_list): # Return chosen_pkgs -- auxiliar of install_operations_family()
-	maybe_error_unknown_packages([x for x in args if x not in persistent_list])
-
 	chosen_pkgs = []
 	for arg in args:
 		# Decide the type of argument (full name or simple name)
