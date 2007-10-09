@@ -973,6 +973,8 @@ def parse_install_args(args, is_info, pasture, local_list, remote_list, persiste
 			# Only generic name given
 			if not is_info and name not in remote_list:
 				sys.exit('ERROR: unable to find remote package %s' % name)
+			if is_info and name not in remote_list and name not in local_list:
+				sys.exit('ERROR: unknown package %s' % name)
 
 			# Create candidate list
 			candidates = []
@@ -1460,8 +1462,9 @@ try:
 				print 'Removing %s ...' % pkg.fullname
 				try_to_remove(pkg.fullname)
 
-		extraneous_files.sort()
-		print '\n'.join('WARNING: extraneous file %s' % x for x in extraneous_files)
+		if len(extraneous_files) > 0:
+			extraneous_files.sort()
+			print '\n'.join('WARNING: extraneous file %s' % x for x in extraneous_files)
 		sys.exit()
 	
 	if operation in ['list-upgrades', 'list-outdated-frozen']:
