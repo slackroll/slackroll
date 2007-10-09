@@ -33,8 +33,7 @@ slackroll_pkg_re_suffix = 6
 
 slackroll_base_dir = os.path.curdir
 slackroll_default_temp_dir = os.path.join(slackroll_base_dir, 'tmp')
-slackroll_pkgs_dir_all_glob = os.path.join(slackroll_base_dir, 'packages', '*')
-slackroll_pkgs_dir_glob = '%s.tgz' % slackroll_pkgs_dir_all_glob
+slackroll_pkgs_dir_glob = os.path.join(slackroll_base_dir, 'packages', '*')
 slackroll_pkgs_dir = os.path.dirname(slackroll_pkgs_dir_glob)
 slackroll_local_pkgs_glob = os.path.join(os.path.sep, 'var', 'log', 'packages', '*')
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
@@ -201,6 +200,9 @@ def pkg_name_cmp(name1, name2): # To be used for sorting functions
 	if idx2 == -1:
 		return -1
 	return (idx1 - idx2)
+
+def pkg_in_map(pkg, map_by_name): # Checks if pkg is in map[pkg.name], usable for local_list and remote_list
+	return pkg.name in map_by_name and pkg in map_by_name[pkg.name]
 
 def print_flush(message):
 	sys.stdout.write(message)
@@ -960,7 +962,7 @@ def parse_install_args(args, is_info, pasture, local_list, remote_list, persiste
 
 		if is_full:
 			# Specific version given
-			if is_info and name in local_list and pkg in local_list[name]:
+			if is_info and pkg_in_map(pkg, local_list):
 				chosen_pkgs.append([x for x in local_list[name] if x == pkg][0])
 			else:
 				try:
@@ -1030,8 +1032,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 		info_map = dict()
 		for pkg in chosen_pkgs:
 			try:
-				name = pkg.name
-				if name in local_list and pkg in local_list[name]:
+				if pkg_in_map(pkg, local_list):
 					info_map[pkg.fullname] = file(pkg.fullname, 'r').read()
 				else:
 					info_map[pkg.fullname] = get_remote_info(mirror, pkg)
@@ -1439,32 +1440,28 @@ try:
 
 	if operation == 'clean-cache':
 		cache_files = glob.glob(slackroll_pkgs_dir_glob)
-		extraneous_files = [x for x in glob.glob(slackroll_pkgs_dir_all_glob) if x not in cache_files]
+		cache_pkgs = []
+		extraneous_files = []
 
 		cache_files.sort()
-		cache_pkgs = []
 		for elem in cache_files:
 			try:
 				cache_pkgs.append(pkg_from_str(elem))
 			except SlackRollError:
-				extraneous_files.append(elem) # Incorrect .tgz files are also extraneous
+				extraneous_files.append(elem)
 
-		no_files = True
-		for pkg in cache_pkgs:
-			name = pkg.name
-			if (name in local_list and pkg in local_list[name]) or (name in remote_list and pkg in remote_list[name]):
-				continue
-			print 'Removing %s ...' % pkg.fullname
-			try_to_remove(pkg.fullname)
-			no_files = False
+		to_be_removed = [pkg for pkg in cache_pkgs if (pkg.name not in local_list and pkg.name not in remote_list)
+							or (pkg.name in local_list and pkg not in local_list[pkg.name])
+							or (pkg.name in remote_list and pkg not in remote_list[pkg.name])]
+		if len(to_be_removed) == 0:
+			print 'No package files to remove'
+		else:
+			for pkg in to_be_removed:
+				print 'Removing %s ...' % pkg.fullname
+				try_to_remove(pkg.fullname)
 
 		extraneous_files.sort()
-		for elem in extraneous_files:
-			print 'WARNING: extraneous file %s' % elem
-
-		if no_files:
-			print 'No package files to remove'
-
+		print '\n'.join('WARNING: extraneous file %s' % x for x in extraneous_files)
 		sys.exit()
 	
 	if operation in ['list-upgrades', 'list-outdated-frozen']:
@@ -1666,7 +1663,7 @@ try:
 		matching_pkgs = [x for x in concat([remote_list[x] for x in remote_list]) if regexp.search(x.path) is not None]
 
 		if operation == 'remove-path': # Filter out packages not present in local system
-			matching_pkgs = [x for x in matching_pkgs if x.name in local_list and x in local_list[x.name]]
+			matching_pkgs = [x for x in matching_pkgs if pkg_in_map(x, local_list)]
 
 		if len(matching_pkgs) == 0:
 			print 'No matching packages'
