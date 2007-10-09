@@ -1127,7 +1127,8 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 		persistent_list.sync()
 
 def print_help():
-	help_text = """Available operations:
+	interceptor = SlackRollOutputInterceptor()
+	print """Available operations:
 
 help			Print this help
 version			Print the program version
@@ -1191,8 +1192,6 @@ broken-symlinks PATH...	Search for broken symlinks in local system
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
-	interceptor = SlackRollOutputInterceptor()
-	print help_text
 	interceptor.stop()
 
 def verify_num_args(opname, num, arg_list): # Verify number of arguments of a given operation (-1 means any nonzero quantity)
