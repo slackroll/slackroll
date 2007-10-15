@@ -1329,6 +1329,7 @@ try:
 			print 'No matching files found'
 			sys.exit()
 
+		matches.sort()
 		interceptor = SlackRollOutputInterceptor()
 		print 'Matching files:'
 		for (name, files) in matches:
