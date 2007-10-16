@@ -45,6 +45,8 @@ slackroll_source_indicator = '/source/'
 slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
 slackroll_main_indicator = '/slackware/'
+slackroll_install_indicator = '/install/'
+slackroll_dev_indicator = '/dev/'
 slackroll_prioritized_pkgs = ['glibc-solibs', 'sed', 'pkgtools']
 
 slackroll_self_filename = os.path.join(slackroll_base_dir, 'self')
@@ -848,8 +850,10 @@ def query_pkg_browser(version, searchstr): # Query package browser on given file
 def extract_dotnew_files(local_pkg_list): # Get .new files from multiple packages
 	return concat([[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list])
 
-def old_file(dotnew_file): # Returns filename without .new suffix
-	return dotnew_file[:-(len(slackroll_new_suffix))]
+def old_file(filename): # Returns filename without .new suffix
+	if filename.endswith(slackroll_new_suffix):
+		return filename[:-(len(slackroll_new_suffix))]
+	return filename
 
 def handle_dotnew_files_installation(dotnew_files): # Handles .new files present in packages
 	if len(dotnew_files) == 0:
@@ -934,7 +938,7 @@ def handle_dotnew_files_removal(dotnew_files): # Prompt the user about .new file
 	all_files.sort()
 
 	for path in all_files:
-		if not (os.path.exists(path) or os.path.islink(path)):
+		if not os.path.islink(path) and not os.path.exists(path):
 			continue # Does not exist in any form
 		print '\nFound %s' % path
 		options = [ ('K', 'Keep it'), ('R', 'Remove it') ]
@@ -1192,6 +1196,7 @@ name-search REGEX...	Search for package names matching regular expressions
 path-search REGEX...	Search for remote packages having matching path
 orphan-search PATH...	Search for orphan files in local system
 broken-symlinks PATH...	Search for broken symlinks in local system
+missing-files		Search for missing files in local system
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
@@ -1249,6 +1254,7 @@ try:
 		'list-upgrades':	0,
 		'list-versions':	-1,
 		'local-search':		-1,
+		'missing-files':	0,
 		'name-search':		-1,
 		'new':			-1,
 		'new-not-installed':	0,
@@ -1313,25 +1319,39 @@ try:
 		interceptor.stop()
 		sys.exit()
 
-	if operation == 'local-search':
-		all_regexes = '|'.join('(%s)' % x for x in args)
-		try:
-			regexp = re.compile(all_regexes)
-		except re.error:
-			sys.exit('ERROR: invalid regular expression')
+	if operation in ['local-search', 'missing-files']:
+		if operation == 'local-search':
+			all_regexes = '|'.join('(%s)' % x for x in args)
+			try:
+				regexp = re.compile(all_regexes)
+			except re.error:
+				sys.exit('ERROR: invalid regular expression')
+			test = lambda x: regexp.search(x) is not None
+			header = 'Matching files:'
+			empty = 'No matching files found'
+		else: # missing-files
+			long_time_warning()
+			interpret_results_warning()
+			confirm_continue()
+			print
+			test = lambda x: (not x.startswith(slackroll_install_indicator) and not x.startswith(slackroll_dev_indicator)
+					and not os.path.exists(x) and not os.path.exists(old_file(x)))
+			header = 'Missing files:'
+			empty = 'No missing files'
+
 
 		print 'Reading contents of %s ...' % slackroll_local_pkgs_dir
 		pkg_files_map = get_pkg_filelists()
 
-		matches = [(x, [y for y in pkg_files_map[x] if regexp.search(y) is not None]) for x in pkg_files_map]
+		matches = [(x, [y for y in pkg_files_map[x] if test(y)]) for x in pkg_files_map]
 		matches = [(name, files) for (name, files) in matches if len(files) > 0]
 		if len(matches) == 0:
-			print 'No matching files found'
+			print empty
 			sys.exit()
 
 		matches.sort()
 		interceptor = SlackRollOutputInterceptor()
-		print 'Matching files:'
+		print header
 		for (name, files) in matches:
 			print '    %s' % os.path.basename(name)
 			print ''.join('\t%s\n' % x for x in files)
