@@ -1453,9 +1453,7 @@ try:
 			except SlackRollError:
 				extraneous_files.append(elem)
 
-		to_be_removed = [pkg for pkg in cache_pkgs if (pkg.name not in local_list and pkg.name not in remote_list)
-							or (pkg.name in local_list and pkg not in local_list[pkg.name])
-							or (pkg.name in remote_list and pkg not in remote_list[pkg.name])]
+		to_be_removed = [pkg for pkg in cache_pkgs if not pkg_in_map(pkg, local_list) and not pkg_in_map(pkg, remote_list)]
 		if len(to_be_removed) == 0:
 			print 'No package files to remove'
 		else:
