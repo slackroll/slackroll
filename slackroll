@@ -45,8 +45,6 @@ slackroll_source_indicator = '/source/'
 slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
 slackroll_main_indicator = '/slackware/'
-slackroll_install_indicator = '/install/'
-slackroll_dev_indicator = '/dev/'
 slackroll_prioritized_pkgs = ['glibc-solibs', 'sed', 'pkgtools']
 
 slackroll_self_filename = os.path.join(slackroll_base_dir, 'self')
@@ -68,6 +66,7 @@ slackroll_info_suffix = '.txt'
 slackroll_new_suffix = '.new'
 slackroll_default_pager = 'less'
 slackroll_gnupg_exec_names = ['gpg2', 'gpg']
+slackroll_never_missing_re = re.compile(r'(^/install/)|(^/dev/)|(^/lib/incoming/)')
 
 slackroll_state_new = 0
 slackroll_state_unavailable = 1
@@ -1334,8 +1333,7 @@ try:
 			interpret_results_warning()
 			confirm_continue()
 			print
-			test = lambda x: (not x.startswith(slackroll_install_indicator) and not x.startswith(slackroll_dev_indicator)
-					and not os.path.exists(x) and not os.path.exists(old_file(x)))
+			test = lambda x: slackroll_never_missing_re.search(x) is None and not os.path.exists(x) and not os.path.exists(old_file(x))
 			header = 'Missing files:'
 			empty = 'No missing files'
 
