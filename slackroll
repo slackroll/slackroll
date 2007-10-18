@@ -614,12 +614,6 @@ def download_verify(mirror, package): # Download package, signature and verify i
 	
 	return local_final
 
-def download_verify_install(mirror, package, reinstall=False):
-	local_name = download_verify(mirror, package)
-	if local_name is None:
-		sys.exit(slackroll_exit_failure)
-	upgrade_or_install(local_name, reinstall)
-
 def get_remote_info(mirror, package): # Downloads info file and returns its contents
 	remote_file = package.fullname[:-len(slackroll_info_suffix)] + slackroll_info_suffix
 	local_file = os.path.join(slackroll_base_dir, os.path.basename(remote_file))
@@ -1022,16 +1016,20 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 	# After selecting the packages, run the requested operation on them
 	if operation in ['install', 'reinstall', 'download', 'urls']:
 		print 'Total size: %sk' % kibi(sum(x.size for x in chosen_pkgs))
-		if operation == 'install':
-			action = lambda x: download_verify_install(mirror, x)
-		elif operation == 'reinstall':
-			action = lambda x: download_verify_install(mirror, x, reinstall=True)
-		elif operation == 'download':
-			action = lambda x: download_verify(mirror, x) is None and sys.exit(slackroll_exit_failure)
-		else:
-			action = lambda x: print_urls(mirror, x)
-		for pkg in chosen_pkgs:
-			action(pkg)
+		if operation in ['install', 'reinstall', 'download']:
+			local_pkgs = []
+			for pkg in chosen_pkgs:
+				local_name = download_verify(mirror, pkg)
+				if local_name is None:
+					sys.exit(slackroll_exit_failure)
+				local_pkgs.append(local_name)
+			if is_real_install:
+				reinstall = (operation == 'reinstall')
+				for pkg in local_pkgs:
+					upgrade_or_install(pkg, reinstall)
+		else:	# urls operation
+			for pkg in chosen_pkgs:
+				print_urls(mirror, pkg)
 
 	else:	# info operation
 		info_map = dict()
