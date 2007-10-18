@@ -1447,7 +1447,6 @@ try:
 		if operation == 'upgrade' and maybe_print_new_warning(persistent_list):
 			confirm_continue()
 
-		mirror = get_mirror()
 		names = pkgs_in_state(persistent_list, [slackroll_state_outdated])
 		names.sort(cmp=pkg_name_cmp)
 
@@ -1461,7 +1460,10 @@ try:
 	
 	if operation == 'upgrade-key-packages':
 		names = [x for x in slackroll_prioritized_pkgs if persistent_list[x] == slackroll_state_outdated]
-		install_operations_family('install', names, local_list, remote_list, persistent_list, pasture=False)
+		if len(names) == 0:
+			print 'No outdated key system packages'
+		else:
+			install_operations_family('install', names, local_list, remote_list, persistent_list, pasture=False)
 		sys.exit()
 
 	if operation == 'clean-cache':
