@@ -1141,6 +1141,7 @@ import-key		Download and import the GPG key
 changelog		Displays the stored ChangeLog.txt
 download-changelog	Download the full ChangeLog.txt
 upgrade			Upgrade system packages
+upgrade-key-packages	Upgrade key system packages
 download-upgrades	Like 'upgrade' but without installing
 urls-upgrades		Like 'upgrade' but only printing URLs
 clean-cache		Remove unknown package versions from package cache
@@ -1271,6 +1272,7 @@ try:
 		'unavailable-foreign':	0,
 		'update':		0,
 		'upgrade':		0,
+		'upgrade-key-packages':	0,
 		'urls':			-1,
 		'urls-new':		0,
 		'urls-path':		-1,
@@ -1455,6 +1457,11 @@ try:
 
 		opmap = { 'upgrade': 'install', 'download-upgrades': 'download', 'urls-upgrades': 'urls' }
 		install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, pasture=False)
+		sys.exit()
+	
+	if operation == 'upgrade-key-packages':
+		names = [x for x in slackroll_prioritized_pkgs if persistent_list[x] == slackroll_state_outdated]
+		install_operations_family('install', names, local_list, remote_list, persistent_list, pasture=False)
 		sys.exit()
 
 	if operation == 'clean-cache':
