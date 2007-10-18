@@ -299,10 +299,9 @@ no easy way to decide which version should be installed if a package has a
 version in the main tree, another one in +/extra/+ and another one in
 +/testing/+, so it's always going to need user input.
 
-If you have a question, you should first read the
-http://slackroll.sourceforge.net/faq.html[FAQ]. For other questions,
-comments or suggestions, my http://freshmeat.net/~rg3/[contact
-information] can be found at freshmeat.net. Keep in mind I'm using the
-program under +slackware-current+. If you detect a problem under the
-stable version, please report it as soon as possible because it may go
-unnoticed to me.
+If you have a question, you should first read the link:faq.html[FAQ].
+For other questions, comments or suggestions, my
+http://freshmeat.net/~rg3/[contact information] can be found at
+freshmeat.net. Keep in mind I'm using the program under
++slackware-current+. If you detect a problem under the stable version,
+please report it as soon as possible because it may go unnoticed to me.
