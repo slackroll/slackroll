@@ -255,12 +255,8 @@ finished.
 
 Watch out for upgrades in the +glibc-solibs+, +sed+ and +pkgtools+ packages.
 They should always be the first ones to be installed or upgraded in that
-order, even before new packages. You can use the +install+ operation to
-manually upgrade them first, either by giving the package name only, which
-should work in most cases, or a specific package version. Some operations,
-like +install+, accept specific package versions and are copy/paste
-friendly. Specifying the package version is optional but will make sure
-you are installing the package version you really want.
+order, even before new packages. You can use the +upgrade-key-packages+
+operation to upgrade them first.
 
 When installing or upgrading foreign packages, you can use *installpkg* or
 *upgradepkg* and then mark them as foreign if needed. However, you can also
