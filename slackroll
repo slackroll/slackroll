@@ -715,6 +715,7 @@ def maybe_print_key_pkg_watchout(persistent_list):
 def maybe_print_key_pkg_warning(persistent_list):
 	if key_pkg_activity_pending(persistent_list):
 		print 'WARNING: It seems there is activity in key system packages'
+		print 'WARNING: You should use "upgrade-key-packages" first'
 		return True
 	return False
 
@@ -1143,7 +1144,9 @@ download-changelog	Download the full ChangeLog.txt
 upgrade			Upgrade system packages
 upgrade-key-packages	Upgrade key system packages
 download-upgrades	Like 'upgrade' but without installing
+download-key-packages	Like 'upgrade-key-packages' but without installing
 urls-upgrades		Like 'upgrade' but only printing URLs
+urls-key-packages	Like 'upgrade-key-packages' but only printing URLs
 clean-cache		Remove unknown package versions from package cache
 touch			Force update on persistent database
 list-transient		Combined list of new, unavailable and outdated packages
@@ -1221,6 +1224,7 @@ try:
 		'clean-cache':		0,
 		'download':		-1,
 		'download-changelog':	0,
+		'download-key-packages':0,
 		'download-new':		0,
 		'download-path':	-1,
 		'download-upgrades':	0,
@@ -1274,6 +1278,7 @@ try:
 		'upgrade':		0,
 		'upgrade-key-packages':	0,
 		'urls':			-1,
+		'urls-key-packages':	0,
 		'urls-new':		0,
 		'urls-path':		-1,
 		'version':		0,
@@ -1458,12 +1463,13 @@ try:
 		install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, pasture=False)
 		sys.exit()
 	
-	if operation == 'upgrade-key-packages':
+	if operation in ['upgrade-key-packages', 'download-key-packages', 'urls-key-packages']:
 		names = [x for x in slackroll_prioritized_pkgs if persistent_list[x] == slackroll_state_outdated]
 		if len(names) == 0:
 			print 'No outdated key system packages'
-		else:
-			install_operations_family('install', names, local_list, remote_list, persistent_list, pasture=False)
+			sys.exit()
+		opmap = { 'upgrade-key-packages': 'install', 'download-key-packages': 'download', 'urls-key-packages': 'urls' }
+		install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, pasture=False)
 		sys.exit()
 
 	if operation == 'clean-cache':
