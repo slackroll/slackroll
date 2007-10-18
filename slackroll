@@ -79,6 +79,7 @@ slackroll_state_strings = ['new', 'unavailable', 'installed', 'not-installed', '
 slackroll_transient_states = [slackroll_state_outdated, slackroll_state_new, slackroll_state_unavailable]
 slackroll_all_states = [x for x in xrange(len(slackroll_state_strings))]
 
+slackroll_socket_timeout = 120
 slackroll_mirror_version_re = re.compile(r'/slackware-([^/]+)/')
 slackroll_pb_location = 'http://packages.slackware.it/'
 slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=%s'
@@ -1217,6 +1218,7 @@ try:
 	remote_list = None
 	persistent_list = None
 	urllib._urlopener = SlackRollURLopener()
+	socket.setdefaulttimeout(slackroll_socket_timeout)
 
 	op_num_args = {	# Map of operations and their number of arguments (-1 means any nonzero quantity)
 		'broken-symlinks':	-1,
