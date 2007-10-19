@@ -242,9 +242,10 @@ Normal operation
 ----------------
 
 You can run +slackroll help+ to get a full list of operations and a brief
-description of each one. This program is not a perfect tool. I think it
-can handle almost every situation and be told to do exactly what you want,
-but reading the change log and subscribing to the +slackware-security+
+description of each one. A full description of each operation can be found in
+the link:operations.html[operations guide]. This program is not a perfect tool.
+I think it can handle almost every situation and be told to do exactly what you
+want, but reading the change log and subscribing to the +slackware-security+
 mailing list is highly recommended.
 
 In every case you should +update+ whenever the remote tree is changed. Then,
