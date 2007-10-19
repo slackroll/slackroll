@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 asciidoc -a linkcss - <index.txt >doc/index.html
 asciidoc -a linkcss - <faq.txt >doc/faq.html
+asciidoc -a linkcss - <operations.txt >doc/operations.html
 asciidoc -b docbook -d manpage - <manpage.txt | xsltproc --nonet -o doc/slackroll.1 http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
