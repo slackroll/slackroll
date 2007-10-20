@@ -175,9 +175,9 @@ system packages (+glibc-solibs+, +sed+ and +pkgtools+).
 
 list-upgrades::
 This operation will print a list of packages with pending upgrades
-(state UNAVAILABLE). For each one of them, the local and available
-remote versions are printed. Like +list-transient+, it will print a big
-warning if it detects activity in key packages.
+(state OUTDATED). For each one of them, the local and available remote versions
+are printed. Like +list-transient+, it will print a big warning if it detects
+activity in key packages.
 
 list-outdated-frozen::
 This operation prints the list of FROZEN packages that the program would
@@ -338,7 +338,7 @@ This operation takes a list of package names as its arguments and calls
 +removepkg+ on the local versions of those packages. In addition, it
 will give you the opportunity of removing +.new+ file pairs left
 behind, which is the only advantage over calling +removepkg+ directly.
-This operartion will generate a warning when run while there are NEW or
+This operation will generate a warning when run while there are NEW or
 OUTDATED packages, as you may then be breaking the correct order of
 operations. In some cases this may pose no danger or even be the correct
 order. As always, the changelog should contain information about the
@@ -400,7 +400,7 @@ missing-search::
 This operation takes every file from the information in
 +/var/log/packages+ and checks if it's present in your system. It may
 take a long time to complete, and there are a few known files which
-always appear in the results, so they should be interepreted carefully.
+always appear in the results, so they should be interpreted carefully.
 In general, it may indicate damaged packages that need to be
 reinstalled. Take into account results from +/install+, +/dev+ and
 +/lib/incoming+ are ignored in order to avoid an unreadable output with

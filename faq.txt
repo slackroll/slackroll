@@ -179,14 +179,13 @@ it only needs +FILELIST.TXT+ and, for convenience, the new entries from the
 change log (indeed, it only downloads the new entries). It detects more
 events, which is specially useful when running _slackware-current_. And it
 has some useful features no other tool has, like the operations to detect
-orphan files and broken symlinks. You won't have to run +grep+ on the
-contents of +/var/log/packages+ anymore, because it has a local search
-operation, and also a remote search operation that lets you query the
-Slackware Package Browser comfortably from the command line and receive
-the results on your terminal. And it also lets you choose which package
-version to install when there are several ones available. It lets you
-upgrade individual packages or every upgradeable package, install new
-packages, remove old ones, search for package names or packages with a
-given tree component, list alternative versions of packages, detect and
-warn you about activity in +glibc+ packages (giving them priority while
-upgrading too), etc.
+orphan files, broken symlinks and missing files. You won't have to run +grep+
+on the contents of +/var/log/packages+ anymore, because it has a local search
+operation, and also a remote search operation that lets you query the Slackware
+Package Browser comfortably from the command line and receive the results on
+your terminal. And it also lets you choose which package version to install
+when there are several ones available. It lets you upgrade individual packages
+or every upgradeable package, install new packages, remove old ones, search for
+package names or packages with a given tree component, list alternative
+versions of packages, detect and warn you about activity in +glibc+ packages
+(giving them priority while upgrading too), etc.
