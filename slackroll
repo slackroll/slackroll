@@ -1734,7 +1734,7 @@ try:
 		bad_pkgs = [x for x in pkgs if x.name in persistent_list and persistent_list[x.name] != slackroll_state_foreign]
 		if len(bad_pkgs) > 0:
 			sys.stderr.write('ERROR: the following packages are known and not foreign\n')
-			sys.stderr.write(''.join('ERROR:    %s' % x.name for x in bad_pkgs))
+			sys.stderr.write(''.join('ERROR:    %s\n' % x.name for x in bad_pkgs))
 			sys.exit(slackroll_exit_failure)
 
 		# Get .new files from old packages
