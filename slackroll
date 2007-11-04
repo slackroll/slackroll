@@ -1038,7 +1038,9 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 		for pkg in chosen_pkgs:
 			try:
 				if pkg_in_map(pkg, local_list):
-					info_map[pkg.fullname] = file(pkg.fullname, 'r').read()
+					lines = file(pkg.fullname, 'r').readlines()
+					header = lines[:lines.index(slackroll_local_pkg_filelist_marker)]
+					info_map[pkg.fullname] = ''.join(header)
 				else:
 					info_map[pkg.fullname] = get_remote_info(mirror, pkg)
 			except (OSError, IOError), err:
