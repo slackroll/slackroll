@@ -53,19 +53,19 @@ operations for each pair. If no file of the pair is found, the only
 option will be to review the next pair. If only one of them is found,
 you will be given the opportunity of editing it with the editor
 indicated in the VISUAL environment variable (see +/etc/profile+ for
-this). If the two files are found, you can edit both at the same time
-using +vimdiff+. This option lets you view the file differences and
-perform several actions. If the old configuration file is valid, you can
-decide not to touch the +.new+ file and keep using the old file. If the
-configuration needs to be ported to the new file, this is the best
-option to do it. Note that +vimdiff+ uses colors to highlight file
-differences. These colors may interfere with the syntax highlighting
-color and render text invisible or hard to read. It is recommended to
-disable syntax highlighting when running +vimdiff+ (+:syntax off+). In
-case both files exist you can also remove the +.new+ file (useful when
-the old configuration file is still valid) or move the +.new+ file
-overwriting the old file (useful after having ported the configuration
-to the +.new+ file).
+this) or +vim+ by default. If the two files are found, you can edit both
+at the same time using +vimdiff+. This option lets you view the file
+differences and perform several actions. If the old configuration file
+is valid, you can decide not to touch the +.new+ file and keep using the
+old file. If the configuration needs to be ported to the new file, this
+is the best option to do it. Note that +vimdiff+ uses colors to
+highlight file differences. These colors may interfere with the syntax
+highlighting color and render text invisible or hard to read. It is
+recommended to disable syntax highlighting when running +vimdiff+
+(+:syntax off+). In case both files exist you can also remove the +.new+
+file (useful when the old configuration file is still valid) or move the
++.new+ file overwriting the old file (useful after having ported the
+configuration to the +.new+ file).
 
 == Operations ==
 
