@@ -843,7 +843,7 @@ def query_pkg_browser(version, searchstr): # Query package browser on given file
 
 def extract_dotnew_files(local_pkg_list): # Get .new files from multiple packages
 	full = concat([[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list])
-	return sorted(list(set(full)))
+	return sorted(set(full))
 
 def old_file(filename): # Returns filename without .new suffix
 	if filename.endswith(slackroll_new_suffix):
