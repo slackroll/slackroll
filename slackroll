@@ -65,6 +65,7 @@ slackroll_signature_suffix = '.asc'
 slackroll_info_suffix = '.txt'
 slackroll_new_suffix = '.new'
 slackroll_default_pager = 'less'
+slackroll_default_visual = 'vim'
 slackroll_gnupg_exec_names = ['gpg2', 'gpg']
 slackroll_never_missing_re = re.compile(r'(^/install/)|(^/dev/)|(^/lib/incoming/)')
 
@@ -224,6 +225,9 @@ def get_temp_dir(): # Temporary directory name
 
 def get_pager():
 	return get_env_or('PAGER', slackroll_default_pager)
+
+def get_visual():
+	return get_env_or('VISUAL', slackroll_default_visual)
 
 def kibi(bytes):
 	return (bytes / 1024)
@@ -442,22 +446,17 @@ class SlackRollOutputInterceptor(object): # Intercepts stdout and uses a pager i
 		else:
 			sys.stdout.write(output)
 
-def run_visual_on(file_path): # Does not exit on errors
-	visual = get_env_or('VISUAL', None)
-	if visual is None:
-		sys.stderr.write('ERROR: VISUAL environment variable not set\n')
-		return
-	visual_list = visual.split()
+def run_program(arg_list): # Does not exit on errors
 	try:
-		subprocess.call(visual_list + [file_path])
+		subprocess.call(arg_list)
 	except (OSError, IOError), err:
 		sys.stderr.write('ERROR: %s\n' % err)
 
+def run_visual_on(file_path): # Does not exit on errors
+	run_program(get_visual().split() + [file_path])
+
 def run_vimdiff_on(oldfile, newfile): # Does not exit on errors
-	try:
-		subprocess.call(['vimdiff', oldfile, newfile])
-	except (OSError, IOError), err:
-		sys.stderr.write('ERROR: %s\n' % err)
+	run_program(['vimdiff', oldfile, newfile])
 
 def try_to_remove(file_path, fatal=True): # When it returns, it is True if file does not exist on exit
 	if not os.path.exists(file_path):
@@ -843,7 +842,8 @@ def query_pkg_browser(version, searchstr): # Query package browser on given file
 		print '    (No results)\n'
 
 def extract_dotnew_files(local_pkg_list): # Get .new files from multiple packages
-	return concat([[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list])
+	full = concat([[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list])
+	return sorted(list(set(full)))
 
 def old_file(filename): # Returns filename without .new suffix
 	if filename.endswith(slackroll_new_suffix):
@@ -854,10 +854,10 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 	if len(dotnew_files) == 0:
 		return
 
+	visual = get_visual()
 	existence_text = ['MISSING', 'FOUND  ']
 
 	# Iterate over every pair of .new files
-	dotnew_files.sort()
 	for newfile in dotnew_files:
 		oldfile = old_file(newfile)
 		basenew = os.path.basename(newfile)
@@ -868,8 +868,8 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 		remove_new = ('R', 'rm %s' % basenew)
 		rename_new = ('M', 'mv %s %s' % (basenew, baseold))
 		run_vimdiff = ('V', 'vimdiff %s %s' % (baseold, basenew))
-		visual_new = ('V', '$VISUAL %s' % basenew)
-		visual_old = ('V', '$VISUAL %s' % baseold)
+		visual_new = ('V', '%s %s' % (visual, basenew))
+		visual_old = ('V', '%s %s' % (visual, baseold))
 
 		# Repeating options menu (break when user chooses to review next file)
 		pair_iterations = 0
@@ -928,11 +928,10 @@ def handle_dotnew_files_removal(dotnew_files): # Prompt the user about .new file
 	if len(dotnew_files) == 0:
 		return
 
-	old_files = [old_file(x) for x in dotnew_files]
-	all_files = dotnew_files + old_files
-	all_files.sort()
+	pairs = [[x, old_file(x)] for x in dotnew_files]
+	to_be_checked = concat(all_files)
 
-	for path in all_files:
+	for path in to_be_checked:
 		if not os.path.islink(path) and not os.path.exists(path):
 			continue # Does not exist in any form
 		print '\nFound %s' % path
