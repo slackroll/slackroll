@@ -704,7 +704,7 @@ def key_transient_pkgs(persistent_list):
 	return [x for x in slackroll_prioritized_pkgs if persistent_list[x] in slackroll_transient_states]
 
 def key_pkg_activity_pending(persistent_list): # True if any new, outdated or unavailable package is prioritized
-	return (len(key_transient_pkgs) > 0)
+	return (len(key_transient_pkgs(persistent_list)) > 0)
 
 def maybe_print_key_pkg_watchout(persistent_list):
 	if key_pkg_activity_pending(persistent_list):
