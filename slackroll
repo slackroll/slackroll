@@ -698,13 +698,13 @@ def pkgs_in_state(persistent_list, state_list): # Get persistent_list names with
 	return [x for x in persistent_list if persistent_list[x] in state_list]
 
 def key_pkg_in(name_list): # Does any name match with a prioritized package?
-	for item in name_list:
-		if item in slackroll_prioritized_pkgs:
-			return True
-	return False
+	return (len(set(slackroll_prioritized_pkgs).intersection(set(name_list))) > 0)
+
+def key_transient_pkgs(persistent_list):
+	return [x for x in slackroll_prioritized_pkgs if persistent_list[x] in slackroll_transient_states]
 
 def key_pkg_activity_pending(persistent_list): # True if any new, outdated or unavailable package is prioritized
-	return key_pkg_in(pkgs_in_state(persistent_list, slackroll_transient_states))
+	return (len(key_transient_pkgs) > 0)
 
 def maybe_print_key_pkg_watchout(persistent_list):
 	if key_pkg_activity_pending(persistent_list):
@@ -1545,7 +1545,7 @@ try:
 		maybe_print_key_pkg_watchout(persistent_list)
 		interceptor.stop()
 		sys.exit()
-
+	
 	if operation == 'list-alternatives':
 		alternatives = dict()
 		for name in persistent_list:
