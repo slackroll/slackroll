@@ -6,6 +6,7 @@ import cPickle
 import cStringIO
 import fcntl
 import glob
+import math
 import operator
 import os
 import re
@@ -229,8 +230,12 @@ def get_pager():
 def get_visual():
 	return get_env_or('VISUAL', slackroll_default_visual)
 
-def kibi(bytes):
-	return (bytes / 1024)
+def optimum_size_conversion(bytes):
+	suffixes = 'bkMGTPEZY'
+	suffidx = min(int(math.log(bytes, 1024)), len(suffixes) - 1)
+	if suffidx == 0:
+		return '%s%s' % (bytes, suffixes[suffidx])
+	return '%.1f%s' % (float(bytes) / (1024.0**suffidx), suffixes[suffidx])
 
 def get_self_file_version(): # Get self version from disk file
 	try:
@@ -483,11 +488,11 @@ def try_to_rename(src, dest, fatal=True): # When it returns, it is True if file 
 def download_report_hook(filename, numblocks, blocksize, totalsize): # Template for urllib.urlretrieve() callbacks
 	if totalsize == -1:
 		percent = 'N/A'
-		kibibytes = 'N/A'
+		size = 'N/A'
 	else:
 		percent = min(int(round(numblocks * blocksize * 100.0 / totalsize)), 100)
-		kibibytes = kibi(totalsize)
-	print_flush('\rDownloading %s ... %s%% of %sk' % (filename, percent, kibibytes))
+		size = optimum_size_conversion(totalsize)
+	print_flush('\rDownloading %s ... %s%% of %s' % (filename, percent, size))
 
 def download_file(mirror, filepath, local_temp, local_final): # Does not exit on errors and shouldn't be called directly
 	try:
@@ -1016,7 +1021,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
 	# After selecting the packages, run the requested operation on them
 	if operation in ['install', 'reinstall', 'download', 'urls']:
-		print 'Total size: %sk' % kibi(sum(x.size for x in chosen_pkgs))
+		print 'Total size: %s' % optimum_size_conversion(sum(x.size for x in chosen_pkgs))
 		if operation in ['install', 'reinstall', 'download']:
 			local_pkgs = []
 			for pkg in chosen_pkgs:
