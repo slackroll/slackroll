@@ -1532,10 +1532,8 @@ try:
 				print '    %s: WARNING: only present in /pasture/\n' % name
 				continue
 			print '    %s:' % name
-			for pkg in local_list[name]:
-				print '\tLocal:\t%s' % pkg.idname
-			for other in candidates:
-				print '\tRemote:\t%s' % other.fullname
+			print '\n'.join('\tLocal:\t%s' % pkg.idname for pkg in local_list[name])
+			print '\n'.join('\tRemote:\t%s' % pkg.fullname for pkg in candidates)
 			print
 		print 'End of list'
 
