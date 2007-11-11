@@ -89,6 +89,24 @@ slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?
 slackroll_pb_result_idname = 1
 slackroll_pb_result_files = 2
 
+def index_of(thelist, elem):
+	try:
+		return thelist.index(elem)
+	except ValueError:
+		return -1
+
+def pkg_name_cmp(name1, name2): # To be used for sorting functions
+	idx1 = index_of(slackroll_prioritized_pkgs, name1)
+	idx2 = index_of(slackroll_prioritized_pkgs, name2)
+
+	if idx1 == -1:
+		if idx2 == -1:
+			return cmp(name1, name2)
+		return 1
+	if idx2 == -1:
+		return -1
+	return (idx1 - idx2)
+
 class SlackRollError(Exception):
 	pass
 
@@ -186,24 +204,6 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
 	except ValueError:
 		raise SlackRollError('invalid file size: %s' % size_str)
 	return SlackwarePackage(name, version, arch, build, path, suffix, size)
-
-def index_of(thelist, elem):
-	try:
-		return thelist.index(elem)
-	except ValueError:
-		return -1
-
-def pkg_name_cmp(name1, name2): # To be used for sorting functions
-	idx1 = index_of(slackroll_prioritized_pkgs, name1)
-	idx2 = index_of(slackroll_prioritized_pkgs, name2)
-
-	if idx1 == -1:
-		if idx2 == -1:
-			return cmp(name1, name2)
-		return 1
-	if idx2 == -1:
-		return -1
-	return (idx1 - idx2)
 
 def pkg_in_map(pkg, map_by_name): # Checks if pkg is in map[pkg.name], usable for local_list and remote_list
 	return pkg.name in map_by_name and pkg in map_by_name[pkg.name]
