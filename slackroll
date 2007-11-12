@@ -1596,43 +1596,19 @@ try:
 		interceptor.stop()
 		sys.exit()
 
-	if operation == 'list-new':
+	if operation in ['list-new', 'list-outdated', 'list-unavailable', 'list-installed', 'list-not-installed', 'list-frozen', 'list-foreign']:
+		state_str = operation.replace('list-', '')
+		header = '%s packages:' % state_str.capitalize()
+		empty_message = 'No %s packages found' % state_str
+		state = slackroll_state_strings.index(state_str)
+
 		interceptor = SlackRollOutputInterceptor()
-		print_in_states_or([slackroll_state_new], persistent_list, 'New packages:', 'No new packages found', False)
-		maybe_print_key_pkg_watchout(persistent_list)
+		print_in_states_or([state], persistent_list, header, empty_message, False)
+		if state in [slackroll_state_new, slackroll_state_outdated, slackroll_state_unavailable]:
+			maybe_print_key_pkg_watchout(persistent_list)
 		interceptor.stop()
 		sys.exit()
 
-	if operation == 'list-unavailable':
-		interceptor = SlackRollOutputInterceptor()
-		print_in_states_or([slackroll_state_unavailable], persistent_list, 'Unavailable packages:', 'No unavailable packages found', False)
-		maybe_print_key_pkg_watchout(persistent_list)
-		interceptor.stop()
-		sys.exit()
-
-	if operation == 'list-installed':
-		print_in_states_or([slackroll_state_installed], persistent_list, 'Installed packages:', 'No installed packages found', False)
-		sys.exit()
-
-	if operation == 'list-not-installed':
-		print_in_states_or([slackroll_state_notinstalled], persistent_list, 'Not installed packages:', 'No not-installed packages found', False)
-		sys.exit()
-
-	if operation == 'list-frozen':
-		print_in_states_or([slackroll_state_frozen], persistent_list, 'Frozen packages:', 'No frozen packages found', False)
-		sys.exit()
-
-	if operation == 'list-foreign':
-		print_in_states_or([slackroll_state_foreign], persistent_list, 'Foreign packages:', 'No foreign packages found', False)
-		sys.exit()
-	
-	if operation == 'list-outdated':
-		interceptor = SlackRollOutputInterceptor()
-		print_in_states_or([slackroll_state_outdated], persistent_list, 'Outdated packages:', 'No outdated packages found', False)
-		maybe_print_key_pkg_watchout(persistent_list)
-		interceptor.stop()
-		sys.exit()
-	
 	if operation == 'list-local':
 		print_seq_or(local_list, 'Local packages:', 'No local packages found')
 		sys.exit()
