@@ -110,9 +110,9 @@ def pkg_name_cmp(name1, name2): # To be used for sorting functions
 def transient_cmp((name1, state1), (name2, state2)): # Appropriate sort for transient list
 	if name1 in slackroll_prioritized_pkgs or name2 in slackroll_prioritized_pkgs:
 		return pkg_name_cmp(name1, name2)
-	if state1 == state2:
-		return cmp(name1, name2)
-	return (index_of(slackroll_transient_states, state1) - index_of(slackroll_transient_states, state2))
+	if state1 != state2:
+		return (index_of(slackroll_transient_states, state1) - index_of(slackroll_transient_states, state2))
+	return cmp(name1, name2)
 
 class SlackRollError(Exception):
 	pass
@@ -1550,12 +1550,10 @@ try:
 		sys.exit()
 
 	if operation == 'list-transient':
-		transient_pkgs = pkgs_in_state(persistent_list, slackroll_transient_states)
-		if len(transient_pkgs) == 0:
+		pkgs_and_states = [(pkg, persistent_list[pkg]) for pkg in persistent_list if persistent_list[pkg] in slackroll_transient_states]
+		if len(pkgs_and_states) == 0:
 			print 'No transient packages found'
 			sys.exit()
-
-		pkgs_and_states = [(name, persistent_list[name]) for name in transient_pkgs]
 		pkgs_and_states.sort(cmp=transient_cmp)
 
 		interceptor = SlackRollOutputInterceptor()
