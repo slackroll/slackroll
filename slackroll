@@ -1557,7 +1557,7 @@ try:
 
 		interceptor = SlackRollOutputInterceptor()
 		states = set(st for (nm, st) in pkgs_and_states)
-		format = '    %%-%ss %%s' % max([len(slackroll_state_strings[x]) for x in states])
+		format = '    %%-%ss  %%s' % max([len(slackroll_state_strings[x]) for x in states])
 		print 'Transient packages:'
 		print '\n'.join(format % (slackroll_state_strings[state], name) for (name, state) in pkgs_and_states)
 		print 'End of list'
