@@ -1602,7 +1602,7 @@ try:
 
 		interceptor = SlackRollOutputInterceptor()
 		print_in_states_or([state], persistent_list, header, empty_message, False)
-		if state in [slackroll_state_new, slackroll_state_outdated, slackroll_state_unavailable]:
+		if state in slackroll_transient_states:
 			maybe_print_key_pkg_watchout(persistent_list)
 		interceptor.stop()
 		sys.exit()
