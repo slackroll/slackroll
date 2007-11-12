@@ -78,7 +78,7 @@ slackroll_state_frozen = 4
 slackroll_state_foreign = 5
 slackroll_state_outdated = 6
 slackroll_state_strings = ['new', 'unavailable', 'installed', 'not-installed', 'frozen', 'foreign', 'outdated']
-slackroll_transient_states = [slackroll_state_outdated, slackroll_state_new, slackroll_state_unavailable]
+slackroll_transient_states = [slackroll_state_new, slackroll_state_outdated, slackroll_state_unavailable]
 slackroll_all_states = [x for x in xrange(len(slackroll_state_strings))]
 
 slackroll_socket_timeout = 120
@@ -106,6 +106,13 @@ def pkg_name_cmp(name1, name2): # To be used for sorting functions
 	if idx2 == -1:
 		return -1
 	return (idx1 - idx2)
+
+def transient_cmp((name1, state1), (name2, state2)): # Appropriate sort for transient list
+	if name1 in slackroll_prioritized_pkgs or name2 in slackroll_prioritized_pkgs:
+		return pkg_name_cmp(name1, name2)
+	if state1 == state2:
+		return cmp(name1, name2)
+	return (index_of(slackroll_transient_states, state1) - index_of(slackroll_transient_states, state2))
 
 class SlackRollError(Exception):
 	pass
@@ -1543,8 +1550,20 @@ try:
 		sys.exit()
 
 	if operation == 'list-transient':
+		transient_pkgs = pkgs_in_state(persistent_list, slackroll_transient_states)
+		if len(transient_pkgs) == 0:
+			print 'No transient packages found'
+			sys.exit()
+
+		pkgs_and_states = [(name, persistent_list[name]) for name in transient_pkgs]
+		pkgs_and_states.sort(cmp=transient_cmp)
+
 		interceptor = SlackRollOutputInterceptor()
-		print_in_states_or(slackroll_transient_states, persistent_list, 'Transient packages:', 'No transient packages found', True)
+		states = set(st for (nm, st) in pkgs_and_states)
+		format = '    %%-%ss %%s' % max([len(slackroll_state_strings[x]) for x in states])
+		print 'Transient packages:'
+		print '\n'.join(format % (slackroll_state_strings[state], name) for (name, state) in pkgs_and_states)
+		print 'End of list'
 		maybe_print_key_pkg_watchout(persistent_list)
 		interceptor.stop()
 		sys.exit()
