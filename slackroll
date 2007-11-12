@@ -107,7 +107,7 @@ def pkg_name_cmp(name1, name2): # To be used for sorting functions
 		return -1
 	return (idx1 - idx2)
 
-def transient_cmp((name1, state1), (name2, state2)): # Appropriate sort for transient list
+def transient_cmp((name1, state1), (name2, state2)): # Special sort for transient list
 	if name1 in slackroll_prioritized_pkgs or name2 in slackroll_prioritized_pkgs:
 		return pkg_name_cmp(name1, name2)
 	if state1 != state2:
@@ -213,7 +213,7 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
 	return SlackwarePackage(name, version, arch, build, path, suffix, size)
 
 def pkg_in_map(pkg, map_by_name): # Checks if pkg is in map[pkg.name], usable for local_list and remote_list
-	return pkg.name in map_by_name and pkg in map_by_name[pkg.name]
+	return pkg in map_by_name.get(pkg.name, [])
 
 def print_flush(message):
 	sys.stdout.write(message)
@@ -988,10 +988,9 @@ def parse_install_args(args, is_info, pasture, local_list, remote_list, persiste
 
 			# Create candidate list
 			candidates = []
-			if is_info and name in local_list:
-				candidates.extend(local_list[name])
-			if name in remote_list:
-				candidates.extend(x for x in remote_list[name] if x not in candidates)
+			if is_info:
+				candidates.extend(local_list.get(name, []))
+			candidates.extend(x for x in remote_list.get(name, []) if x not in candidates)
 
 			if not pasture: # Filter /pasture/ candidates if indicated
 				candidates = not_pasture(candidates)
@@ -1002,8 +1001,8 @@ def parse_install_args(args, is_info, pasture, local_list, remote_list, persiste
 			elif len(candidates) == 1:
 				chosen_pkgs.append(candidates[0])
 			else:
-				if not is_info and name in local_list:
-					for pkg in local_list[name]:
+				if not is_info:
+					for pkg in local_list.get(name, []):
 						print 'Local: %s' % pkg.idname
 				chosen = choose_pkg(candidates)
 				if chosen is not None:
@@ -1057,8 +1056,8 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			except (OSError, IOError), err:
 				sys.exit('ERROR: %s' % err)
 		interceptor = SlackRollOutputInterceptor()
-		for key in info_map:
-			print info_map[key]
+		for pkg in chosen_pkgs:
+			print info_map[pkg.fullname]
 		interceptor.stop()
 	
 	# Review installed .new files
@@ -1570,10 +1569,8 @@ try:
 		alternatives = dict()
 		for name in persistent_list:
 			versions = []
-			if name in remote_list:
-				versions.extend(remote_list[name])
-			if name in local_list:
-				versions.extend(x for x in local_list[name] if x not in versions)
+			versions.extend(remote_list.get(name, []))
+			versions.extend(x for x in local_list.get(name, []) if x not in versions)
 			if len(versions) > 1:
 				alternatives[name] = versions
 
