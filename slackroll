@@ -753,7 +753,7 @@ def print_in_states(states, persistent_list, header, print_state): # Print packa
 	print header
 	keys.sort(cmp=pkg_name_cmp)
 	if print_state:
-		fmt = '    %%-%ss  %%s' % max(len(slackroll_state_strings[x]) for x in states)
+		fmt = '    %%-%ss  %%s' % max(len(slackroll_state_strings[x]) for x in slackroll_all_states)
 		items = [(slackroll_state_strings[persistent_list[x]], x) for x in keys]
 	else:
 		fmt = '    %s'
@@ -1556,8 +1556,7 @@ try:
 		pkgs_and_states.sort(cmp=transient_cmp)
 
 		interceptor = SlackRollOutputInterceptor()
-		states = set(st for (nm, st) in pkgs_and_states)
-		format = '    %%-%ss  %%s' % max([len(slackroll_state_strings[x]) for x in states])
+		format = '    %%-%ss  %%s' % max([len(slackroll_state_strings[x]) for x in slackroll_all_states])
 		print 'Transient packages:'
 		print '\n'.join(format % (slackroll_state_strings[state], name) for (name, state) in pkgs_and_states)
 		print 'End of list'
