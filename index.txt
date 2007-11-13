@@ -2,4 +2,4 @@ SlackRoll: Manage a Slackware system
 ====================================
 Ricardo Garcia
 
-include::tutorial.txt[]
+include::doc-tutorial.txt[]

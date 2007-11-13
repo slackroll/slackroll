@@ -7,6 +7,6 @@ slackroll - A package or update manager for Slackware Linux
 
 == SYNOPSIS ==
 
-slackroll COMMAND [ARG ...]
+slackroll OPERATION [ARG ...]
 
-include::tutorial.txt[]
+include::doc-tutorial.txt[]
