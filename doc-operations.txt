@@ -227,10 +227,10 @@ list-all::
 Similar to +list-new+ but printing every known package.
 
 new-not-installed::
-This package marks as NOT INSTALLED every package in the state NEW.
+This operation marks as NOT INSTALLED every package in the state NEW.
 
 unavailable-foreign::
-This package marks as FOREIGN every package in the state UNAVAILABLE.
+This operation marks as FOREIGN every package in the state UNAVAILABLE.
 
 new::
 Receiving a list of package names as its arguments, this operation marks
