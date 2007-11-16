@@ -327,6 +327,11 @@ info-path::
 These operations relate to +info+ in the same way +install-new+ and
 +install-path+ relate to +install+.
 
+local-info::
+This operations receives a list of local package names and prints all
+the information available for them under +/var/log/packages+, including
+the full file list.
+
 urls::
 urls-new::
 urls-path::
