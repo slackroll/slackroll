@@ -1323,10 +1323,6 @@ try:
 		display_changelog()
 		sys.exit()
 
-	if operation == 'download-changelog':
-		update_changelog(get_mirror(), full=True)
-		sys.exit()
-
 	if operation in ['pb-search', 'remote-search']:
 		slackver = get_version_from_mirror(get_mirror())
 		print 'Using the Slackware Package Browser at %s' % slackroll_pb_location
@@ -1430,6 +1426,10 @@ try:
 		download_or_exit(get_mirror(), slackroll_gpgkey_filename, slackroll_base_dir)
 		import_key(slackroll_local_gpgkey)
 		try_to_remove(slackroll_local_gpgkey)
+		sys.exit()
+
+	if operation == 'download-changelog':
+		update_changelog(get_mirror(), full=True)
 		sys.exit()
 
 	# Every operation below needs an updated persistent database
