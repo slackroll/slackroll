@@ -1197,6 +1197,7 @@ download-path REGEX...	Download all packages with matching path
 info PKG...		Show info about packages or specific package versions
 info-new		Show info about all new packages
 info-path REGEX...	Show info about all packages with matching path
+local-info PKG...	Show full package information from /var/log/packages
 urls PKG...		Show package or specific package version URLs
 urls-new		Show URLs for all new packages
 urls-path REGEX...	Show URLs for all packages with matching path
@@ -1269,6 +1270,7 @@ try:
 		'list-unavailable':	0,
 		'list-upgrades':	0,
 		'list-versions':	-1,
+		'local-info':		-1,
 		'local-search':		-1,
 		'missing-search':	0,
 		'name-search':		-1,
@@ -1709,6 +1711,18 @@ try:
 
 		sys.exit()
 	
+	if operation == 'local-info':
+		unknown = [pkg for pkg in args if pkg not in local_list]
+		if len(unknown) > 0:
+			sys.exit('ERROR: these local packages do not exist:\n%s' % '\n'.join('ERROR:    %s' % pkg for pkg in unknown))
+		interceptor = SlackRollOutputInterceptor()
+		try:
+			print '\n'.join(file(x.fullname, 'r').read() for x in concat(local_list[pkg] for pkg in args))
+		except (IOError, OSError), err:
+			sys.exit('ERROR: %s' % err)
+		interceptor.stop()
+		sys.exit()
+
 	if operation == 'install-foreign':
 		# Verify readable files
 		bad_files = [x for x in args if not is_readable_file(x)]
