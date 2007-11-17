@@ -65,6 +65,7 @@ slackroll_temp_suffix = '.part'
 slackroll_signature_suffix = '.asc'
 slackroll_info_suffix = '.txt'
 slackroll_new_suffix = '.new'
+slackroll_pkg_archive_suffix = '.tgz'
 slackroll_default_pager = 'less'
 slackroll_default_visual = 'vim'
 slackroll_gnupg_exec_names = ['gpg2', 'gpg']
@@ -172,7 +173,7 @@ class SlackwarePackage(object):
 
 	@property
 	def archivename(self):
-		return '%s.tgz' % self.idname
+		return '%s%s' % (self.idname, slackroll_pkg_archive_suffix)
 
 	@property
 	def fullname(self):
@@ -957,12 +958,14 @@ def handle_dotnew_files_both(prev_dotnew, cur_dotnew): # Handle installation and
 	handle_dotnew_files_removal(list(frozenset(prev_dotnew) - frozenset(cur_dotnew)))
 
 def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage or None) -- auxiliar of parse_install_args()
-	try:
-		pkg = pkg_from_str(arg)
-		name = pkg.name
-		return (True, name, pkg)
-	except SlackRollError:
-		return (False, arg, None)
+	if arg.endswith(slackroll_pkg_archive_suffix):
+		try:
+			pkg = pkg_from_str(arg)
+			name = pkg.name
+			return (True, name, pkg)
+		except SlackRollError:
+			sys.exit('ERROR: unable to parse specific package version: %s' % arg)
+	return (False, arg, None)
 
 def parse_install_args(args, is_info, pasture, local_list, remote_list, persistent_list): # Return chosen_pkgs -- auxiliar of install_operations_family()
 	chosen_pkgs = []
@@ -981,10 +984,13 @@ def parse_install_args(args, is_info, pasture, local_list, remote_list, persiste
 					sys.exit('ERROR: unable to find remote package %s' % pkg.idname)
 		else:
 			# Only generic name given
-			if not is_info and name not in remote_list:
-				sys.exit('ERROR: unable to find remote package %s' % name)
-			if is_info and name not in remote_list and name not in local_list:
-				sys.exit('ERROR: unknown package %s' % name)
+			if name not in remote_list and ((not is_info) or (is_info and name not in local_list)):
+				try:
+					pkg = pkg_from_str(name)
+					sys.stderr.write('WARNING: maybe the %s suffix is missing\n' % slackroll_pkg_archive_suffix)
+				except SlackRollError:
+					pass
+				sys.exit('ERROR: %s: unknown package name' % name)
 
 			# Create candidate list
 			candidates = []
@@ -1706,8 +1712,8 @@ try:
 			remove_pkgs([x.local() for x in matching_pkgs])
 		else:
 			opname = operation.replace('-path', '')
-			fullnames = [x.fullname for x in matching_pkgs]
-			install_operations_family(opname, fullnames, local_list, remote_list, persistent_list)
+			archivenames = [x.archivename for x in matching_pkgs]
+			install_operations_family(opname, archivenames, local_list, remote_list, persistent_list)
 
 		sys.exit()
 	
