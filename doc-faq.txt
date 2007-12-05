@@ -32,7 +32,7 @@ slackroll() { ( cd /var/slackroll && command slackroll "$@" ); }
 
 If you use a shell function or script like the previous one, do not forget
 that the program will be running from its working directory. This affects
-some operations that expect to receive paths as their arguments. If you
+some operations that expect to receive file paths as their arguments. If you
 attempt to use relative paths it may not work. For those operations,
 you can use absolute paths or prepend every path with +\`pwd\`+ or +$(pwd)+.
 
