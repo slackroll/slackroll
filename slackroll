@@ -1364,7 +1364,7 @@ try:
 		print 'Reading contents of %s ...' % slackroll_local_pkgs_dir
 		pkg_files_map = get_pkg_filelists()
 
-		matches = [(x, [y for y in pkg_files_map[x] if test(y)]) for x in pkg_files_map]
+		matches = [(x, [y for y in pkg_files_map[x] if test(y)]) for x in sorted(pkg_files_map.keys())]
 		matches = [(name, files) for (name, files) in matches if len(files) > 0]
 		if len(matches) == 0:
 			print empty
