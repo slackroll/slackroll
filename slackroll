@@ -942,7 +942,7 @@ def handle_dotnew_files_removal(dotnew_files): # Prompt the user about .new file
 		return
 
 	pairs = [[x, old_file(x)] for x in dotnew_files]
-	to_be_checked = concat(all_files)
+	to_be_checked = concat(pairs)
 
 	for path in to_be_checked:
 		if not os.path.islink(path) and not os.path.exists(path):
