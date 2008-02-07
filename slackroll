@@ -1193,8 +1193,9 @@ new PKG...		Mark packages as new
 unavailable PKG...	Mark packages as unavailable
 installed PKG...	Mark packages as installed
 not-installed PKG...	Mark packages as not installed
-frozen PKG...		Mark packages as frozen
 foreign PKG...		Mark packages as foreign
+frozen PKG...		Mark packages as frozen
+freeze PKG...		Alias for 'frozen'
 install PKG...		Install packages or specific package versions
 install-new		Install all new packages
 install-path REGEX...	Install all packages with matching path
@@ -1254,6 +1255,7 @@ try:
 		'download-upgrades':	0,
 		'foreign':		-1,
 		'frozen':		-1,
+		'freeze':		-1,
 		'help':			0,
 		'import-key':		0,
 		'info':			-1,
@@ -1636,7 +1638,7 @@ try:
 		from_states_to_state([slackroll_state_unavailable], slackroll_state_foreign, persistent_list, unavailable_packages)
 		sys.exit()
 
-	if operation == 'frozen':
+	if operation in ['frozen', 'freeze']:
 		valid_origins = [slackroll_state_frozen, slackroll_state_installed, slackroll_state_outdated]
 		from_states_to_state(valid_origins, slackroll_state_frozen, persistent_list, args)
 		sys.exit()
