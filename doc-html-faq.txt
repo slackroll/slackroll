@@ -1,0 +1,4 @@
+= SlackRoll Frequently Asked Questions =
+Ricardo Garcia
+
+include::doc-faq.txt[]
