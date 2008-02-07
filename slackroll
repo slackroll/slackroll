@@ -245,6 +245,19 @@ def optimum_size_conversion(bytes):
 		return '%s%s' % (bytes, suffixes[suffidx])
 	return '%.1f%s' % (float(bytes) / (1024.0**suffidx), suffixes[suffidx])
 
+def enough_fs_resources(numpkgs, bytes): # Check if there are enough filesystem resources to store the given number of packages and bytes
+	required_inodes = numpkgs * 2
+	required_bytes = bytes
+
+	tmp_fs_stats = os.statvfs(os.path.join(get_temp_dir(), os.path.curdir))
+	cache_fs_stats = os.statvfs(os.path.join(slackroll_pkgs_dir, os.path.curdir))
+
+	available_inodes = min(tmp_fs_stats.f_favail, cache_fs_stats.f_favail)
+	available_bytes = min(tmp_fs_stats.f_bavail * tmp_fs_stats.f_bsize, cache_fs_stats.f_bavail * cache_fs_stats.f_bsize)
+
+	return (available_inodes > required_inodes and available_bytes > required_bytes)
+
+
 def get_self_file_version(): # Get self version from disk file
 	try:
 		data = file(slackroll_self_filename, 'r').read()
@@ -263,6 +276,9 @@ def long_time_warning():
 
 def interpret_results_warning():
 	print 'WARNING: Results should be interpreted carefully'
+
+def low_fs_resources_warning():
+	print 'WARNING: Available disk space or inodes may not be enough'
 
 def get_mtime_or_exit(path):
 	try:
@@ -397,6 +413,12 @@ def get_version_from_mirror(mirror): # Extract Slackware version from mirror URL
 	if match is None:
 		sys.exit('ERROR: unable to extract Slackware version from mirror name')
 	return match.group(1)
+
+def get_pkg_cache_size(): # Return total bytes for files in cache
+	try:
+		return sum(os.path.getsize(x) for x in glob.glob(slackroll_pkgs_dir_glob))
+	except (OSError, IOError), err:
+		sys.exit('ERROR: %s' % err)
 
 def call_pager(): # Call pager and return handler
 	try:
@@ -611,20 +633,17 @@ def download_verify(mirror, package): # Download package, signature and verify i
 	local_sig = '%s%s' % (local_name, slackroll_signature_suffix)
 	local_final = os.path.join(slackroll_pkgs_dir, package.archivename)
 
-	if not package_in_cache(package):
-		try:
-			download(mirror, remote_name, tempdir)
-			download(mirror, remote_sig, tempdir)
-			verify_signature(local_sig)
-		except SlackRollError:
-			try_to_remove(local_sig)
-			try_to_remove(local_name)
-			return None
+	try:
+		download(mirror, remote_name, tempdir)
+		download(mirror, remote_sig, tempdir)
+		verify_signature(local_sig)
+	except SlackRollError:
 		try_to_remove(local_sig)
-		try_to_rename(local_name, local_final)
-	else:
-		print 'Package %s found in cache' % package.idname
-	
+		try_to_remove(local_name)
+		return None
+
+	try_to_remove(local_sig)
+	try_to_rename(local_name, local_final)
 	return local_final
 
 def get_remote_info(mirror, package): # Downloads info file and returns its contents
@@ -1035,8 +1054,18 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 	if operation in ['install', 'reinstall', 'download', 'urls']:
 		print 'Total size: %s' % optimum_size_conversion(sum(x.size for x in chosen_pkgs))
 		if operation in ['install', 'reinstall', 'download']:
-			local_pkgs = []
-			for pkg in chosen_pkgs:
+			to_be_downloaded = [x for x in chosen_pkgs if not package_in_cache(x)]
+			cached_ones = [x for x in chosen_pkgs if x not in to_be_downloaded]
+
+			for pkg in cached_ones:
+				print 'Package %s found in cache' % pkg.idname
+
+			if not enough_fs_resources(len(to_be_downloaded), sum(x.size for x in to_be_downloaded)):
+				low_fs_resources_warning()
+				confirm_continue()
+
+			local_pkgs = [os.path.join(slackroll_pkgs_dir, x.archivename) for x in cached_ones]
+			for pkg in to_be_downloaded:
 				local_name = download_verify(mirror, pkg)
 				if local_name is None:
 					sys.exit(slackroll_exit_failure)
@@ -1427,6 +1456,7 @@ try:
 
 	if operation == 'update':
 		mirror = get_mirror()
+		print 'Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size())
 		updated = update_changelog(mirror)
 		download_or_exit(mirror, slackroll_filelist_filename, slackroll_base_dir)
 		if updated:
