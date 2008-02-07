@@ -1,0 +1,8 @@
+= slackroll-operations(1) =
+
+== NAME ==
+
+slackroll-operations - SlackRoll Operations Guide
+
+include::doc-manpage-synopsis.txt[]
+include::doc-operations.txt[]

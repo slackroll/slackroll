@@ -1,0 +1,8 @@
+= slackroll-faq(1) =
+
+== NAME ==
+
+slackroll-faq - SlackRoll Frequently Asked Questions
+
+include::doc-manpage-synopsis.txt[]
+include::doc-faq.txt[]
