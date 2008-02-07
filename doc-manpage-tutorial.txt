@@ -1,12 +1,8 @@
-slackroll(1)
-============
+= slackroll-tutorial(1) =
 
 == NAME ==
 
-slackroll - A package or update manager for Slackware Linux
+slackroll-tutorial - SlackRoll Tutorial for New Users
 
-== SYNOPSIS ==
-
-slackroll OPERATION [ARG ...]
-
+include::doc-manpage-synopsis.txt[]
 include::doc-tutorial.txt[]
