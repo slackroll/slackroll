@@ -240,7 +240,10 @@ def get_visual():
 
 def optimum_size_conversion(bytes):
 	suffixes = 'bkMGTPEZY'
-	suffidx = min(int(math.log(bytes, 1024)), len(suffixes) - 1)
+	if bytes == 0:
+		suffidx = 0
+	else:
+		suffidx = min(int(math.log(bytes, 1024)), len(suffixes) - 1)
 	if suffidx == 0:
 		return '%s%s' % (bytes, suffixes[suffidx])
 	return '%.1f%s' % (float(bytes) / (1024.0**suffidx), suffixes[suffidx])
