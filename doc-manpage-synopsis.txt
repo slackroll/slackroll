@@ -1,0 +1,4 @@
+== SYNOPSIS ==
+
+slackroll OPERATION [ARG ...]
+
