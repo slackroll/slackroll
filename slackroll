@@ -1139,8 +1139,11 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 			elif state in [slackroll_state_installed, slackroll_state_outdated, slackroll_state_foreign, slackroll_state_frozen]:
 				persistent_list[name] = slackroll_state_notinstalled
 		else:
-			# Introduce them as new
-			persistent_list[name] = slackroll_state_new
+			# Introduce them as new unless they are only present in /pasture/
+			if len(not_pasture(remote_list[name])) == 0:
+				persistent_list[name] = slackroll_state_notinstalled
+			else:
+				persistent_list[name] = slackroll_state_new
 		persistent_list.sync()
 	
 	# Remaining packages, not present in local or remote systems, need to disappear
