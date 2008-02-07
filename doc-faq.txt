@@ -1,7 +1,3 @@
-SlackRoll Frequently Asked Questions
-====================================
-Ricardo Garcia
-
 Current working directory
 -------------------------
 
@@ -13,11 +9,9 @@ directories and files in the wrong location. Can you change this?
 mirrors with different configurations, making it more flexible, as well as
 giving you the option to choose the package cache location. If you detect
 you frequently make those mistakes or would like to simplify the
-situation, you should consider one of the following alternatives:
-
-* Putting +slackroll+ inside the chosen directory, preventing mistakes by
-having to run it as +./slackroll+.
-* Creating a script or shell function to +cd+ into the chosen directory
+situation, you should consider either putting +slackroll+ inside the chosen
+directory, preventing mistakes by having to run it as +./slackroll+, or
+creating a script or shell function to +cd+ into the chosen directory
 automatically.
 
 For example, I have the following line in my superuser
@@ -51,11 +45,9 @@ There is no way to create an algorithm to analyze those names properly.
 The problem should be solved by removing that package, renaming the
 package archive to have a standard name and then installing it again.
 
-Some examples of invalid package names I have seen reported:
-
-* pyfloppy-1.6-noarch.2AS
-* gammapage-0.5.i486-1AS
-* scons-0.96.1-1.noarch
+Some examples of invalid package names I have seen reported are
++pyfloppy-1.6-noarch.2AS+, +gammapage-0.5.i486-1AS+ and
++scons-0.96.1-1.noarch+.
 
 Remember: it doesn't matter if it's an official package or a foreign or
 custom one. It should follow the naming convention.
