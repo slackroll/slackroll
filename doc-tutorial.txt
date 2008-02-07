@@ -106,7 +106,7 @@ FOREIGN
 No package will enter the foreign state unless you mark it so. It
 should be used for packages that do not exist in the remote tree
 but that, unlike unavailable packages, are present in your system
-on purpose. For example, the mplayer package in my system is
+on purpose. For example, the slackroll package in my system is
 marked as foreign. A foreign package will be marked as installed
 or outdated if it ever appears in the remote tree, becoming a
 candidate for upgrading. Hopefully, you'll notice this fact. You
@@ -117,13 +117,10 @@ Get SlackRoll
 -------------
 
 http://sourceforge.net/project/showfiles.php?group_id=197236[slackroll]
-is a self-contained Python script released to the public domain.
-Drop it somewhere like +/usr/local/sbin+ or +/usr/local/bin+, give it
-execution permissions and you will be ready. The available tarball
-contains the program alone. Initially I uploaded the file directly, but
-the SourceForge release system didn't let me use the same filename again,
-so I opted for a simple tarball with the version number in its name. If
-you'd prefer another distribution method just drop me an email message.
+is a self-contained Python script released to the public domain. You can
+install its package with +installpkg+ for the first time. In the future,
+you can use +upgradepkg+ or even +slackroll+ itself to upgrade to newer
+versions. Continue reading for more details.
 
 Getting started
 ---------------
@@ -243,10 +240,10 @@ Normal operation
 
 You can run +slackroll help+ to get a full list of operations and a brief
 description of each one. A full description of each operation can be found in
-the link:operations.html[operations guide]. This program is not a perfect tool.
-I think it can handle almost every situation and be told to do exactly what you
-want, but reading the change log and subscribing to the +slackware-security+
-mailing list is highly recommended.
+the link:slackroll-operations.{basebackend@^html$:html:1}[operations guide].
+This program is not a perfect tool.  I think it can handle almost every
+situation and be told to do exactly what you want, but reading the change log
+and subscribing to the +slackware-security+ mailing list is highly recommended.
 
 In every case you should +update+ whenever the remote tree is changed. Then,
 you should read the changelog with the +changelog+ operation if there are
@@ -300,9 +297,9 @@ no easy way to decide which version should be installed if a package has a
 version in the main tree, another one in +/extra/+ and another one in
 +/testing/+, so it's always going to need user input.
 
-If you have a question, you should first read the link:faq.html[FAQ].
-For other questions, comments or suggestions, my
-http://freshmeat.net/~rg3/[contact information] can be found at
-freshmeat.net. Keep in mind I'm using the program under
-+slackware-current+. If you detect a problem under the stable version,
-please report it as soon as possible because it may go unnoticed to me.
+If you have a question, you should first read the
+link:slackroll-faq.{basebackend@^html$:html:1}[FAQ]. For other questions,
+comments or suggestions, my http://freshmeat.net/~rg3/[contact information] can
+be found at freshmeat.net. Keep in mind I'm using the program under
++slackware-current+. If you detect a problem under the stable version, please
+report it as soon as possible because it may go unnoticed to me.
