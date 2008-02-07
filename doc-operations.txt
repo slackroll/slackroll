@@ -1,6 +1,3 @@
-= SlackRoll Operations Guide =
-Ricardo Garcia
-
 == General Concepts ==
 
 When the program needs to run GnuPG, it first checks for +gpg2+ and then
@@ -250,6 +247,7 @@ Similar to +new+ with the state NOT INSTALLED. Only packages in the
 states NOT INSTALLED and NEW can be marked as NOT INSTALLED.
 
 frozen::
+freeze::
 Similar to +new+ with the state FROZEN. Only packages in the states
 FROZEN, OUTDATED and INSTALLED can be marked as FROZEN.
 
