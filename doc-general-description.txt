@@ -1,0 +1,7 @@
++slackroll+ is a package or update manager for Slackware systems. It does
+not provide dependency checking and uses +pkgtools+ to install or upgrade
+packages. It's designed to work with official mirrors. If you have a
+Slackware system mainly composed of official packages and a handful of
+unofficial packages, +slackroll+ can help you manage it and keep in touch
+with the remote tree. It tries to know when new packages appear, when
+packages are removed and when packages are upgraded.
