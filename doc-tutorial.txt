@@ -132,7 +132,7 @@ You should first choose a Slackware mirror. Take into account
 +slackroll+ will store downloaded packages in a subdirectory of
 +/var/slackroll+, so you will probably need to have a good amount of
 space available for them in there. Echo the mirror name to the file
-+/var/slackroll/mirror+.
++/var/slackroll/mirror+. For example:
 
 -------------------------------------------------------------------
 echo 'http://some.mirror/slackware-current/' >/var/slackroll/mirror
