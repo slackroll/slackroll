@@ -15,12 +15,6 @@ Before you start
 So you have decided to try +slackroll+. Let me introduce a few concepts so
 you don't get lost.
 
-+slackroll+ works with the current directory. It doesn't work with a fixed
-system directory like, let's say, +/var/slackroll+. You can use
-+/var/slackroll+ if you want. You have to choose a directory and +cd+ to it
-before running the program. Want to use something inside +/var+? Inside
-+/root+? Inside +/media+? Whatever floats your boat.
-
 In the following text I'm going to be talking about packages. For package,
 we are going to understand a named piece of software, without having any
 specific version unless I explicitly mention it. A package can be +bash+ or
@@ -134,17 +128,17 @@ no upgrades pending. This will give you a chance of configuring the
 program and setting the package states properly without making serious
 mistakes.
 
-You should first choose a working directory and a Slackware mirror. Take
-into account +slackroll+ will store downloaded packages in a subdirectory of
-the chosen one, so you will probably need to have a good amount of space
-available for them in there. Create the directory, change to it and echo
-the mirror name to a file named mirror.
+You should first choose a Slackware mirror. Take into account
++slackroll+ will store downloaded packages in a subdirectory of
++/var/slackroll+, so you will probably need to have a good amount of
+space available for them in there. Echo the mirror name to the file
++/var/slackroll/mirror+.
 
---------------------------------------------------------------
-echo 'http://slackware.osuosl.org/slackware-current/' >mirror
+-------------------------------------------------------------------
+echo 'http://some.mirror/slackware-current/' >/var/slackroll/mirror
 
 
---------------------------------------------------------------
+-------------------------------------------------------------------
 
 *Do not forget the trailing slash!* Great. You are ready to start. Retrieve
 the remote GPG key from the mirror to add it to your keyring. Having the
