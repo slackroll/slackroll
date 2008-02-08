@@ -32,7 +32,7 @@ slackroll_pkg_re_arch = 4
 slackroll_pkg_re_build = 5
 slackroll_pkg_re_suffix = 6
 
-slackroll_base_dir = os.path.curdir
+slackroll_base_dir = os.path.join(os.path.sep, 'var', 'slackroll')
 slackroll_default_temp_dir = os.path.join(slackroll_base_dir, 'tmp')
 slackroll_pkgs_dir_glob = os.path.join(slackroll_base_dir, 'packages', '*')
 slackroll_pkgs_dir = os.path.dirname(slackroll_pkgs_dir_glob)
