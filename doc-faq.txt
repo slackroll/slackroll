@@ -41,7 +41,7 @@ local copy of the remote tree. Can I coordinate this with SlackRoll?
 chunks in curly braces by the appropriate contents.
 
 ----------------------------------------------------------------
-SLACKROLL_DIR={ path to slackroll working directory }
+SLACKROLL_DIR=/var/slackroll
 LOCAL_MIRROR_DIR={ path to local copy of the tree }
 
 { rsync command(s) }
