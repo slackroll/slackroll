@@ -274,7 +274,7 @@ def interpret_results_warning():
 	print 'WARNING: Results should be interpreted carefully'
 
 def low_fs_resources_warning():
-	print 'WARNING: Available disk space or inodes may not be enough'
+	print 'WARNING: Available disk space may not be enough'
 
 def get_mtime_or_exit(path):
 	try:
