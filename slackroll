@@ -249,9 +249,8 @@ def optimum_size_conversion(bytes):
 	return '%.1f%s' % (float(bytes) / (1024.0**suffidx), suffixes[suffidx])
 
 def enough_fs_resources(numpkgs, bytes): # Check if there are enough filesystem resources to store the given number of packages and bytes
-	tmp_fs_stats = os.statvfs(os.path.join(get_temp_dir(), os.path.curdir))
-	cache_fs_stats = os.statvfs(os.path.join(slackroll_pkgs_dir, os.path.curdir))
-	available_bytes = min(tmp_fs_stats.f_bavail * tmp_fs_stats.f_bsize, cache_fs_stats.f_bavail * cache_fs_stats.f_bsize)
+	fs_stats = os.statvfs(os.path.join(slackroll_base_dir, os.path.curdir))
+	available_bytes = fs_stats.f_bfree * fs_stats.f_bsize
 	return (available_bytes > bytes)
 
 def get_self_file_version(): # Get self version from disk file
