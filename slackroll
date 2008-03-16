@@ -728,7 +728,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 
 	try: # Only read until last known entry
 		cl = try_load(slackroll_local_changelog)
-		limit = cl.last_batch()[0].timestamp
+		limits = set(concat([[x.timestamp for x in cl.get_batch(y)] for y in xrange(cl.num_batches())]))
 	except (OSError, IOError), err:
 		sys.exit('ERROR: %s' % err)
 
@@ -738,7 +738,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 		conn = urllib.urlopen(changelog_url)
 		while True:
 			new_line = conn.readline()
-			if len(new_line) == 0 or new_line.strip() == limit:
+			if len(new_line) == 0 or new_line.strip() in limits:
 				break
 			lines.append(new_line)
 		conn.close()
