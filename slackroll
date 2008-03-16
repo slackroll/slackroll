@@ -57,8 +57,9 @@ slackroll_pkg_files_filename = os.path.join(slackroll_base_dir, 'pkgfiles.db')
 slackroll_known_files = os.path.join(slackroll_base_dir, 'knownfiles.db')
 slackroll_filelist_filename = 'FILELIST.TXT'
 slackroll_changelog_filename = 'ChangeLog.txt'
+slackroll_changelog_entry_separator = '+--------------------------+\n'
 slackroll_local_filelist = os.path.join(slackroll_base_dir, slackroll_filelist_filename)
-slackroll_local_changelog = os.path.join(slackroll_base_dir, slackroll_changelog_filename)
+slackroll_local_changelog = os.path.join(slackroll_base_dir, 'changelog.db')
 slackroll_gpgkey_filename = 'GPG-KEY'
 slackroll_local_gpgkey = os.path.join(slackroll_base_dir, slackroll_gpgkey_filename)
 slackroll_temp_suffix = '.part'
@@ -215,6 +216,68 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
 
 def pkg_in_map(pkg, map_by_name): # Checks if pkg is in map[pkg.name], usable for local_list and remote_list
 	return pkg in map_by_name.get(pkg.name, [])
+
+class ChangeLogEntry(object):
+	_timestamp = None	# Entry timestamp
+	_text = None		# Entry text
+
+	def __init__(self, timestamp, text):
+		self._timestamp = timestamp
+		self._text = text
+	
+	@property
+	def timestamp(self):
+		return self._timestamp
+
+	@property
+	def text(self):
+		return self._text
+
+	def __eq__(self, other):
+		return (self.timestamp == other.timestamp or self.text == other.text)
+
+	def __str__(self):
+		return '%s\n%s' % (self.timestamp, self.text)
+
+class ChangeLog(object):
+	_cur_batch = None
+	_batches = None
+
+	def __init__(self):
+		self._cur_batch = 0
+		self._batches = dict()
+	
+	def start_new_batch(self):
+		self._cur_batch += 1
+	
+	def add_entry(self, entry):
+		val = self._batches.get(self._cur_batch, [])
+		val.append(entry)
+		self._batches[self._cur_batch] = val
+	
+	def add_entries(self, entry_list):
+		for x in entry_list:
+			self.add_entry(x)
+	
+	def last_batch(self):
+		return self._batches.get(self._cur_batch, [])
+
+	def num_batches(self):
+		return len(self._batches.keys())
+
+	def get_batch(self, batchnum):
+		return self._batches.get(batchnum, [])
+
+def clentry_from_text(text):
+	lines = text.split('\n')
+	text = '\n'.join(lines[1:])
+	timestamp = lines[0].strip()
+	return ChangeLogEntry(timestamp, text)
+
+def clentrylist_from_text(text):
+	entries = text.split(slackroll_changelog_entry_separator)
+	entries = [x for x in entries if len(x) > 0]
+	return [clentry_from_text(x) for x in entries]
 
 def print_flush(message):
 	sys.stdout.write(message)
@@ -651,13 +714,21 @@ def get_remote_info(mirror, package): # Downloads info file and returns its cont
 
 def update_changelog(mirror, full=False): # Returns answer to "has it been updated?"
 	if not os.path.exists(slackroll_local_changelog) or full:
-		download_or_exit(mirror, slackroll_changelog_filename, slackroll_base_dir)
+		temp_dir = get_temp_dir()
+		download_or_exit(mirror, slackroll_changelog_filename, temp_dir)
+		local_filename = os.path.join(temp_dir, slackroll_changelog_filename)
+		text = file(local_filename).read()
+		cl = ChangeLog()
+		cl.add_entries(clentrylist_from_text(text))
+		try_dump(cl, slackroll_local_changelog)
+		try_to_remove(local_filename)
 		return True
 
-	print_flush('Updating %s ... ' % slackroll_changelog_filename)
+	print_flush('Updating change log ... ')
 
 	try: # Only read until last known entry
-		limit = file(slackroll_local_changelog, 'r').readline()
+		cl = try_load(slackroll_local_changelog)
+		limit = cl.last_batch()[0].timestamp
 	except (OSError, IOError), err:
 		sys.exit('ERROR: %s' % err)
 
@@ -667,7 +738,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 		conn = urllib.urlopen(changelog_url)
 		while True:
 			new_line = conn.readline()
-			if len(new_line) == 0 or new_line == limit:
+			if len(new_line) == 0 or new_line.strip() == limit:
 				break
 			lines.append(new_line)
 		conn.close()
@@ -678,16 +749,16 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 		print 'no new entries.'
 		return False
 	print 'new entries found.'
-	try:
-		file(slackroll_local_changelog, 'w').writelines(lines)
-	except (OSError, IOError), err:
-		sys.exit('ERROR: %s' % err)
+	cl.start_new_batch()
+	cl.add_entries(clentrylist_from_text(''.join(lines)))
+	try_dump(cl, slackroll_local_changelog)
 	return True
 
-def display_changelog():
+def display_last_changelog_batch():
 	try:
 		interceptor = SlackRollOutputInterceptor()
-		sys.stdout.write(file(slackroll_local_changelog, 'r').read())
+		cl = try_load(slackroll_local_changelog)
+		print slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch())
 		interceptor.stop()
 	except (OSError, IOError), err:
 		sys.exit('ERROR: %s' % err)
@@ -1355,7 +1426,7 @@ try:
 		sys.exit()
 
 	if operation == 'changelog':
-		display_changelog()
+		display_last_changelog_batch()
 		sys.exit()
 
 	if operation in ['pb-search', 'remote-search']:
