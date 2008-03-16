@@ -1247,8 +1247,10 @@ help			Print this help
 version			Print the program version
 update			Download remote tree information
 import-key		Download and import the GPG key
-changelog		Displays the stored ChangeLog.txt
+changelog		Displays the last downloaded ChangeLog.txt batch
 download-changelog	Download the full ChangeLog.txt
+list-changelog		List all known changelog entries and their identifiers
+changelog-entries ID... List changelog entries by identifier
 upgrade			Upgrade system packages
 upgrade-key-packages	Upgrade key system packages
 download-upgrades	Like 'upgrade' but without installing
@@ -1332,6 +1334,7 @@ try:
 	op_num_args = {	# Map of operations and their number of arguments (-1 means any nonzero quantity)
 		'broken-symlinks':	-1,
 		'changelog':		0,
+		'changelog-entries':	-1,
 		'clean-cache':		0,
 		'download':		-1,
 		'download-changelog':	0,
@@ -1383,7 +1386,6 @@ try:
 		'remove':		-1,
 		'remove-path':		-1,
 		'remove-unavailable':	0,
-		'urls-upgrades':	0,
 		'state':		-1,
 		'touch':		0,
 		'unavailable':		-1,
@@ -1395,6 +1397,7 @@ try:
 		'urls-key-packages':	0,
 		'urls-new':		0,
 		'urls-path':		-1,
+		'urls-upgrades':	0,
 		'version':		0,
 	}
 
@@ -1421,6 +1424,33 @@ try:
 		interceptor = SlackRollOutputInterceptor()
 		cl = try_load(slackroll_local_changelog)
 		print slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch())
+		interceptor.stop()
+		sys.exit()
+	
+	if operation == 'list-changelog':
+		interceptor = SlackRollOutputInterceptor()
+		cl = try_load(slackroll_local_changelog)
+		print 'ChangeLog.txt entries:'
+		for idb in xrange(cl.num_batches()):
+			batch = cl.get_batch(idb)
+			for ide in xrange(len(batch)):
+				print '    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp)
+		print 'End of list'
+		interceptor.stop()
+		sys.exit()
+	
+	if operation == 'changelog-entries':
+		cl = try_load(slackroll_local_changelog)
+		entries = []
+		for code in args:
+			try:
+				(idb, ide) = code.split('.')
+				(idb, ide) = (long(idb), long(ide))
+				entries.append(cl.get_batch(idb)[ide])
+			except (IndexError, ValueError):
+				sys.exit('ERROR: invalid entry: %s' % code)
+		interceptor = SlackRollOutputInterceptor()
+		print slackroll_changelog_entry_separator.join('%s' % x for x in entries)
 		interceptor.stop()
 		sys.exit()
 
