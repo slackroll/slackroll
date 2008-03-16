@@ -754,15 +754,6 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 	try_dump(cl, slackroll_local_changelog)
 	return True
 
-def display_last_changelog_batch():
-	try:
-		interceptor = SlackRollOutputInterceptor()
-		cl = try_load(slackroll_local_changelog)
-		print slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch())
-		interceptor.stop()
-	except (OSError, IOError), err:
-		sys.exit('ERROR: %s' % err)
-
 def print_urls(mirror, package):
 	url = package.url(mirror)
 	print url
@@ -1363,6 +1354,7 @@ try:
 		'installed':		-1,
 		'list-all':		0,
 		'list-alternatives':	0,
+		'list-changelog':	0,
 		'list-foreign':		0,
 		'list-frozen':		0,
 		'list-installed':	0,
@@ -1426,7 +1418,10 @@ try:
 		sys.exit()
 
 	if operation == 'changelog':
-		display_last_changelog_batch()
+		interceptor = SlackRollOutputInterceptor()
+		cl = try_load(slackroll_local_changelog)
+		print slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch())
+		interceptor.stop()
 		sys.exit()
 
 	if operation in ['pb-search', 'remote-search']:
