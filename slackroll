@@ -1250,7 +1250,8 @@ import-key		Download and import the GPG key
 changelog		Displays the last downloaded ChangeLog.txt batch
 download-changelog	Download the full ChangeLog.txt
 list-changelog		List all known changelog entries and their identifiers
-changelog-entries ID... List changelog entries by identifier
+changelog-entries ID... Display changelog entries by identifier
+full-changelog		Display every known changelog entry
 upgrade			Upgrade system packages
 upgrade-key-packages	Upgrade key system packages
 download-upgrades	Like 'upgrade' but without installing
@@ -1345,6 +1346,7 @@ try:
 		'foreign':		-1,
 		'frozen':		-1,
 		'freeze':		-1,
+		'full-changelog':	0,
 		'help':			0,
 		'import-key':		0,
 		'info':			-1,
@@ -1449,6 +1451,14 @@ try:
 				entries.append(cl.get_batch(idb)[ide])
 			except (IndexError, ValueError):
 				sys.exit('ERROR: invalid entry: %s' % code)
+		interceptor = SlackRollOutputInterceptor()
+		print slackroll_changelog_entry_separator.join('%s' % x for x in entries)
+		interceptor.stop()
+		sys.exit()
+	
+	if operation == 'full-changelog':
+		cl = try_load(slackroll_local_changelog)
+		entries = concat([[x for x in cl.get_batch(y)] for y in xrange(cl.num_batches())])
 		interceptor = SlackRollOutputInterceptor()
 		print slackroll_changelog_entry_separator.join('%s' % x for x in entries)
 		interceptor.stop()
