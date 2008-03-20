@@ -1433,7 +1433,7 @@ try:
 		interceptor = SlackRollOutputInterceptor()
 		cl = try_load(slackroll_local_changelog)
 		print 'ChangeLog.txt entries:'
-		for idb in xrange(cl.num_batches()):
+		for idb in xrange(cl.num_batches() - 1, -1, -1):
 			batch = cl.get_batch(idb)
 			for ide in xrange(len(batch)):
 				print '    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp)
