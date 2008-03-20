@@ -73,11 +73,8 @@ version::
 This operations prints the program version to standard output.
 
 update::
-This operation downloads the new changelog entries if they exist. In
-that case, it stores them in the file +ChangeLog.txt+ inside the working
-directory, so they remain available for you to read. Previous entries
-are discarded so as to ease the task of reading the new entries and not
-be confused by previous entries. After that, it downloads the list of
+This operation downloads the new changelog entries if they exist and stores
+them in your hard drive. After that, it downloads the list of
 files from the file +FILELIST.TXT+ and stores it in the working
 directory. Both actions take into account the selected mirror.
 
@@ -88,16 +85,25 @@ either +gpg2+ or +gpg+, whichever finds first with the option
 +GPG-KEY+ is removed and does not remain on disk.
 
 changelog::
-This operation prints the disk contents of the file +ChangeLog.txt+ from
-the current working directory.
+This operation prints on screen the last downloaded batch of changelog
+entries.
 
 download-changelog::
 This operation downloads the full +ChangeLog.txt+ file from the mirror
-and stores it in the current working directory. Normally, it's not
-needed, but sometimes it may be interesting to check an old entry, or
-have the full changelog available in case two upgrades are published in
-a short period of time and the second one comes before the changes from
-the first one have been dealt with.
+and stores it in your hard drive, rebuilding the internal changelog
+database and creating a new one with the downloaded contents. Normally
+it's not needed, but it could be useful if, for example, you accumulate a lot
+of entries over several years and want to discard all the old ones belonging to
+previous stable versions.
+
+list-changelog::
+This operation prints a list of changelog entries from the local database,
+indicating their identifiers and timestamps.
+
+changelog-entries::
+This operation, given a list of changelog entry identifiers (that you can
+get by running the +list-changelog+ operation), will print them on screen
+in the specified order.
 
 upgrade::
 This operation will check which packages are in the state OUTDATED and
