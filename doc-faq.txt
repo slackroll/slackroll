@@ -28,8 +28,8 @@ list to a text file. However, if I use shell redirections and SlackRoll
 prompts me to select a specific package version, I can't see the
 questions. Is there an easy way of doing this?
 
-*Answer*: Yes. Pipe the output of SlackRoll to +tee url-list.txt+ and then
-edit the file to remove the extra lines.
+*Answer*: Yes. Pipe the output of SlackRoll to +tee urls.txt+ and then edit the
+file to remove the extra lines.
 
 Coordinating with rsync
 -----------------------

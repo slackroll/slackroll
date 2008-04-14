@@ -4,13 +4,12 @@ When the program needs to run GnuPG, it first checks for +gpg2+ and then
 +gpg+, and uses whichever is found first.
 
 Every operation that needs to download packages will always check first
-if the packages are present in the package cache (+packages+ directory
-inside the working directory). This means that if you download packages
-using an external tool like +wget+ or +rsync+ and want the program to
-pick them up during the upgrade process, you only need to copy or link
-them in the package cache. Note that the package cache stores packages
-in a flat hierarchy. There is a FAQ entry on creating symbolic links to
-a local copy of the mirror.
+if the packages are present in the package cache (+/var/slackroll/packages+).
+This means that if you download packages using an external tool like +wget+ or
++rsync+ and want the program to pick them up during the upgrade process, you
+only need to copy them to, or link them in, the package cache. Note that the
+package cache stores packages in a flat hierarchy. There is a FAQ entry on
+creating symbolic links to a local copy of the mirror.
 
 Every operation that has to run +/sbin/upgradepkg+ to install or upgrade
 packages follows the same internal mechanism. Once it has been clarified
@@ -21,16 +20,16 @@ cache. Once every package is in the package cache, the program calls
 +upgradepkg+ on each one, always (even if the package is already
 installed in your system). Finally, the program reviews pairs of +.new+
 files, in two steps. In the first step the program gets the list of
-+.new+ files present in the packages which tried to be installed, and
-reviews them. More information on that later. Second, it gives you the
-opportunity of removing legacy +.new+ files. The program, before running
-+upgradepkg+, gets a list of +.new+ files from the locally installed
-versions of those packages, if they exist. Once the packages are
-installed and after reviewing the +.new+ files, it can see if there was
-any +.new+ file present in the old packages which is not present in the
-installed packages. Usually, +upgradepkg+ will remove these +.new+
-files, but not their counterparts without +.new+ suffix. The program
-will ask if you want to remove them.
++.new+ files present in the packages it ran +upgradepkg+ on, and
+reviews them. Later, we will explain this review process in detail. Second, it
+gives you the opportunity of removing legacy +.new+ files. This means that the
+program, before running +upgradepkg+, had retrieved a list of +.new+ files from
+the locally installed versions of those packages, if they existed. Once the
+packages are installed and after reviewing the +.new+ files, it can see if
+there was any +.new+ file present in the old packages which is not present in
+the installed packages. Usually, +upgradepkg+ will remove these +.new+ files,
+but not their counterparts without +.new+ suffix. The program will ask if you
+want to remove them.
 
 Every operation that needs to run +upgradepkg+ on a set of packages that
 are not provided explicitly by the user in a given order (like the
@@ -44,25 +43,24 @@ file has a counterpart without the +.new+ suffix. The program will offer
 you a set of repeating options for each pair. One option which is always
 available is the one to review the next pair. This is the only mechanism
 to start reviewing the next pair. If you choose any of the other
-operations, when the operation finishes you will continue to be asked
-about the same pair. This has the purpose of letting you run several
-operations for each pair. If no file of the pair is found, the only
-option will be to review the next pair. If only one of them is found,
-you will be given the opportunity of editing it with the editor
-indicated in the VISUAL environment variable (see +/etc/profile+ for
-this) or +vim+ by default. If the two files are found, you can edit both
-at the same time using +vimdiff+. This option lets you view the file
-differences and perform several actions. If the old configuration file
-is valid, you can decide not to touch the +.new+ file and keep using the
-old file. If the configuration needs to be ported to the new file, this
-is the best option to do it. Note that +vimdiff+ uses colors to
-highlight file differences. These colors may interfere with the syntax
-highlighting color and render text invisible or hard to read. It is
-recommended to disable syntax highlighting when running +vimdiff+
-(+:syntax off+). In case both files exist you can also remove the +.new+
-file (useful when the old configuration file is still valid) or move the
-+.new+ file overwriting the old file (useful after having ported the
-configuration to the +.new+ file).
+operations, when it's finished you will continue to be asked
+about the same pair. This has the purpose of letting you run several operations
+for each pair. If no file of the pair is found, the only option will be to
+review the next pair, yet you are still notified that both files were missing.
+If only one of them is found, you will be given the opportunity of editing it
+with the editor indicated in the VISUAL environment variable (see
++/etc/profile+ for this) or +vim+ by default. If the two files are found, you
+can edit both at the same time using +vimdiff+. This option lets you view the
+file differences and perform several actions. If the old configuration file is
+valid, you can decide not to touch the +.new+ file and keep using the old file.
+If the configuration needs to be ported to the new file, this is the best
+option to do it. Note that +vimdiff+ uses colors to highlight file differences.
+These colors may interfere with the syntax highlighting color and render text
+invisible or hard to read. It is recommended to disable syntax highlighting
+when running +vimdiff+ (+:syntax off+). In case both files exist you can also
+remove the +.new+ file (useful when the old configuration file is still valid)
+or move the +.new+ file overwriting the old file (useful after having ported
+the configuration to the +.new+ file).
 
 == Operations ==
 
@@ -75,8 +73,8 @@ This operations prints the program version to standard output.
 update::
 This operation downloads the new changelog entries if they exist and stores
 them in your hard drive. After that, it downloads the list of
-files from the file +FILELIST.TXT+ and stores it in the working
-directory. Both actions take into account the selected mirror.
+files from the file +FILELIST.TXT+ and stores it in +/var/slackroll+. Both
+actions take into account the selected mirror.
 
 import-key::
 This operation downloads the file +GPG-KEY+ from the mirror and runs
@@ -157,12 +155,12 @@ This operation will check the files present in the package cache. If any
 of them belongs to a package or package version not present in the
 remote tree, it will be deleted. It should be run from time to time to
 prevent the package cache from growing too much and keep it with the
-same contents as the remote mirror. It must be noted that this operation
-does not remove every package in the package cache (+rm -f packages/*+
-from the working directory will do that). After an upgrade, you may want
-to confirm everything is running properly before running this operation,
-so as to keep the previous package versions in case a problem arises
-with the new packages.
+same contents as the remote mirror. It must be noted that this operation does
+not remove every package in the package cache (+rm -f
+/var/slackroll/packages/*+ will do that). After an upgrade, you may want to
+confirm everything is running properly before running this operation, so as to
+keep the previous package versions in case a problem arises with the new
+packages.
 
 touch::
 This operation forces the program to update the persistent database and

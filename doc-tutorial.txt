@@ -100,7 +100,7 @@ FOREIGN
 No package will enter the foreign state unless you mark it so. It
 should be used for packages that do not exist in the remote tree
 but that, unlike unavailable packages, are present in your system
-on purpose. For example, the slackroll package in my system is
+on purpose. For example, the +slackroll+ package in my system is
 marked as foreign. A foreign package will be marked as installed
 or outdated if it ever appears in the remote tree, becoming a
 candidate for upgrading. Hopefully, you'll notice this fact. You
@@ -220,14 +220,15 @@ three ways of dealing with them. Some people prefer to give them version
 names that match the official ones, despite being customized builds, and
 keep them in the installed state. The program will want to upgrade them
 automatically in that case, and maybe the official version will overwrite
-the custom one after an upgrade, before you rebuild it. Some other people
-prefer to do the same but putting the package in the frozen state. In that
-case, +list-outdated-frozen+ is useful to detect version mismatches between
-your local copy and the remote ones. Finally, some other people prefer to
-give them custom version names, normally via personalized build numbers
-that usually include some packager initials, and mark them as frozen. In
-that case, +list-versions+ can help you see if your local copy needs to be
-rebuilt for a new version.
+the custom one after an upgrade, before you rebuild it, if you don't mark it as
+frozen in the mean time. Some other people prefer to do the same but putting
+the package permanently in the frozen state. In that case,
++list-outdated-frozen+ is useful to detect version mismatches between your
+local copy and the remote ones. Finally, some other people prefer to give them
+custom version names, normally via personalized build numbers that usually
+include some packager initials, and mark them as frozen. In that case,
++list-versions+ can help you see if your local copy needs to be rebuilt for a
+new version.
 
 Normal operation
 ----------------
