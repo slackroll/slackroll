@@ -19,7 +19,7 @@ import termios
 import urllib
 import urlparse
 
-slackroll_version = 23
+slackroll_version = 24
 
 slackroll_exit_failure = 1
 slackroll_exit_success = 0
@@ -1259,6 +1259,8 @@ download-key-packages	Like 'upgrade-key-packages' but without installing
 urls-upgrades		Like 'upgrade' but only printing URLs
 urls-key-packages	Like 'upgrade-key-packages' but only printing URLs
 clean-cache		Remove unknown package versions from package cache
+erase-cache		Remove every file from package cache
+erase-tmp		Remove every file from the temporary directory
 touch			Force update on persistent database
 list-transient		Combined list of new, unavailable and outdated packages
 list-upgrades		List available upgrades
@@ -1343,6 +1345,8 @@ try:
 		'download-new':		0,
 		'download-path':	-1,
 		'download-upgrades':	0,
+		'erase-cache':		0,
+		'erase-tmp':		0,
 		'foreign':		-1,
 		'frozen':		-1,
 		'freeze':		-1,
@@ -1420,6 +1424,19 @@ try:
 	
 	if operation == 'version':
 		print 'SlackRoll v%s' % slackroll_version
+		sys.exit()
+
+	if operation in ['erase-cache', 'erase-tmp']:
+		if operation == 'erase-cache':
+			directory = slackroll_pkgs_dir
+		else: # erase-tmp
+			directory = get_temp_dir()
+		files = glob.glob(os.path.join(directory, '*'))
+		if len(files) == 0:
+			print 'No files to remove'
+		else:
+			for filename in files:
+				try_to_remove(filename)
 		sys.exit()
 
 	if operation == 'changelog':
