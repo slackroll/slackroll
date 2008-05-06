@@ -1261,6 +1261,7 @@ urls-key-packages	Like 'upgrade-key-packages' but only printing URLs
 clean-cache		Remove unknown package versions from package cache
 erase-cache		Remove every file from package cache
 erase-tmp		Remove every file from the temporary directory
+erase-all		Remove every file from both locations above
 touch			Force update on persistent database
 list-transient		Combined list of new, unavailable and outdated packages
 list-upgrades		List available upgrades
@@ -1347,6 +1348,7 @@ try:
 		'download-upgrades':	0,
 		'erase-cache':		0,
 		'erase-tmp':		0,
+		'erase-all':		0,
 		'foreign':		-1,
 		'frozen':		-1,
 		'freeze':		-1,
@@ -1426,15 +1428,17 @@ try:
 		print 'SlackRoll v%s' % slackroll_version
 		sys.exit()
 
-	if operation in ['erase-cache', 'erase-tmp']:
-		if operation == 'erase-cache':
-			directory = slackroll_pkgs_dir
-		else: # erase-tmp
-			directory = get_temp_dir()
-		files = glob.glob(os.path.join(directory, '*'))
+	if operation in ['erase-cache', 'erase-tmp', 'erase-all']:
+		directories = []
+		if operation in ['erase-cache', 'erase-all']:
+			directories.append(slackroll_pkgs_dir)
+		if operation in ['erase-tmp', 'erase-all']:
+			directories.append(get_temp_dir())
+		files = concat([glob.glob(os.path.join(directory, '*')) for directory in directories])
 		if len(files) == 0:
 			print 'No files to remove'
 		else:
+			files.sort()
 			for filename in files:
 				try_to_remove(filename)
 		sys.exit()
