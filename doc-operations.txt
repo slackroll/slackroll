@@ -156,11 +156,10 @@ of them belongs to a package or package version not present in the
 remote tree, it will be deleted. It should be run from time to time to
 prevent the package cache from growing too much and keep it with the
 same contents as the remote mirror. It must be noted that this operation does
-not remove every package in the package cache (+rm -f
-/var/slackroll/packages/*+ will do that). After an upgrade, you may want to
-confirm everything is running properly before running this operation, so as to
-keep the previous package versions in case a problem arises with the new
-packages.
+not remove every package in the package cache (+slackroll erase-cache+ will
+do that). After an upgrade, you may want to confirm everything is running
+properly before running this operation, so as to keep the previous package
+versions in case a problem arises with the new packages.
 
 touch::
 This operation forces the program to update the persistent database and
