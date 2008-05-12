@@ -62,6 +62,20 @@ located inside your local copy of the Slackware remote tree. From the
 point of view of SlackRoll, it's like if it had already downloaded every
 package.
 
+Environment variables
+---------------------
+
+*Question*: Which environment variables affect +slackroll+?
+
+*Answer*: +TMPDIR+ lets you specify a temporary directory that will be used to
+download files before they are moved to their final locations, which is
++/var/slackroll/tmp+ by default. +PAGER+ lets you specify a pager program,
+which is +less+ by default. +VISUAL+ lets you specify a visual editor, which is
+used to edit single files and is +vim+ by default. +SRDIFF+ lets you specify
+the diff tool that will be used to edit and compare pairs of files, which is
++vimdiff+ by default.
+
+
 Comparing SlackRoll to other tools
 ----------------------------------
 

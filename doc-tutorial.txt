@@ -120,7 +120,8 @@ Getting started
 ---------------
 
 +slackroll+ requires +python+, +pkgtools+, +gnupg+ (or +gnupg2+),
-+vim+ and a pager (+less+ by default) to operate properly.
+an editor and diff tool (which are +vim+ and +vimdiff+ by default (provided by
+package +vim+), and a pager (+less+ by default) to operate properly.
 
 It should be noted that you can start using +slackroll+ whenever you want,
 but my advice is to do it when your system is under control and there are
