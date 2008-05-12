@@ -49,7 +49,7 @@ LOCAL_MIRROR_DIR={ path to local copy of the tree }
 cd $SLACKROLL_DIR
 slackroll update
 rm -f packages/*
-for pkg in $( slackroll path-search '' | grep '\.tgz$' ); do
+for pkg in $( slackroll remote-paths ); do
     ln -sf $LOCAL_MIRROR_DIR/$pkg ./packages
 done
 
