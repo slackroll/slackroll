@@ -75,6 +75,23 @@ used to edit single files and is +vim+ by default. +SRDIFF+ lets you specify
 the diff tool that will be used to edit and compare pairs of files, which is
 +vimdiff+ by default.
 
+Syntax highlighting in vimdiff
+------------------------------
+
+*Question*: Is it possible to disable syntax highlighting in +vim+, but only
+when it's running in diff mode?
+
+*Answer*: Yes. Add this to your +~/.vimrc+ file, taken from the +vim+ help
+documents:
+
+-----------------------------------------------------------
+if &diff
+	syntax off
+endif
+
+
+-----------------------------------------------------------
+
 
 Comparing SlackRoll to other tools
 ----------------------------------
