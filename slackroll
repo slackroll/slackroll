@@ -1306,6 +1306,7 @@ urls-path REGEX...	Show URLs for all packages with matching path
 remove PKG...		Remove packages
 remove-unavailable	Remove every unavailable package
 remove-path REGEX...	Remove all packages with matching path
+remote-paths		Print a plain list of the remote package paths
 pb-search FILE...	Search for files in the Slackware Package Browser
 remote-search FILE...	Alias for 'pb-search'
 local-search REGEX...	Search for files in local packages
@@ -1390,6 +1391,7 @@ try:
 		'path-search':		-1,
 		'pb-search':		-1,
 		'reinstall':		-1,
+		'remote-paths':		0,
 		'remote-search':	-1,
 		'remove':		-1,
 		'remove-path':		-1,
@@ -1619,6 +1621,15 @@ try:
 	write_self_file_version()
 
 	if operation == 'touch':
+		sys.exit()
+	
+	if operation == 'remote-paths':
+		every_remote_path = concat([[y.fullname for y in remote_list[x]] for x in remote_list])
+		every_remote_path.sort()
+		interceptor = SlackRollOutputInterceptor()
+		for path in every_remote_path:
+			print path
+		interceptor.stop()
 		sys.exit()
 
 	if operation == 'state':
