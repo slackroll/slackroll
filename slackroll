@@ -69,6 +69,7 @@ slackroll_new_suffix = '.new'
 slackroll_pkg_archive_suffix = '.tgz'
 slackroll_default_pager = 'less'
 slackroll_default_visual = 'vim'
+slackroll_default_difftool = 'vimdiff'
 slackroll_gnupg_exec_names = ['gpg2', 'gpg']
 slackroll_never_missing_re = re.compile(r'(^/install/)|(^/dev/)|(^/lib/incoming/)')
 
@@ -300,6 +301,9 @@ def get_pager():
 
 def get_visual():
 	return get_env_or('VISUAL', slackroll_default_visual)
+
+def get_difftool():
+	return get_env_or('SRDIFF', slackroll_default_difftool)
 
 def optimum_size_conversion(bytes):
 	suffixes = 'bkMGTPEZY'
@@ -548,8 +552,8 @@ def run_program(arg_list): # Does not exit on errors
 def run_visual_on(file_path): # Does not exit on errors
 	run_program(get_visual().split() + [file_path])
 
-def run_vimdiff_on(oldfile, newfile): # Does not exit on errors
-	run_program(['vimdiff', oldfile, newfile])
+def run_difftool_on(oldfile, newfile): # Does not exit on errors
+	run_program(get_difftool().split() + [oldfile, newfile])
 
 def try_to_remove(file_path, fatal=True): # When it returns, it is True if file does not exist on exit
 	if not os.path.exists(file_path):
@@ -944,6 +948,7 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 		return
 
 	visual = get_visual()
+	srdiff = get_difftool()
 	existence_text = ['MISSING', 'FOUND  ']
 
 	# Iterate over every pair of .new files
@@ -956,7 +961,7 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 		go_next = ('X', 'Review next pair')
 		remove_new = ('R', 'rm %s' % basenew)
 		rename_new = ('M', 'mv %s %s' % (basenew, baseold))
-		run_vimdiff = ('V', 'vimdiff %s %s' % (baseold, basenew))
+		run_difftool = ('V', '%s %s %s' % (srdiff, baseold, basenew))
 		visual_new = ('V', '%s %s' % (visual, basenew))
 		visual_old = ('V', '%s %s' % (visual, baseold))
 
@@ -977,7 +982,7 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 
 			# Different options depending on which files exist
 			if new_exists and old_exists: # Both
-				options = [go_next, remove_new, rename_new, run_vimdiff]
+				options = [go_next, remove_new, rename_new, run_difftool]
 				chosen = choose_option(options)
 				if chosen == 0:
 					break
@@ -988,7 +993,7 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 					print 'Renaming %s ...' % newfile
 					try_to_rename(newfile, oldfile, fatal=False)
 				else:
-					run_vimdiff_on(oldfile, newfile)
+					run_difftool_on(oldfile, newfile)
 
 			elif new_exists and not old_exists: # New only
 				options = [go_next, rename_new, visual_new]
