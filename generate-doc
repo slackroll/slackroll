@@ -2,7 +2,7 @@
 asciidoc -a linkcss - <doc-html-tutorial.txt >doc/slackroll-tutorial.html
 asciidoc -a linkcss - <doc-html-faq.txt >doc/slackroll-faq.html
 asciidoc -a linkcss - <doc-html-operations.txt >doc/slackroll-operations.html
-asciidoc -b docbook -d manpage - <doc-manpage-general.txt | xsltproc --nonet -o doc/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
-asciidoc -b docbook -d manpage - <doc-manpage-tutorial.txt | xsltproc --nonet -o doc/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
-asciidoc -b docbook -d manpage - <doc-manpage-operations.txt | xsltproc --nonet -o doc/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
-asciidoc -b docbook -d manpage - <doc-manpage-faq.txt | xsltproc --nonet -o doc/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
+asciidoc -b docbook -d manpage - <doc-manpage-general.txt | sed -e "s/'/\&#8216;/g" | xsltproc --nonet -o doc/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
+asciidoc -b docbook -d manpage - <doc-manpage-tutorial.txt | sed -e "s/'/\&#8216;/g" | xsltproc --nonet -o doc/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
+asciidoc -b docbook -d manpage - <doc-manpage-operations.txt | sed -e "s/'/\&#8216;/g" | xsltproc --nonet -o doc/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
+asciidoc -b docbook -d manpage - <doc-manpage-faq.txt | sed -e "s/'/\&#8216;/g" | xsltproc --nonet -o doc/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
