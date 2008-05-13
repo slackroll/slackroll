@@ -927,7 +927,7 @@ def query_pkg_browser(version, searchstr): # Query package browser on given file
 		pkgstr = match.group(slackroll_pb_result_idname)
 		pkgcontents = match.group(slackroll_pb_result_files)
 
-		print '    %s' % re.sub(r'\s', '', pkgstr)
+		print '    %s.tgz' % re.sub(r'\s', '', pkgstr)
 		print ''.join('\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents)))
 	
 	if not has_results:
