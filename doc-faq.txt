@@ -92,6 +92,21 @@ endif
 
 -----------------------------------------------------------
 
+Most frequently used operations
+-------------------------------
+
+*Question*: +slackroll+ has a lot of operations available. Some of them are
+mentioned in the tutorial but, in a few words, which operations do you use more
+frequently?
+
+*Answer*: There is a first group of operations everybody will be running very
+frequently: +update+, +changelog+, +list-transient+ and +upgrade+. If you use a
+few foreign packages you install and upgrade by hand, you could put
++install-foreign+ in that first group too. Some users, specially the ones
+running +slackware-current+ like I do, would have a second group of common
+operations they run from time to time: +clean-cache+, +install+, +remove+,
++remove-unavailable+, +install-new+ and +not-installed+.
+
 
 Comparing SlackRoll to other tools
 ----------------------------------
