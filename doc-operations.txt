@@ -161,9 +161,25 @@ do that). After an upgrade, you may want to confirm everything is running
 properly before running this operation, so as to keep the previous package
 versions in case a problem arises with the new packages.
 
+erase-cache::
+This operation will remove every file from the package cache, without asking
+questions, so it should be used with care.
+
+erase-tmp::
+This operation will remove every file from the "tmp" directory. This is
++/var/slackroll/tmp+ by default. It can be changed to something else setting
+the environment variable TMPDIR, but it's not recommended to run this operation
+if you set TMPDIR. This operation is intended to remove partial download
+leftovers if the program is interrupted while downloading something. It will
+not ask questions. Normally, you shouldn't need it.
+
+erase-all::
+This operation is the equivalent of +erase-cache+ and +erase-tmp+ combined.
+Again, it will not ask questions.
+
 touch::
 This operation forces the program to update the persistent database and
-package states. Normally it shouldn't be needed. It is there for testing
+package states. Normally it shouldn't be needed. It's there for testing
 and debugging purposes.
 
 list-transient::
