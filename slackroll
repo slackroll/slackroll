@@ -470,6 +470,12 @@ def get_mirror(): # From the 'mirror' file
 	except (OSError, IOError, ValueError), err:
 		sys.exit('ERROR: %s' % err)
 
+def set_mirror(mirror): # Writes the mirror name to the 'mirror' file
+	try:
+		file(slackroll_mirror_filename, 'w').write('%s\n' % mirror)
+	except (OSError, IOError, ValueError), err:
+		sys.exit('ERROR: %s' % err)
+
 def get_version_from_mirror(mirror): # Extract Slackware version from mirror URL
 	match = slackroll_mirror_version_re.search(mirror)
 	if match is None:
@@ -1250,6 +1256,8 @@ def print_help():
 
 help			Print this help
 version			Print the program version
+set-mirror URL		Sets the mirror URL
+get-mirror		Prints the mirror URL
 update			Download remote tree information
 import-key		Download and import the GPG key
 changelog		Displays the last downloaded ChangeLog.txt batch
@@ -1359,6 +1367,7 @@ try:
 		'frozen':		-1,
 		'freeze':		-1,
 		'full-changelog':	0,
+		'get-mirror':		0,
 		'help':			0,
 		'import-key':		0,
 		'info':			-1,
@@ -1401,6 +1410,7 @@ try:
 		'remove':		-1,
 		'remove-path':		-1,
 		'remove-unavailable':	0,
+		'set-mirror':		1,
 		'state':		-1,
 		'touch':		0,
 		'unavailable':		-1,
@@ -1433,6 +1443,14 @@ try:
 	
 	if operation == 'version':
 		print 'SlackRoll v%s' % slackroll_version
+		sys.exit()
+
+	if operation == 'get-mirror':
+		print get_mirror()
+		sys.exit()
+	
+	if operation == 'set-mirror':
+		set_mirror(args[0])
 		sys.exit()
 
 	if operation in ['erase-cache', 'erase-tmp', 'erase-all']:
