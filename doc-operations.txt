@@ -70,7 +70,7 @@ This operation prints a help text with a summary of the available operations.
 version::
 This operations prints the program version to standard output.
 
-get-mirror::
+print-mirror::
 This operation prints the current mirror URL to standard output.
 
 set-mirror::

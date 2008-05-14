@@ -1257,7 +1257,7 @@ def print_help():
 help			Print this help
 version			Print the program version
 set-mirror URL		Sets the mirror URL
-get-mirror		Prints the mirror URL
+print-mirror		Prints the mirror URL
 update			Download remote tree information
 import-key		Download and import the GPG key
 changelog		Displays the last downloaded ChangeLog.txt batch
@@ -1367,7 +1367,6 @@ try:
 		'frozen':		-1,
 		'freeze':		-1,
 		'full-changelog':	0,
-		'get-mirror':		0,
 		'help':			0,
 		'import-key':		0,
 		'info':			-1,
@@ -1404,6 +1403,7 @@ try:
 		'orphan-search':	-1,
 		'path-search':		-1,
 		'pb-search':		-1,
+		'print-mirror':		0,
 		'reinstall':		-1,
 		'remote-paths':		0,
 		'remote-search':	-1,
@@ -1445,7 +1445,7 @@ try:
 		print 'SlackRoll v%s' % slackroll_version
 		sys.exit()
 
-	if operation == 'get-mirror':
+	if operation == 'print-mirror':
 		print get_mirror()
 		sys.exit()
 	
