@@ -70,6 +70,12 @@ This operation prints a help text with a summary of the available operations.
 version::
 This operations prints the program version to standard output.
 
+get-mirror::
+This operation prints the current mirror URL to standard output.
+
+set-mirror::
+This operation sets the mirror URL to the one you specify as its argument.
+
 update::
 This operation downloads the new changelog entries if they exist and stores
 them in your hard drive. After that, it downloads the list of
