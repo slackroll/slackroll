@@ -342,17 +342,17 @@ def interpret_results_warning():
 def low_fs_resources_warning():
 	print 'WARNING: Available disk space may not be enough'
 
-def get_mtime_or_exit(path):
+def get_mtime(path):
 	try:
 		return os.path.getmtime(path)
 	except (OSError, IOError), err:
 		sys.exit('ERROR: %s' % err)
 
 def newer_than(path1, path2): # path1 modification time more recent than path2 modification time?
-	reftime = get_mtime_or_exit(path1)
+	reftime = get_mtime(path1)
 	if not os.path.exists(path2):
 		return True
-	modtime = get_mtime_or_exit(path2)
+	modtime = get_mtime(path2)
 	return (reftime > modtime)
 	
 def try_dump(object, filepath): # cPickle.dump()
@@ -1044,8 +1044,15 @@ def handle_dotnew_files_both(prev_dotnew, cur_dotnew): # Handle installation and
 	handle_dotnew_files_installation(cur_dotnew)
 	handle_dotnew_files_removal(list(frozenset(prev_dotnew) - frozenset(cur_dotnew)))
 
+def warn_if_may_be_full_name(pkg_string):
+	try:
+		pkg = pkg_from_str(pkg_string)
+		print 'WARNING: %s looks like an unexpected full package name' % pkg_string
+	except SlackRollError:
+		pass
+
 def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage or None) -- auxiliar of parse_install_args()
-	if arg.endswith(slackroll_pkg_archive_suffix):
+	if arg.endswith(slackroll_pkg_archive_suffix) or os.path.sep in arg:
 		try:
 			pkg = pkg_from_str(arg)
 			name = pkg.name
@@ -1054,7 +1061,7 @@ def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage o
 			sys.exit('ERROR: unable to parse specific package version: %s' % arg)
 	return (False, arg, None)
 
-def parse_install_args(args, is_info, pasture, local_list, remote_list, persistent_list): # Return chosen_pkgs -- auxiliar of install_operations_family()
+def parse_install_args(args, local_list, remote_list, use_local_version, use_pasture): # Return chosen_pkgs -- auxiliar of install_operations_family()
 	chosen_pkgs = []
 	for arg in args:
 		# Decide the type of argument (full name or simple name)
@@ -1062,49 +1069,46 @@ def parse_install_args(args, is_info, pasture, local_list, remote_list, persiste
 
 		if is_full:
 			# Specific version given
-			if is_info and pkg_in_map(pkg, local_list):
+			if use_local_version and pkg_in_map(pkg, local_list):
 				chosen_pkgs.append([x for x in local_list[name] if x == pkg][0])
 			else:
 				try:
 					chosen_pkgs.append(remote_list[name][remote_list[name].index(pkg)])
 				except (KeyError, ValueError):
-					sys.exit('ERROR: unable to find remote package %s' % pkg.idname)
+					sys.exit('ERROR: unable to find remote package %s' % pkg.archivename)
+			continue
+
+		# Only generic name given
+		if name not in remote_list and ((not use_local_version) or (use_local_version and name not in local_list)):
+			warn_if_may_be_full_name(name)
+			sys.exit('ERROR: no package named %s' % name)
+
+		# Create candidate list
+		candidates = []
+		if use_local_version:
+			candidates.extend(local_list.get(name, []))
+		candidates.extend(x for x in remote_list.get(name, []) if x not in candidates)
+
+		if not use_pasture: # Filter /pasture/ candidates if indicated
+			candidates = not_pasture(candidates)
+
+		# Choose among the candidates
+		if len(candidates) == 0:
+			print 'WARNING: %s only present in /pasture/' % name
+		elif len(candidates) == 1:
+			chosen_pkgs.append(candidates[0])
 		else:
-			# Only generic name given
-			if name not in remote_list and ((not is_info) or (is_info and name not in local_list)):
-				try:
-					pkg = pkg_from_str(name)
-					sys.stderr.write('WARNING: maybe the %s suffix is missing\n' % slackroll_pkg_archive_suffix)
-				except SlackRollError:
-					pass
-				sys.exit('ERROR: %s: unknown package name' % name)
-
-			# Create candidate list
-			candidates = []
-			if is_info:
-				candidates.extend(local_list.get(name, []))
-			candidates.extend(x for x in remote_list.get(name, []) if x not in candidates)
-
-			if not pasture: # Filter /pasture/ candidates if indicated
-				candidates = not_pasture(candidates)
-
-			# Choose among the candidates
-			if len(candidates) == 0:
-				print 'WARNING: %s only present in /pasture/' % name
-			elif len(candidates) == 1:
-				chosen_pkgs.append(candidates[0])
-			else:
-				if not is_info:
-					for pkg in local_list.get(name, []):
-						print 'Local: %s' % pkg.idname
-				chosen = choose_pkg(candidates)
-				if chosen is not None:
-					chosen_pkgs.append(chosen)
+			if not use_local_version:
+				for pkg in local_list.get(name, []):
+					print 'Local: %s' % pkg.archivename
+			chosen = choose_pkg(candidates)
+			if chosen is not None:
+				chosen_pkgs.append(chosen)
 	return chosen_pkgs
 
-def install_operations_family(operation, args, local_list, remote_list, persistent_list, pasture=True):
+def install_operations_family(operation, args, local_list, remote_list, persistent_list, use_pasture=True):
 	is_real_install = (operation in ['install', 'reinstall'])
-	is_info = (operation == 'info')
+	use_local_version = (operation == 'info')
 
 	# Warn the user on install and reinstall operations if there is key package activity and they have not indicated key packages
 	if is_real_install and not key_pkg_in(args) and maybe_print_key_pkg_warning(persistent_list):
@@ -1112,7 +1116,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
 	# Get mirror and parse arguments (package names or full versions)
 	mirror = get_mirror()
-	chosen_pkgs = parse_install_args(args, is_info, pasture, local_list, remote_list, persistent_list)
+	chosen_pkgs = parse_install_args(args, local_list, remote_list, use_local_version, use_pasture)
 
 	# For install and reinstall operations save list of existing .new file pairs
 	if is_real_install:
@@ -1126,7 +1130,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 			cached_ones = [x for x in chosen_pkgs if x not in to_be_downloaded]
 
 			for pkg in cached_ones:
-				print 'Package %s found in cache' % pkg.idname
+				print 'Package %s found in cache' % pkg.archivename
 
 			if not enough_fs_resources(len(to_be_downloaded), sum(x.size for x in to_be_downloaded)):
 				low_fs_resources_warning()
@@ -1673,7 +1677,7 @@ try:
 			sys.exit()
 
 		opmap = { 'upgrade': 'install', 'download-upgrades': 'download', 'urls-upgrades': 'urls' }
-		install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, pasture=False)
+		install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, use_pasture=False)
 		sys.exit()
 	
 	if operation in ['upgrade-key-packages', 'download-key-packages', 'urls-key-packages']:
@@ -1682,7 +1686,7 @@ try:
 			print 'No outdated key system packages'
 			sys.exit()
 		opmap = { 'upgrade-key-packages': 'install', 'download-key-packages': 'download', 'urls-key-packages': 'urls' }
-		install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, pasture=False)
+		install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, use_pasture=False)
 		sys.exit()
 
 	if operation == 'clean-cache':
@@ -1737,7 +1741,7 @@ try:
 				print '    %s: WARNING: only present in /pasture/\n' % name
 				continue
 			print '    %s:' % name
-			print '\n'.join('\tLocal:\t%s' % pkg.idname for pkg in local_list[name])
+			print '\n'.join('\tLocal:\t%s' % pkg.archivename for pkg in local_list[name])
 			print '\n'.join('\tRemote:\t%s' % pkg.fullname for pkg in candidates)
 			print
 		print 'End of list'
@@ -1858,7 +1862,7 @@ try:
 		for name in args:
 			print '    %s:' % name
 			if name in local_list:
-				print '\n'.join('\tLocal:\t%s' % ver.idname for ver in local_list[name])
+				print '\n'.join('\tLocal:\t%s' % ver.archivename for ver in local_list[name])
 			if name in remote_list:
 				print '\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name])
 			print
@@ -1911,6 +1915,8 @@ try:
 	if operation == 'local-info':
 		unknown = [pkg for pkg in args if pkg not in local_list]
 		if len(unknown) > 0:
+			for pkg in unknown:
+				warn_if_may_be_full_name(pkg)
 			sys.exit('ERROR: these local packages do not exist:\n%s' % '\n'.join('ERROR:    %s' % pkg for pkg in unknown))
 		interceptor = SlackRollOutputInterceptor()
 		try:
