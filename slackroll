@@ -893,16 +893,18 @@ def print_list_or(the_list, header, message_on_emtpy): # Idem using interceptor 
 	interceptor.stop()
 
 def error_unknown_packages(name_list): # Print package names as unknown and exit with error
+	print ''.join('WARNING: %s looks like an unexpected full version\n' % x for x in name_list if may_be_full_version(x))
 	sys.stderr.write('ERROR: The following packages are unknown:\n')
 	sys.stderr.write(''.join('ERROR:    %s\n' % x for x in name_list))
 	sys.exit(slackroll_exit_failure)
 
-def maybe_error_unknown_packages(name_list):
-	if len(name_list) > 0:
-		error_unknown_packages(name_list)
+def maybe_error_unknown_packages(name_list, by_name):
+	unknown = [x for x in name_list if x not in by_name]
+	if len(unknown) > 0:
+		error_unknown_packages(unknown)
 
 def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): # Changes state if it matches
-	maybe_error_unknown_packages([x for x in pkg_names if x not in persistent_list])
+	maybe_error_unknown_packages(pkg_names, persistent_list)
 	dest_st_name = slackroll_state_strings[dest_state]
 	print 'Marking packages as %s...' % dest_st_name
 	for name in pkg_names:
@@ -1044,14 +1046,20 @@ def handle_dotnew_files_both(prev_dotnew, cur_dotnew): # Handle installation and
 	handle_dotnew_files_installation(cur_dotnew)
 	handle_dotnew_files_removal(list(frozenset(prev_dotnew) - frozenset(cur_dotnew)))
 
-def may_be_full_name(pkg_string):
+def may_be_full_version(pkg_string):
 	try:
 		pkg = pkg_from_str(pkg_string)
 		return True
-		print 'WARNING: %s looks like an unexpected full package name' % pkg_string
 	except SlackRollError:
 		pass
 	return False
+
+def verify_local_names(names, local_list):
+	for name in names:
+		if name not in local_list:
+			if may_be_full_version(name):
+				print 'WARNING: %s looks like an unexpected full version' % name
+			sys.exit('ERROR: %s is not a local package name' % name)
 
 def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage or None) -- auxiliar of parse_install_args()
 	if arg.endswith(slackroll_pkg_archive_suffix) or os.path.sep in arg:
@@ -1082,7 +1090,7 @@ def parse_install_args(args, local_list, remote_list, use_local_version, use_pas
 
 		# Only generic name given
 		if name not in remote_list and ((not use_local_version) or (use_local_version and name not in local_list)):
-			if may_be_full_name(name):
+			if may_be_full_version(name):
 				print 'WARNING: %s suffix may be missing on %s' % (slackroll_pkg_archive_suffix, name)
 			sys.exit('ERROR: no package named %s' % name)
 
@@ -1663,7 +1671,7 @@ try:
 		sys.exit()
 
 	if operation == 'state':
-		maybe_error_unknown_packages([x for x in args if x not in persistent_list])
+		maybe_error_unknown_packages(args, persistent_list)
 		plist_subset = dict([(x, persistent_list[x]) for x in args])
 		print_in_states_or(slackroll_all_states, plist_subset, 'Package states:', 'INTERNAL ERROR: no packages specified', True)
 		sys.exit()
@@ -1859,7 +1867,7 @@ try:
 		sys.exit()
 
 	if operation == 'list-versions':
-		maybe_error_unknown_packages([x for x in args if x not in persistent_list])
+		maybe_error_unknown_packages(args, persistent_list)
 		interceptor = SlackRollOutputInterceptor()
 		print 'Available versions:'
 		for name in args:
@@ -1916,13 +1924,7 @@ try:
 		sys.exit()
 	
 	if operation == 'local-info':
-		unknown = [pkg for pkg in args if pkg not in local_list]
-		if len(unknown) > 0:
-			for pkg in unknown:
-				if may_be_full_name(pkg):
-					print 'WARNING: %s looks like an unexpected full version' % pkg
-				sys.stderr.write('ERROR: no local package named %s\n' % pkg)
-			sys.exit(slackroll_exit_failure)
+		verify_local_names(args)
 		interceptor = SlackRollOutputInterceptor()
 		try:
 			print '\n'.join(file(x.fullname, 'r').read() for x in concat(local_list[pkg] for pkg in args))
@@ -1972,13 +1974,8 @@ try:
 			confirm_continue()
 
 		if operation == 'remove':
-			final_args = []
-			for name in args:
-				if name not in local_list:
-					if may_be_full_name(name):
-						print 'WARNING: %s looks like an unexpected full version' % name
-					sys.exit('ERROR: no local package named %s' % name)
-				final_args.append(name)
+			verify_local_names(args)
+			final_args = args
 		else: # remove-unavailable
 			final_args = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
 
