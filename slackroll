@@ -1571,7 +1571,7 @@ try:
 		interceptor = SlackRollOutputInterceptor()
 		print header
 		for (name, files) in matches:
-			print '    %s' % os.path.basename(name)
+			print '    %s%s' % (os.path.basename(name), slackroll_pkg_archive_suffix)
 			print ''.join('\t%s\n' % x for x in files)
 		print 'End of list'
 		interceptor.stop()
