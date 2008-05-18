@@ -514,8 +514,8 @@ def getwinsize(): # Returns terminal (rows, columns)
 	# are given the same name they have in the C winsize structure.
 
 	bufsize = struct.calcsize('HHHH')
-	buffer = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, '\x00' * bufsize)
-	(ws_row, ws_col, ws_xpixel, ws_ypixel) = struct.unpack('HHHH', buffer)
+	bytes = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, '\x00' * bufsize)
+	(ws_row, ws_col, ws_xpixel, ws_ypixel) = struct.unpack('HHHH', bytes)
 	return (ws_row, ws_col)
 
 def too_many_lines(numlines): # Returns True if lines do not fit in screen
@@ -669,7 +669,7 @@ def verify_signature(filename):	# Does not exit on errors
 def upgrade_or_install(filename, reinstall): # upgradepkg
 	try:
 		print 'Installing %s ...' % os.path.basename(filename)
-		retcode = subprocess.call(['/sbin/upgradepkg', '--install-new'] + (reinstall and ['--reinstall'] or []) + [filename])
+		retcode = subprocess.call(['/sbin/upgradepkg', '--install-new'] + ([[], ['--reinstall']][reinstall]) + [filename])
 		if retcode != 0:
 			sys.exit('ERROR: installation failed: %s' % filename)
 	except (OSError, IOError), err:
@@ -1061,7 +1061,7 @@ def handle_dotnew_files_both(prev_dotnew, cur_dotnew): # Handle installation and
 
 def may_be_full_version(pkg_string):
 	try:
-		pkg = pkg_from_str(pkg_string)
+		pkg_from_str(pkg_string)
 		return True
 	except SlackRollError:
 		pass
