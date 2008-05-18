@@ -1937,7 +1937,7 @@ try:
 		sys.exit()
 	
 	if operation == 'local-info':
-		verify_local_names(args)
+		verify_local_names(args, local_list)
 		interceptor = SlackRollOutputInterceptor()
 		try:
 			print '\n'.join(file(x.fullname, 'r').read() for x in concat(local_list[pkg] for pkg in args))
@@ -1987,7 +1987,7 @@ try:
 			confirm_continue()
 
 		if operation == 'remove':
-			verify_local_names(args)
+			verify_local_names(args, local_list)
 			final_args = args
 		else: # remove-unavailable
 			final_args = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
