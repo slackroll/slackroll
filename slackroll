@@ -455,7 +455,10 @@ def get_remote_list(forced_rebuild): # Return list of remote packages from cache
 			remote_list[name] = value
 		# Remove unpatched versions
 		for name in has_patch:
-			remote_list[name] = not_main_or_extra(remote_list[name])
+			if any_in_main_tree(remote_list[name]) and any_in_extra_tree(remote_list[name]):
+				remote_list[name] = not_main(remote_list[name])
+			else:
+				remote_list[name] = not_main_or_extra(remote_list[name])
 		try_dump(remote_list, slackroll_remotelist_filename)
 	return try_load(slackroll_remotelist_filename)
 
@@ -788,8 +791,17 @@ def choose_pkg(pkg_list): # Returns chosen package or None
 	chosen = choose_option(options)
 	return pkg_list[chosen]
 
+def any_in_main_tree(pkg_list): # True if any package from the list is in the main tree
+	return (len([x for x in pkg_list if slackroll_main_indicator in x.path]) > 0)
+
+def any_in_extra_tree(pkg_list): # True if any package from the list is in the extra tree
+	return (len([x for x in pkg_list if slackroll_extra_indicator in x.path]) > 0)
+
 def not_pasture(pkg_list): # Returns packages not in pasture
 	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path]
+
+def not_main(pkg_list): # Returns packages not in the main tree
+	return [x for x in pkg_list if slackroll_main_indicator not in x.path]
 
 def not_main_or_extra(pkg_list): # Returns packages not in the main or extra trees
 	return [x for x in pkg_list if slackroll_main_indicator not in x.path and slackroll_extra_indicator not in x.path]
