@@ -56,6 +56,7 @@ slackroll_locallist_filename = os.path.join(slackroll_base_dir, 'local.db')
 slackroll_remotelist_filename = os.path.join(slackroll_base_dir, 'remote.db')
 slackroll_pkg_files_filename = os.path.join(slackroll_base_dir, 'pkgfiles.db')
 slackroll_known_files = os.path.join(slackroll_base_dir, 'knownfiles.db')
+slackroll_blacklist_filename = os.path.join(slackroll_base_dir, 'blacklist.db')
 slackroll_filelist_filename = 'FILELIST.TXT'
 slackroll_changelog_filename = 'ChangeLog.txt'
 slackroll_changelog_entry_separator = '+--------------------------+\n'
@@ -350,12 +351,19 @@ def get_mtime(path):
 		sys.exit('ERROR: %s' % err)
 
 def newer_than(path1, path2): # path1 modification time more recent than path2 modification time?
-	reftime = get_mtime(path1)
+	if not os.path.exists(path1) and not os.path.exists(path2):
+		return True # Sane default response, according to the usage we make of this function
+	if not os.path.exists(path1):
+		return False
 	if not os.path.exists(path2):
 		return True
+	reftime = get_mtime(path1)
 	modtime = get_mtime(path2)
 	return (reftime > modtime)
 	
+def is_readable_file(filepath):
+	return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
+
 def try_dump(object, filepath): # cPickle.dump()
 	try:
 		cPickle.dump(object, file(filepath, 'wb'), -1)
@@ -367,6 +375,49 @@ def try_load(filepath): # cPickle.load()
 		return cPickle.load(file(filepath, 'rb'))
 	except (OSError, IOError, cPickle.PickleError), err:
 		sys.exit('ERROR: %s' % err)
+
+def get_blacklist(): # Get blacklist expression list
+	if is_readable_file(slackroll_blacklist_filename):
+		return try_load(slackroll_blacklist_filename)
+	return []
+
+def get_blacklist_re(): # Almost the same, but already converted to regular expressions
+	try:
+		return [re.compile(x) for x in get_blacklist()]
+	except re.error:
+		sys.exit('ERROR: invalid regular expression found in blacklist')
+
+def add_blacklist_exprs(expressions): # Add expressions to the blacklist
+	valid_ones = []
+	for regex_str in expressions:
+		try:
+			re.compile(regex_str)
+			valid_ones.append(regex_str)
+		except re.error:
+			sys.exit('ERROR: "%s" is an invalid regular expression' % regex_str)
+	bl = get_blacklist()
+	bl.extend(valid_ones)
+	try_dump(bl, slackroll_blacklist_filename)
+
+def del_blacklist_exprs(indexes): # Remove expressions from the blacklist
+	bl = get_blacklist()
+	idnums = []
+	for idx in indexes:
+		try:
+			num = long(idx)
+			if num < 0 or num >= len(bl):
+				raise ValueError()
+			idnums.append(num)
+		except ValueError:
+			sys.exit('ERROR: invalid blacklist entry index: %s' % idx)
+	index_regex_pairs = [(x, bl[x]) for x in xrange(len(bl))]
+	newbl = [regex for (idx, regex) in index_regex_pairs if idx not in idnums]
+	try_dump(newbl, slackroll_blacklist_filename)
+
+def print_blacklist():
+	bl = get_blacklist()
+	numbered = ['%-4s  %s' % (x, bl[x]) for x in xrange(len(bl))]
+	print_list_or(numbered, 'Blacklisted expressions:', 'No blacklisted expressions')
 
 def extract_file_list(filename): # Extracts the file list from a local info file
 	try:
@@ -441,11 +492,19 @@ def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
 		sys.exit('ERROR: %s' % err)
 
 def get_remote_list(forced_rebuild): # Return list of remote packages from cached list, updating if needed
-	if newer_than(slackroll_local_filelist, slackroll_remotelist_filename) or forced_rebuild:
+	bl = get_blacklist_re()
+	if (newer_than(slackroll_local_filelist, slackroll_remotelist_filename)
+	    or newer_than(slackroll_blacklist_filename, slackroll_remotelist_filename)
+	    or forced_rebuild):
 		print 'Rebuilding remote packages list...'
 		remote_list = dict()
 		has_patch = set()
 		for pkg in get_remote_pkgs():
+			# Ignore packages matching blacklist
+			fullname = pkg.fullname
+			matches = [x.search(fullname) for x in bl]
+			if len([x for x in matches if x is not None]) > 0:
+				continue
 			# Mark packages with patches
 			name = pkg.name
 			if slackroll_patch_indicator in pkg.path:
@@ -689,9 +748,6 @@ def remove_pkgs(pkg_list):
 	for pkg in pkg_list:
 		remove_pkg(pkg.idname)
 	handle_dotnew_files_removal(dotnew_files)
-
-def is_readable_file(filepath):
-	return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
 
 def package_in_cache(package): # Check if package is in ./packages
 	filepath = os.path.join(slackroll_pkgs_dir, package.archivename)
@@ -1348,6 +1404,9 @@ remove PKG...		Remove packages
 remove-unavailable	Remove every unavailable package
 remove-path REGEX...	Remove all packages with matching path
 remote-paths		Print a plain list of the remote package paths
+print-blacklist		Print all the expressions in the blacklist
+blacklist-add REGEX...	Add an expression to the blacklist
+blacklist-del INDEX...	Delete an expression from the blacklist
 pb-search FILE...	Search for files in the Slackware Package Browser
 remote-search FILE...	Alias for 'pb-search'
 local-search REGEX...	Search for files in local packages
@@ -1378,6 +1437,8 @@ try:
 	socket.setdefaulttimeout(slackroll_socket_timeout)
 
 	op_num_args = {	# Map of operations and their number of arguments (-1 means any nonzero quantity)
+		'blacklist-add':	-1,
+		'blacklist-del':	-1,
 		'broken-symlinks':	-1,
 		'changelog':		0,
 		'changelog-entries':	-1,
@@ -1431,6 +1492,7 @@ try:
 		'orphan-search':	-1,
 		'path-search':		-1,
 		'pb-search':		-1,
+		'print-blacklist':	0,
 		'print-mirror':		0,
 		'reinstall':		-1,
 		'remote-paths':		0,
@@ -1471,6 +1533,18 @@ try:
 	
 	if operation == 'version':
 		print 'SlackRoll v%s' % slackroll_version
+		sys.exit()
+	
+	if operation == 'print-blacklist':
+		print_blacklist()
+		sys.exit()
+	
+	if operation == 'blacklist-add':
+		add_blacklist_exprs(args)
+		sys.exit()
+	
+	if operation == 'blacklist-del':
+		del_blacklist_exprs(args)
 		sys.exit()
 
 	if operation == 'print-mirror':
