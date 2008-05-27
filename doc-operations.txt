@@ -144,7 +144,7 @@ This operation is similar to the +upgrade+ operation, but the files will
 only be downloaded. As no +upgradepkg+ command is run, no +.new+ files
 are reviewed.
 
-download-key-pakages::
+download-key-packages::
 This operation is similar to +download-upgrades+ but restricting the
 operation to the OUTDATED key system packages (+glibc-solibs+, +sed+ and
 +pkgtools+).
@@ -378,6 +378,30 @@ UNAVAILABLE. The second one is like using an implicit argument list
 formed by packages with a path matching any of the Python regular
 expressions used as arguments. It must be noted that this second
 operation only searches packages present in the remote list.
+
+remote-paths::
+This operation prints a plain list of all the remote packages, including the
++tgz+ suffix and their relative paths.
+
+print-blacklist::
+This operation prints the list of blacklisted regular expressions, preceded by
+their expression index. When +slackroll+ creates the list of remote packages,
+their full names, including their relative paths, are checked against the
+expressions in the blacklist. If a match is found, the package file is ignored
+and not included in the list of remote packages, as if it did not exist. This
+can be used for many purposes, but the intended usage is to discard specific
+package versions that are known not to be interesting. For example, if a user
+has the SMP kernel package and headers installed, and the headers package is
+upgraded, they know they are not interested in the kernel headers package from
++/extra/linux-<something>-nosmp-sdk/+. They can blacklist that version so they
+are not asked about which one they prefer every time the package is upgraded.
+
+blacklist-add::
+This operation adds Python regular expressions to the blacklist.
+
+blacklist-del::
+This operation removes expressions from the blacklist, specifying one or more
+expression indexes as its arguments.
 
 pb-search::
 remote-search::

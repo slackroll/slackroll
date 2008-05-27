@@ -1347,7 +1347,7 @@ import-key		Download and import the GPG key
 changelog		Displays the last downloaded ChangeLog.txt batch
 download-changelog	Download the full ChangeLog.txt
 list-changelog		List all known changelog entries and their identifiers
-changelog-entries ID... Display changelog entries by identifier
+changelog-entries ID...	Display changelog entries by identifier
 full-changelog		Display every known changelog entry
 upgrade			Upgrade system packages
 upgrade-key-packages	Upgrade key system packages
