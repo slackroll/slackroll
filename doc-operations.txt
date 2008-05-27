@@ -109,6 +109,9 @@ This operation, given a list of changelog entry identifiers (that you can
 get by running the +list-changelog+ operation), will print them on screen
 in the specified order.
 
+full-changelog::
+This operation prints every known changelog entry.
+
 upgrade::
 This operation will check which packages are in the state OUTDATED and
 which remote versions exist for them. If, for any package, more than one
@@ -155,6 +158,10 @@ URLs and total size of the packages. This option is mostly useful to
 view the total download size and getting a list of URLs to be used with
 an external download manager, instead of the program's simple
 downloading routine.
+
+urls-key-packages::
+This operation is similar to +urls-upgrades+, but limiting the output to the
+key system packages (+glibc-solibs+, +sed+ and +pkgtools+).
 
 clean-cache::
 This operation will check the files present in the package cache. If any
