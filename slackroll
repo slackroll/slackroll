@@ -1399,6 +1399,7 @@ install-new		Install all new packages
 install-path REGEX...	Install all packages with matching path
 install-foreign PATH...	Install a foreign package from disk
 reinstall PKG...	Same as 'install' but reinstalls if needed
+replace UNAV NEW	Replace an unavailable package with a new one
 download PKG...		Download packages or specific package versions
 download-new		Download all new packages
 download-path REGEX...	Download all packages with matching path
@@ -1509,6 +1510,7 @@ try:
 		'remove':		-1,
 		'remove-path':		-1,
 		'remove-unavailable':	0,
+		'replace':		2,
 		'set-mirror':		1,
 		'state':		-1,
 		'touch':		0,
@@ -2063,6 +2065,46 @@ try:
 		# Go over .new files
 		cur_dotnew = extract_dotnew_files([x.local() for x in pkgs])
 		handle_dotnew_files_both(prev_dotnew, cur_dotnew)
+		sys.exit()
+	
+	if operation == 'replace':
+		if maybe_print_key_pkg_warning(persistent_list):
+			confirm_continue()
+
+		# Verify package names
+		for name in args:
+			if name not in persistent_list:
+				if may_be_full_version(name):
+					sys.stderr.write('WARNING: %s looks like an unexpected full version\n' % name)
+				sys.exit('ERROR: no package named %s' % name)
+
+		unavpkg = args[0]
+		newpkg = args[1]
+
+		# Verify package conditions
+		if persistent_list[unavpkg] != slackroll_state_unavailable:
+			sys.exit('ERROR: %s must be in the "unavailable" state' % unavpkg)
+		if persistent_list[newpkg] != slackroll_state_new:
+			sys.exit('ERROR: %s must be in the "new" state' % newpkg)
+
+		# Choose specific package
+		if len(remote_list[newpkg]) != 1:
+			chosen_new = choose_pkg(remote_list[newpkg])
+		else:
+			chosen_new = remote_list[newpkg][0]
+
+		# Download
+		if not package_in_cache(chosen_new):
+			filename_new = download_verify(get_mirror(), chosen_new)
+		else:
+			filename_new = os.path.join(slackroll_pkgs_dir, chosen_new.archivename)
+
+		# upgradepkg
+		prev_dotnew = extract_dotnew_files(local_list[unavpkg])
+		replace_pkg(unavpkg, filename_new)
+		cur_dotnew = extract_dotnew_files([chosen_new.local()])
+		handle_dotnew_files_both(prev_dotnew, cur_dotnew)
+
 		sys.exit()
 
 	if operation in ['remove', 'remove-unavailable']:
