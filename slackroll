@@ -734,6 +734,15 @@ def upgrade_or_install(filename, reinstall): # upgradepkg
 	except (OSError, IOError), err:
 		sys.exit('ERROR: %s' % err)
 
+def replace_pkg(installed_filename, new_filename): # upgradepkg using '%' notation
+	try:
+		print 'Installing %s ...' % os.path.basename(new_filename)
+		retcode = subprocess.call(['/sbin/upgradepkg', '%s%%%s' % (installed_filename, new_filename)])
+		if retcode != 0:
+			sys.exit('ERROR: installation failed: %s' % new_filename)
+	except (OSError, IOError), err:
+		sys.exit('ERROR %s' % err)
+
 def remove_pkg(removepkg_arg): # removepkg
 	try:
 		print 'Removing %s ...' % removepkg_arg
