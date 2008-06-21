@@ -1617,7 +1617,7 @@ try:
 	
 	if operation == 'full-changelog':
 		cl = try_load(slackroll_local_changelog)
-		entries = concat([[x for x in cl.get_batch(y)] for y in xrange(cl.num_batches())])
+		entries = concat([[x for x in cl.get_batch(y)] for y in xrange(cl.num_batches() - 1, -1, -1)])
 		interceptor = SlackRollOutputInterceptor()
 		print slackroll_changelog_entry_separator.join('%s' % x for x in entries)
 		interceptor.stop()
