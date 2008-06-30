@@ -132,10 +132,10 @@ event happening in the testing tree, be it packages being added, removed
 or upgraded, including the events of a foreign package getting an official
 version and the removal of a package for which a customized version was
 installed. This is possible thanks to its package states foundation and
-the absence of a blacklisting mechanism in favour of working with two
-differentiated states: foreign and frozen. No other tool, as far as I
-know, can deal with as many events as SlackRoll. I'm unable to imagine an
-event that is not covered by SlackRoll.
+the preference for working with two different states (foreign and frozen)
+instead of relying in a blacklisting mechanism. No other tool, as far as I
+know, can deal with as many events as SlackRoll. I'm unable to imagine an event
+that is not covered by SlackRoll.
 
 Apart from the type of Slackware installation you're running, there's the
 issue of using external repositories like the one from LinuxPackages.net.
