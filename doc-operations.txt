@@ -334,6 +334,15 @@ reinstall::
 This operation is similar to +install+, but +upgradepkg+ will be called
 with the +--reinstall+ option.
 
+replace::
+This operation receives two package names. The first one must be an unavailable
+package and the second one a new package. The program will call +upgradepkg+
+using the "% notation" to upgrade the unavailable package using the new one.
+This should be useful with +slackware-current+ in the case of a package name
+change, but there may be other cases in which it could be useful. See for
+example the changelog entry from _Tue Apr  1 02:41:32 CDT 2008_ about the
+change from +util-linux+ to +util-linux-ng+.
+
 download::
 download-new::
 download-path::
