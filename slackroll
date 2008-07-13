@@ -93,6 +93,7 @@ slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=
 slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?<a[^>]*>(.+?)</a>.*?</div>.*?<div class="pkgdescr">(.+?)</div>.*?</div>'
 slackroll_pb_result_idname = 1
 slackroll_pb_result_files = 2
+slackroll_primary_site_url = 'http://slackware.osuosl.org/slackware-%s/'
 
 def index_of(thelist, elem):
 	try:
@@ -763,6 +764,7 @@ def package_in_cache(package): # Check if package is in ./packages
 	return is_readable_file(filepath)
 
 def download_verify(mirror, package): # Download package, signature and verify it
+	sigmirror = slackroll_primary_site_url % get_version_from_mirror(mirror)
 	tempdir = get_temp_dir()
 	remote_name = package.fullname
 	remote_sig = '%s%s' % (remote_name, slackroll_signature_suffix)
@@ -772,7 +774,7 @@ def download_verify(mirror, package): # Download package, signature and verify i
 
 	try:
 		download(mirror, remote_name, tempdir)
-		download(mirror, remote_sig, tempdir)
+		download(sigmirror, remote_sig, tempdir)
 		verify_signature(local_sig)
 	except SlackRollError:
 		try_to_remove(local_sig)
@@ -1724,7 +1726,7 @@ try:
 		sys.exit()
 
 	if operation == 'import-key':
-		download_or_exit(get_mirror(), slackroll_gpgkey_filename, slackroll_base_dir)
+		download_or_exit(slackroll_primary_site_url % get_version_from_mirror(get_mirror()), slackroll_gpgkey_filename, slackroll_base_dir)
 		import_key(slackroll_local_gpgkey)
 		try_to_remove(slackroll_local_gpgkey)
 		sys.exit()
