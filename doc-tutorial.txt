@@ -141,12 +141,12 @@ slackroll set-mirror 'http://example.org/slackware-current/'
 
 -------------------------------------------------------------------
 
-*Do not forget the trailing slash!* Great. You are ready to start. Retrieve
-the remote GPG key from the mirror to add it to your keyring. Having the
-GPG key is required, and it's safe to do this step even if the key is
-already in your keyring, supposing you trust the mirror you chose. If you
-don't, get the GPG key by other means and add it to your keyring, skipping
-this step.
+*Do not forget the trailing slash!* Great. You are ready to start. Retrieve the
+remote GPG key to add it to your keyring. Having the GPG key is required, and
+it should be safe to do this step even if the key is already in your keyring.
+You can also get the key from the Slackware CD or DVD. The GPG key and the
+package signatures will be downloaded from a primary mirror instead of the
+mirror you chose, in order to increase security.
 
 ----------------------------------------------------------
 slackroll import-key
