@@ -910,6 +910,12 @@ def maybe_print_outdated_warning(persistent_list):
 		return True
 	return False
 
+def maybe_print_proxies_warning():
+	proxies = [x for x in os.environ if re.search(r'(?i)_proxy$', x) is not None]
+	if len(proxies) == 0:
+		return
+	print 'WARNING: the following proxies are set: %s' % ' '.join(proxies)
+
 def confirm_continue():
 	raw_input('Press Ctrl+C to cancel or Enter to continue... ')
 
@@ -1717,6 +1723,7 @@ try:
 	handle_writable_dir(get_temp_dir())
 
 	if operation == 'update':
+		maybe_print_proxies_warning()
 		mirror = get_mirror()
 		print 'Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size())
 		updated = update_changelog(mirror)
