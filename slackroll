@@ -836,9 +836,11 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 	return True
 
 def print_urls(mirror, package):
-	url = package.url(mirror)
-	print url
-	print '%s%s' % (url, slackroll_signature_suffix)
+	sigmirror = slackroll_primary_site_url % get_version_from_mirror(mirror)
+	pkgurl = package.url(mirror)
+	sigurl = '%s%s' % (package.url(sigmirror), slackroll_signature_suffix)
+	print pkgurl
+	print sigurl
 
 def choose_option(option_list): # Prompt user and return option index
 	print 'Choose option:'
