@@ -95,6 +95,16 @@ slackroll_pb_result_idname = 1
 slackroll_pb_result_files = 2
 slackroll_primary_site_url = 'http://slackware.osuosl.org/slackware-%s/'
 
+slackroll_locale_envvars = ['LC_COLLATE', 'LC_CTYPE', 'LC_MONETARY', 'LC_MESSAGES', 'LC_NUMERIC', 'LC_TIME', 'LC_ALL', 'LANGUAGE', 'LANG']
+slackroll_locale_mainvar = 'LANG'
+slackroll_locale_value = 'C'
+
+def standarize_locales():
+	for varname in slackroll_locale_envvars:
+		if varname in os.environ:
+			del os.environ[varname]
+	os.environ[slackroll_locale_mainvar] = slackroll_locale_value
+
 def index_of(thelist, elem):
 	try:
 		return thelist.index(elem)
@@ -1455,6 +1465,7 @@ try:
 	persistent_list = None
 	urllib._urlopener = SlackRollURLopener()
 	socket.setdefaulttimeout(slackroll_socket_timeout)
+	standarize_locales()
 
 	op_num_args = {	# Map of operations and their number of arguments (-1 means any nonzero quantity)
 		'blacklist-add':	-1,
