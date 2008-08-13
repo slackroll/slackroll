@@ -991,7 +991,7 @@ def print_list_or(the_list, header, message_on_emtpy): # Idem using interceptor 
 	interceptor.stop()
 
 def error_unknown_packages(name_list): # Print package names as unknown and exit with error
-	print ''.join('WARNING: %s looks like an unexpected full version\n' % x for x in name_list if may_be_full_version(x)),
+	sys.stderr.write(''.join('WARNING: %s looks like an unexpected full version\n' % x for x in name_list if may_be_full_version(x)))
 	sys.stderr.write('ERROR: The following packages are unknown:\n')
 	sys.stderr.write(''.join('ERROR:    %s\n' % x for x in name_list))
 	sys.exit(slackroll_exit_failure)
