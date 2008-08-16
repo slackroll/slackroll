@@ -990,6 +990,11 @@ def print_list_or(the_list, header, message_on_emtpy): # Idem using interceptor 
 	print_list(the_list, header)
 	interceptor.stop()
 
+def tr_pkg_detail(local_list, remote_list, persistent_list, pkg_name): # Returns a string with package details for a transient package
+	if persistent_list[pkg_name] != slackroll_state_new:
+		return ''
+	return ' '.join(x.path for x in remote_list[pkg_name])
+
 def error_unknown_packages(name_list): # Print package names as unknown and exit with error
 	sys.stderr.write(''.join('WARNING: %s looks like an unexpected full version\n' % x for x in name_list if may_be_full_version(x)))
 	sys.stderr.write('ERROR: The following packages are unknown:\n')
@@ -1889,13 +1894,31 @@ try:
 			sys.exit()
 		pkgs_and_states.sort(cmp=transient_cmp)
 
+		# Translate states to strings and precalculate constants
+		pkgs_and_states = [(name, slackroll_state_strings[state]) for (name, state) in pkgs_and_states]
+		max_state_len = max(len(slackroll_state_strings[x]) for x in slackroll_transient_states)
+		max_name_len = max(len(a) for (a, b) in pkgs_and_states)
+		format = '    %%-%ss  %%-%ss  %%s' % (max_state_len, max_name_len)
+
+		# Print the transient list
 		interceptor = SlackRollOutputInterceptor()
-		format = '    %%-%ss  %%s' % max([len(slackroll_state_strings[x]) for x in slackroll_all_states])
 		print 'Transient packages:'
-		print '\n'.join(format % (slackroll_state_strings[state], name) for (name, state) in pkgs_and_states)
+		print '\n'.join(format % (state, name, tr_pkg_detail(local_list, remote_list, persistent_list, name)) for (name, state) in pkgs_and_states)
 		print 'End of list'
 		maybe_print_key_pkg_watchout(persistent_list)
 		interceptor.stop()
+		sys.exit()
+
+	if operation == 'list-new':
+		# Very similar to list-transient
+		new_pkgs = pkgs_in_state(persistent_list, [slackroll_state_new])
+		if len(new_pkgs) > 0:
+			max_name_len = max(len(x) for x in new_pkgs)
+		else:
+			max_name_len = 0
+		format = '%%-%ss  %%s' % max_name_len
+		pkg_and_details = [format % (x, tr_pkg_detail(local_list, remote_list, persistent_list, x)) for x in new_pkgs]
+		print_seq_or(pkg_and_details, 'New packages:', 'No new packages found')
 		sys.exit()
 	
 	if operation == 'list-alternatives':
@@ -1924,7 +1947,7 @@ try:
 		interceptor.stop()
 		sys.exit()
 
-	if operation in ['list-new', 'list-outdated', 'list-unavailable', 'list-installed', 'list-not-installed', 'list-frozen', 'list-foreign']:
+	if operation in ['list-outdated', 'list-unavailable', 'list-installed', 'list-not-installed', 'list-frozen', 'list-foreign']:
 		state_str = operation.replace('list-', '')
 		header = '%s packages:' % state_str.capitalize()
 		empty_message = 'No %s packages found' % state_str
