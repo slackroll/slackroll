@@ -552,7 +552,7 @@ def get_mirror(): # From the 'mirror' file
 def get_primary_mirror(): # From the 'pmirror' file or default value
 	if is_readable_file(slackroll_primary_mirror_filename):
 		return get_word_from_file(slackroll_primary_mirror_filename)
-	return slackroll_default_primary_site_url
+	return slackroll_default_primary_site_url % get_version_from_mirror(get_mirror())
 
 def set_mirror(mirror): # Writes the mirror name to the 'mirror' file
 	try:
