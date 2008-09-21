@@ -790,7 +790,7 @@ def package_in_cache(package): # Check if package is in ./packages
 	return is_readable_file(filepath)
 
 def download_verify(mirror, package): # Download package, signature and verify it
-	sigmirror = slackroll_primary_site_url % get_version_from_mirror(mirror)
+	sigmirror = get_primary_mirror()
 	tempdir = get_temp_dir()
 	remote_name = package.fullname
 	remote_sig = '%s%s' % (remote_name, slackroll_signature_suffix)
@@ -799,8 +799,8 @@ def download_verify(mirror, package): # Download package, signature and verify i
 	local_final = os.path.join(slackroll_pkgs_dir, package.archivename)
 
 	try:
-		download(mirror, remote_name, tempdir)
 		download(sigmirror, remote_sig, tempdir)
+		download(mirror, remote_name, tempdir)
 		verify_signature(local_sig)
 	except SlackRollError:
 		try_to_remove(local_sig)
@@ -862,7 +862,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 	return True
 
 def print_urls(mirror, package):
-	sigmirror = slackroll_primary_site_url % get_version_from_mirror(mirror)
+	sigmirror = get_primary_mirror()
 	pkgurl = package.url(mirror)
 	sigurl = '%s%s' % (package.url(sigmirror), slackroll_signature_suffix)
 	print pkgurl
@@ -1767,7 +1767,7 @@ try:
 		sys.exit()
 
 	if operation == 'import-key':
-		download_or_exit(slackroll_primary_site_url % get_version_from_mirror(get_mirror()), slackroll_gpgkey_filename, slackroll_base_dir)
+		download_or_exit(get_primary_mirror(), slackroll_gpgkey_filename, slackroll_base_dir)
 		import_key(slackroll_local_gpgkey)
 		try_to_remove(slackroll_local_gpgkey)
 		sys.exit()
