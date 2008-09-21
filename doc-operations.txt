@@ -76,6 +76,17 @@ This operation prints the current mirror URL to standard output.
 set-mirror::
 This operation sets the mirror URL to the one you specify as its argument.
 
+print-primary-mirror::
+This operation prints the current primary mirror URL to standard output.
+
+set-primary-mirror::
+This operation sets the primary mirror URL to the one you specify as its
+argument. You should avoid changing the primary mirror URL. It is used to
+download the package signatures and GPG key files among others. This behaviour
+is intended to protect you from trivial attacks coming from evil mirrors, and
+it may also let you know when your mirror is not up to date, due to package
+signatures failing to download.
+
 update::
 This operation downloads the new changelog entries if they exist and stores
 them in your hard drive. After that, it downloads the list of
