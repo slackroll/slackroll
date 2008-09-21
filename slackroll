@@ -1392,6 +1392,8 @@ help			Print this help
 version			Print the program version
 set-mirror URL		Sets the mirror URL
 print-mirror		Prints the mirror URL
+set-primary-mirror URL	Sets the primary mirror URL (bad practice usually)
+print-primary-mirror	Prints the primary mirror URL
 update			Download remote tree information
 import-key		Download and import the GPG key
 changelog		Displays the last downloaded ChangeLog.txt batch
@@ -1546,6 +1548,7 @@ try:
 		'pb-search':		-1,
 		'print-blacklist':	0,
 		'print-mirror':		0,
+		'print-primary-mirror':	0,
 		'reinstall':		-1,
 		'remote-paths':		0,
 		'remote-search':	-1,
@@ -1554,6 +1557,7 @@ try:
 		'remove-unavailable':	0,
 		'replace':		2,
 		'set-mirror':		1,
+		'set-primary-mirror':	1,
 		'state':		-1,
 		'touch':		0,
 		'unavailable':		-1,
@@ -1604,8 +1608,16 @@ try:
 		print get_mirror()
 		sys.exit()
 	
+	if operation == 'print-primary-mirror':
+		print get_primary_mirror()
+		sys.exit()
+	
 	if operation == 'set-mirror':
 		set_mirror(args[0])
+		sys.exit()
+	
+	if operation == 'set-primary-mirror':
+		set_primary_mirror(args[0])
 		sys.exit()
 
 	if operation in ['erase-cache', 'erase-tmp', 'erase-all']:
