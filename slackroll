@@ -51,6 +51,7 @@ slackroll_prioritized_pkgs = ['glibc-solibs', 'sed', 'pkgtools']
 
 slackroll_self_filename = os.path.join(slackroll_base_dir, 'self')
 slackroll_mirror_filename = os.path.join(slackroll_base_dir, 'mirror')
+slackroll_primary_mirror_filename = os.path.join(slackroll_base_dir, 'pmirror')
 slackroll_persistentlist_filename = os.path.join(slackroll_base_dir, 'persistent.db')
 slackroll_locallist_filename = os.path.join(slackroll_base_dir, 'local.db')
 slackroll_remotelist_filename = os.path.join(slackroll_base_dir, 'remote.db')
@@ -93,7 +94,7 @@ slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=
 slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?<a[^>]*>(.+?)</a>.*?</div>.*?<div class="pkgdescr">(.+?)</div>.*?</div>'
 slackroll_pb_result_idname = 1
 slackroll_pb_result_files = 2
-slackroll_primary_site_url = 'http://slackware.osuosl.org/slackware-%s/'
+slackroll_default_primary_site_url = 'http://slackware.osuosl.org/slackware-%s/'
 
 slackroll_locale_envvars = ['LC_COLLATE', 'LC_CTYPE', 'LC_MONETARY', 'LC_MESSAGES', 'LC_NUMERIC', 'LC_TIME', 'LC_ALL', 'LANGUAGE', 'LANG']
 slackroll_locale_mainvar = 'LANG'
@@ -532,17 +533,26 @@ def get_remote_list(forced_rebuild): # Return list of remote packages from cache
 		try_dump(remote_list, slackroll_remotelist_filename)
 	return try_load(slackroll_remotelist_filename)
 
-def get_mirror(): # From the 'mirror' file
+def get_word_from_file(filepath):
 	try:
-		lines = file(slackroll_mirror_filename, 'r').readlines()
+		filename = os.path.basename(filepath)
+		lines = file(filepath, 'r').readlines()
 		if len(lines) != 1:
-			raise ValueError('more than one line on mirror file')
+			raise ValueError('more than one line on %s file' % filename)
 		mirror = lines[0].strip()
 		if len(mirror) == 0:
-			raise ValueError('mirror is empty')
+			raise ValueError('%s is empty' % filename)
 		return mirror
 	except (OSError, IOError, ValueError), err:
 		sys.exit('ERROR: %s' % err)
+
+def get_mirror(): # From the 'mirror' file
+	return get_word_from_file(slackroll_mirror_filename)
+
+def get_primary_mirror():
+	if is_readable_file(slackroll_primary_mirror_filename):
+		return get_word_from_file(slackroll_primary_mirror_filename)
+	return slackroll_default_primary_site_url
 
 def set_mirror(mirror): # Writes the mirror name to the 'mirror' file
 	try:
