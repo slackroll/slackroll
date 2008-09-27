@@ -871,8 +871,8 @@ def print_urls(mirror, package):
 	sigmirror = get_primary_mirror()
 	pkgurl = package.url(mirror)
 	sigurl = '%s%s' % (package.url(sigmirror), slackroll_signature_suffix)
-	print pkgurl
 	print sigurl
+	print pkgurl
 
 def choose_option(option_list): # Prompt user and return option index
 	print 'Choose option:'
