@@ -1,4 +1,4 @@
 == SYNOPSIS ==
 
-slackroll OPERATION [ARG ...]
+slackroll *
 
