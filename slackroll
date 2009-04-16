@@ -24,7 +24,7 @@ slackroll_version = 30
 slackroll_exit_failure = 1
 slackroll_exit_success = 0
 
-slackroll_pkg_re = re.compile(r'^(.*/)?([^/]+)-([^/-]+)-([^/-]+)-([^/-]+?)(\.tgz)?$')
+slackroll_pkg_re = re.compile(r'^(.*/)?([^/]+)-([^/-]+)-([^/-]+)-([^/-]+?)(\.t[bglx]z)?$')
 slackroll_pkg_re_path = 1
 slackroll_pkg_re_name = 2
 slackroll_pkg_re_version = 3
@@ -39,7 +39,9 @@ slackroll_pkgs_dir = os.path.dirname(slackroll_pkgs_dir_glob)
 slackroll_local_pkgs_glob = os.path.join(os.path.sep, 'var', 'log', 'packages', '*')
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 slackroll_local_pkg_filelist_marker = 'FILE LIST:\n'
-slackroll_filelist_pkg_re = re.compile(r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+(\d+)\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\./.+/[^/]+-[^/-]+-[^/-]+-[^/-]+\.tgz)$')
+slackroll_filelist_pkg_re = re.compile(
+	r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+(\d+)\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\./.+/[^/]+-[^/-]+-[^/-]+-[^/-]+\.t[bglx]z)$'
+)
 slackroll_filelist_pkg_size = 1
 slackroll_filelist_pkg_str = 2
 slackroll_source_indicator = '/source/'
@@ -69,7 +71,7 @@ slackroll_temp_suffix = '.part'
 slackroll_signature_suffix = '.asc'
 slackroll_info_suffix = '.txt'
 slackroll_new_suffix = '.new'
-slackroll_pkg_archive_suffix = '.tgz'
+slackroll_pkg_archive_suffix = re.compile(r'\.t[bglx]z$')
 slackroll_default_pager = 'less'
 slackroll_default_visual = 'vim'
 slackroll_default_difftool = 'vimdiff'
@@ -189,7 +191,7 @@ class SlackwarePackage(object):
 
 	@property
 	def archivename(self):
-		return '%s%s' % (self.idname, slackroll_pkg_archive_suffix)
+		return '%s%s' % (self.idname, self.suffix)
 
 	@property
 	def fullname(self):
@@ -1060,7 +1062,7 @@ def query_pkg_browser(version, searchstr): # Query package browser on given file
 		pkgstr = match.group(slackroll_pb_result_idname)
 		pkgcontents = match.group(slackroll_pb_result_files)
 
-		print '    %s%s' % (re.sub(r'\s', '', pkgstr), slackroll_pkg_archive_suffix)
+		print '    %s' % re.sub(r'\s', '', pkgstr)
 		print ''.join('\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents)))
 	
 	if not has_results:
@@ -1187,7 +1189,7 @@ def verify_local_names(names, local_list):
 			sys.exit('ERROR: %s is not a local package name' % name)
 
 def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage or None) -- auxiliar of parse_install_args()
-	if arg.endswith(slackroll_pkg_archive_suffix) or os.path.sep in arg:
+	if slackroll_pkg_archive_suffix.search(arg) is not None or os.path.sep in arg:
 		try:
 			pkg = pkg_from_str(arg)
 			name = pkg.name
@@ -1216,7 +1218,7 @@ def parse_install_args(args, local_list, remote_list, use_local_version, use_pas
 		# Only generic name given
 		if name not in remote_list and ((not use_local_version) or (use_local_version and name not in local_list)):
 			if may_be_full_version(name):
-				print 'WARNING: %s suffix may be missing on %s' % (slackroll_pkg_archive_suffix, name)
+				print 'WARNING: file extension may be missing on "%s"' % name
 			sys.exit('ERROR: no package named %s' % name)
 
 		# Create candidate list
@@ -1728,7 +1730,7 @@ try:
 		interceptor = SlackRollOutputInterceptor()
 		print header
 		for (name, files) in matches:
-			print '    %s%s' % (os.path.basename(name), slackroll_pkg_archive_suffix)
+			print '    %s' % os.path.basename(name)
 			print ''.join('\t%s\n' % x for x in files)
 		print 'End of list'
 		interceptor.stop()
