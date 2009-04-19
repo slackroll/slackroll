@@ -1,0 +1,5 @@
+Welcome to the *SlackRoll wiki*! _SlackRoll_ is a package or upgrade manager for Slackware Linux.
+
+* New users can find out more about how it works by reading the *[[tutorial]]*.
+* Advanced users looking for specific information about one of its operations may find the *[[operations guide]]* useful.
+* In case of trouble, or to find out some tips and tricks, read the *[[FAQ]]*.
