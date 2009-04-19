@@ -1,4 +1,0 @@
-= SlackRoll Operations Guide =
-Ricardo Garcia
-
-include::doc-operations.txt[]

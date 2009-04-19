@@ -1,0 +1,522 @@
+h1. General Concepts
+
+When the program needs to run GnuPG, it first checks for @gpg2@ and then
+@gpg@, and uses whichever is found first.
+
+Every operation that needs to download packages will always check first if
+the packages are present in the package cache (@/var/slackroll/packages@).
+This means that if you download packages using an external tool like @wget@
+or @rsync@ and want the program to pick them up during the upgrade process,
+you only need to copy them to, or link them in, the package cache. Note that
+the package cache stores packages in a flat hierarchy. There is a FAQ entry
+on creating symbolic links to a local copy of the mirror.
+
+Every operation that has to run @/sbin/upgradepkg@ to install or upgrade
+packages follows the same internal mechanism. Once it has been clarified
+which packages are to be downloaded, the program proceeds and, for each one
+of them, it checks if the package exists in the package cache or not. If it
+does not exist, it is downloaded and stored in the package cache. Once every
+package is in the package cache, the program calls @upgradepkg@ on each one,
+always (even if the package is already installed in your system). Finally,
+the program reviews pairs of @.new@ files, in two steps. In the first
+step the program gets the list of @.new@ files present in the packages it
+ran @upgradepkg@ on, and reviews them. Later, we will explain this review
+process in detail. Second, it gives you the opportunity of removing legacy
+@.new@ files. This means that the program, before running @upgradepkg@,
+had retrieved a list of @.new@ files from the locally installed versions of
+those packages, if they existed. Once the packages are installed and after
+reviewing the @.new@ files, it can see if there was any @.new@ file present
+in the old packages which is not present in the installed packages. Usually,
+@upgradepkg@ will remove these @.new@ files, but not their counterparts
+without @.new@ suffix. The program will ask if you want to remove them.
+
+Every operation that needs to run @upgradepkg@ on a set of packages that are
+not provided explicitly by the user in a given order (like the @upgrade@
+operation as opposed to @install@) will proceed in alphabetical order,
+except for the packages @glibc-solibs@, @sed@ and @pkgtools@, which will be
+prioritized and put in the top of the list to prevent silly mistakes that
+may render your system unusable.
+
+Reviewing @.new@ file pairs is easy. They are pairs because each @.new@
+file has a counterpart without the @.new@ suffix. The program will offer
+you a set of repeating options for each pair. One option which is always
+available is the one to review the next pair. This is the only mechanism to
+start reviewing the next pair. If you choose any of the other operations,
+when it's finished you will continue to be asked about the same pair. This
+has the purpose of letting you run several operations for each pair. If no
+file of the pair is found, the only option will be to review the next pair,
+yet you are still notified that both files were missing.  If only one of them
+is found, you will be given the opportunity of editing it with the editor
+indicated in the VISUAL environment variable (see @/etc/profile@ for this)
+or @vim@ by default. If the two files are found, you can edit both at the
+same time using @vimdiff@. This option lets you view the file differences
+and perform several actions. If the old configuration file is valid, you can
+decide not to touch the @.new@ file and keep using the old file.  If the
+configuration needs to be ported to the new file, this is the best option
+to do it. Note that @vimdiff@ uses colors to highlight file differences.
+These colors may interfere with the syntax highlighting color and render text
+invisible or hard to read. It is recommended to disable syntax highlighting
+when running @vimdiff@ (@:syntax off@). In case both files exist you can also
+remove the @.new@ file (useful when the old configuration file is still valid)
+or move the @.new@ file overwriting the old file (useful after having ported
+the configuration to the @.new@ file).
+
+h1. Operations
+
+h2. help
+
+This operation prints a help text with a summary of the available operations.
+
+h2. version
+
+This operations prints the program version to standard output.
+
+h2. print-mirror
+
+This operation prints the current mirror URL to standard output.
+
+h2. set-mirror
+
+This operation sets the mirror URL to the one you specify as its argument.
+
+h2. print-primary-mirror
+
+This operation prints the current primary mirror URL to standard output.
+
+h2. set-primary-mirror
+
+This operation sets the primary mirror URL to the one you specify as its
+argument. You should avoid changing the primary mirror URL. It is used
+to download the package signatures and GPG key files among others. This
+behaviour is intended to protect you from trivial attacks coming from evil
+mirrors, and it may also let you know when your mirror is not up to date,
+due to package signatures failing to download.
+
+h2. update
+
+This operation downloads the new changelog entries if they exist and stores
+them in your hard drive. After that, it downloads the list of files from
+the file @FILELIST.TXT@ and stores it in @/var/slackroll@. Both actions take
+into account the selected mirror.
+
+h2. import-key
+
+This operation downloads the file @GPG-KEY@ from the mirror and runs either
+@gpg2@ or @gpg@, whichever finds first with the option @--import-key@ and
+that file. After importing the key, the file @GPG-KEY@ is removed and does
+not remain on disk.
+
+h2. changelog
+
+This operation prints on screen the last downloaded batch of changelog entries.
+
+h2. download-changelog
+
+This operation downloads the full @ChangeLog.txt@ file from the mirror and
+stores it in your hard drive, rebuilding the internal changelog database and
+creating a new one with the downloaded contents. Normally it's not needed,
+but it could be useful if, for example, you accumulate a lot of entries over
+several years and want to discard all the old ones belonging to previous
+stable versions.
+
+h2. list-changelog
+
+This operation prints a list of changelog entries from the local database,
+indicating their identifiers and timestamps.
+
+h2. changelog-entries
+
+This operation, given a list of changelog entry identifiers (that you can
+get by running the @list-changelog@ operation), will print them on screen
+in the specified order.
+
+h2. full-changelog
+
+This operation prints every known changelog entry.
+
+h2. upgrade
+
+This operation will check which packages are in the state OUTDATED and
+which remote versions exist for them. If, for any package, more than one
+remote version is available, it will prompt you to choose one of them to
+be downloaded. The local version will also be printed above the choice
+text because it may give clues about the right choice. Once it has fully
+determined which packages need to be downloaded, it will proceed to download
+them, in alphabetical order except for the packages @glibc-solibs@, @sed@
+and @pkgtools@, which will be downloaded first if they are OUTDATED. If any
+package to be downloaded already exists in the package cache, it will not be
+downloaded. Once all selected packages are present in the package cache, they
+will be installed running @/sbin/upgradepkg@ in the same order as mentioned
+above. The program will print a warning and ask for confirmation if you try
+to perform this operation while there are packages in the state NEW. This is
+because the correct order in most cases is to install new packages first,
+before upgrading the outdated ones. An outdated package may depend on one
+which was added. Sometimes there is no danger in running this operation
+before installing new packages, and maybe in exceptional cases it will be
+wrong to install new packages first. The changelog should contain information
+to clarify the correct order.
+
+h2. upgrade-key-packages
+
+This operation is similar to the @upgrade@ operation, but it will only
+affect the key packages, which are @glibc-solibs@, @sed@ and @pkgtools@.
+No warning will be printed while running this operation, as only in very
+special cases doing this operation before any other poses a danger.  Again,
+the changelog should contain information to clarify the correct order.
+
+h2. download-upgrades
+
+This operation is similar to the @upgrade@ operation, but the files will only
+be downloaded. As no @upgradepkg@ command is run, no @.new@ files are reviewed.
+
+h2. download-key-packages
+
+This operation is similar to @download-upgrades@ but restricting the operation
+to the OUTDATED key system packages (@glibc-solibs@, @sed@ and @pkgtools@).
+
+h2. urls-upgrades
+
+This operation is similar to @download-upgrades@ but only printing the URLs
+and total size of the packages. This option is mostly useful to view the
+total download size and getting a list of URLs to be used with an external
+download manager, instead of the program's simple downloading routine.
+
+h2. urls-key-packages
+
+This operation is similar to @urls-upgrades@, but limiting the output to
+the key system packages (@glibc-solibs@, @sed@ and @pkgtools@).
+
+h2. clean-cache
+
+This operation will check the files present in the package cache. If any of
+them belongs to a package or package version not present in the remote tree,
+it will be deleted. It should be run from time to time to prevent the package
+cache from growing too much and keep it with the same contents as the remote
+mirror. It must be noted that this operation does not remove every package in
+the package cache (@slackroll erase-cache@ will do that). After an upgrade,
+you may want to confirm everything is running properly before running this
+operation, so as to keep the previous package versions in case a problem
+arises with the new packages.
+
+h2. erase-cache
+
+This operation will remove every file from the package cache, without asking
+questions, so it should be used with care.
+
+h2. erase-tmp
+
+This operation will remove every file from the "tmp" directory. This
+is @/var/slackroll/tmp@ by default. It can be changed to something else
+setting the environment variable TMPDIR, but it's not recommended to run
+this operation if you set TMPDIR. This operation is intended to remove
+partial download leftovers if the program is interrupted while downloading
+something. It will not ask questions. Normally, you shouldn't need it.
+
+h2. erase-all
+
+This operation is the equivalent of @erase-cache@ and @erase-tmp@ combined.
+Again, it will not ask questions.
+
+h2. touch
+
+This operation forces the program to update the persistent database and
+package states. Normally it shouldn't be needed. It's there for testing and
+debugging purposes.
+
+h2. list-transient
+
+This operation prints a list of packages in transient (temporary) states
+(NEW, OUTDATED, UNAVAILABLE). It can be used as a summary of activity and
+its output should be empty once the upgrade work is finished. It also prints
+a big warning if it detects activity in key system packages (@glibc-solibs@,
+@sed@ and @pkgtools@).
+
+h2. list-upgrades
+
+This operation will print a list of packages with pending upgrades (state
+OUTDATED). For each one of them, the local and available remote versions are
+printed. Like @list-transient@, it will print a big warning if it detects
+activity in key packages.
+
+h2. list-outdated-frozen
+
+This operation prints the list of FROZEN packages that the program would
+consider OUTDATED otherwise. As the frozen state is normally used to prevent
+the program from upgrading a specific subset of packages automatically, this
+operation can be used to determine when a manual upgrade of those packages
+is needed.
+
+h2. list-alternatives
+
+This operation will print a list of packages for which several versions
+are available, between local and remote versions. The usefulness of this
+operation is not clear, but it was included for testing and debugging purposes.
+
+h2. list-versions
+
+Receiving a list of package names as arguments, this operation will list
+the local and remote versions of each one of them, in the same format as
+@list-upgrades@.
+
+h2. state
+
+Receiving a list of package names as arguments, this operation will print
+the state of every one of them.
+
+h2. list-new
+
+This operation lists the names of NEW packages, in alphabetical order with key
+system packages first (should they be in the NEW state for some weird reason).
+
+h2. list-unavailable, list-installed, list-not-installed, list-frozen,
+list-foreign and list-outdated
+
+These operations are similar to @list-new@ for the different states.
+
+h2. list-local
+
+This operation is similar to @list-new@ but listing the packages that are
+in the local system (OUTDATED, UNAVAILABLE, INSTALLED, FROZEN, FOREIGN).
+
+h2. list-remote
+
+This operation is similar to @list-new@ but listing all packages present in
+the remote tree.
+
+h2. list-all
+
+Similar to @list-new@ but printing every known package.
+
+h2. new-not-installed
+
+This operation marks as NOT INSTALLED every package in the state NEW.
+
+h2. unavailable-foreign
+
+This operation marks as FOREIGN every package in the state UNAVAILABLE.
+
+h2. new
+
+Receiving a list of package names as its arguments, this operation marks them
+as NEW. Only packages in the states NEW and NOT INSTALLED can be marked as NEW.
+
+h2. unavailable
+
+Similar to @new@ with the state UNAVAILABLE. Only packages in the states
+UNAVAILABLE and FOREIGN can be marked as UNAVAILABLE.
+
+h2. installed
+
+Similar to @new@ with the state INSTALLED. Only packages in the states
+INSTALLED and FROZEN can be marked as INSTALLED.
+
+h2. not-installed
+
+Similar to @new@ with the state NOT INSTALLED. Only packages in the states
+NOT INSTALLED and NEW can be marked as NOT INSTALLED.
+
+h2. frozen or freeze
+
+Similar to @new@ with the state FROZEN. Only packages in the states FROZEN,
+OUTDATED and INSTALLED can be marked as FROZEN.
+
+h2. foreign
+
+Similar to @new@ with the state FOREIGN. Only packages in the states FOREIGN
+and UNAVAILABLE can be marked as FOREIGN.
+
+h2. install
+
+This is one of the most complex operations. Its arguments are a list
+of package names in the simple case, but it admits specific package
+versions as its arguments too. A specific package version has the form
+_name-version-arch-build.tgz_ and an optional path prefix. This allows you to
+copy and paste a specific package version from the output of other commands
+to use it as one argument to this operation. Simply put, we could say that
+the @upgrade@ operation is a special case of this one, using the outdated
+packages as implicit arguments. The exact outcome of this operation depends
+on the specific package and other external circumstances. It is important
+to note that packages are processed in the order you indicate in the command
+line. They are not sorted. Its main purpose is to both install and upgrade a
+specific package list. As @upgrade@, packages are downloaded first if needed,
+passed to @upgradepkg@ and @.new@ file pairs are reviewed. If the package is
+not present in the system, it will be installed. If it is present, it will
+be upgraded. If the local version and the one you are installing match,
+@upgradepkg@ will do nothing, but the procedure will continue and @.new@
+files will be reviewed. This gives the operation a good amount of flexibility
+as you can use it also to review @.new@ files from specific packages. If key
+system packages are outdated and you do not include any of them as arguments,
+the program will print a warning as you may be violating the correct operation
+order, installing a package that depends on the new version of @glibc-solibs@,
+for example, and rendering your system useless. In some very special cases,
+you may really need to run this operation first. Again, the changelog should
+provide information about the correct order.
+
+h2. install-new
+
+This operation is like @install@ using the NEW packages as implicit arguments.
+
+h2. install-path
+
+This operation is similar to @install@. Its arguments are a list of Python
+regular expressions (similar to @grep@ or Perl regular expressions in the
+most common cases). The implicit @install@ arguments would be packages with
+a path that matches any of the indicated expressions.
+
+h2. install-foreign
+
+This operation takes a list of package files present in the file system.
+It will install or upgrade those packages and mark them as FOREIGN, and
+will also review @.new@ file pairs. It is intended to be a comfortable way
+of installing foreign packages.
+
+h2. reinstall
+
+This operation is similar to @install@, but @upgradepkg@ will be called with
+the @--reinstall@ option.
+
+h2. replace
+
+This operation receives two package names. The first one must be an unavailable
+package and the second one a new package. The program will call @upgradepkg@
+using the "% notation" to upgrade the unavailable package using the new one.
+This should be useful with @slackware-current@ in the case of a package name
+change, but there may be other cases in which it could be useful. See for
+example the changelog entry from _Tue Apr  1 02:41:32 CDT 2008_ about the
+change from @util-linux@ to @util-linux-ng@.
+
+h2. download, download-new and download-path
+
+These operations are all similar to @download-upgrades@, and relate to their
+@install@ counterparts in the same way @upgrade@ relates to @install@.
+
+h2. info
+
+This operation receives a list of arguments with the same flexibility as the
+@install@ operation. However, instead of proceeding with the normal routine,
+it displays the package information. This information is taken from the files
+in @/var/log/packages@ if it exists there, or downloaded from the small info
+files for every package in the remote tree. These small files have less
+information than the local info files, but give a package description and
+can be downloaded quickly.
+
+h2. info-new and info-path
+
+These operations relate to @info@ in the same way @install-new@ and
+@install-path@ relate to @install@.
+
+h2. local-info
+
+This operations receives a list of local package names and prints all the
+information available for them under @/var/log/packages@, including the full
+file list.
+
+h2. urls, urls-new and urls-path
+
+These operations are similar to @urls-upgrades@, and relate to their @install@
+counterparts in the same way @upgrade@ relates to @install@.
+
+h2. remove
+
+This operation takes a list of package names as its arguments and calls
+@removepkg@ on the local versions of those packages. In addition, it will
+give you the opportunity of removing @.new@ file pairs left behind, which
+is the only advantage over calling @removepkg@ directly.  This operation
+will generate a warning when run while there are NEW or OUTDATED packages,
+as you may then be breaking the correct order of operations. In some cases
+this may pose no danger or even be the correct order. As always, the changelog
+should contain information about the correct order of operations.
+
+h2. remove-unavailable and remove-path
+
+These operations are similar to @remove@. The first one is like calling
+@remove@ with an implicit argument list formed by the packages in state
+UNAVAILABLE. The second one is like using an implicit argument list formed
+by packages with a path matching any of the Python regular expressions used
+as arguments. It must be noted that this second operation only searches
+packages present in the remote list.
+
+h2. remote-paths
+
+This operation prints a plain list of all the remote packages, including
+the @tgz@ suffix and their relative paths.
+
+h2. print-blacklist
+
+This operation prints the list of blacklisted regular expressions, preceded by
+their expression index. When @slackroll@ creates the list of remote packages,
+their full names, including their relative paths, are checked against the
+expressions in the blacklist. If a match is found, the package file is ignored
+and not included in the list of remote packages, as if it did not exist. This
+can be used for many purposes, but the intended usage is to discard specific
+package versions that are known not to be interesting. For example, if a user
+has the SMP kernel package and headers installed, and the headers package is
+upgraded, they know they are not interested in the kernel headers package from
+@/extra/linux-<something>-nosmp-sdk/@. They can blacklist that version so they
+are not asked about which one they prefer every time the package is upgraded.
+
+h2. blacklist-add
+
+This operation adds Python regular expressions to the blacklist.
+
+h2. blacklist-del
+
+This operation removes expressions from the blacklist, specifying one or
+more expression indexes as its arguments.
+
+h2. pb-search or remote-search
+
+This operation connects to the Slackware Package Browser and searches for the
+files specified as arguments, printing the search results on the screen. It
+is important to note that the names are automatically quoted for ease of
+use, and that you should visit the Slackware Package Browser page to learn
+more about how it can be used. The Slackware version used to search will be
+extracted from the mirror URL.
+
+h2. local-search
+
+This operation receives a list of Python regular expressions and searches
+for files with patches that match any of them. This is equivalent to running
+@grep@ on the contents of @/var/log/packages@, but the regular expressions
+are more powerful, the paths are considered to have a leading slash and the
+info file headers will be ignored, preventing false possitives.
+
+h2. name-search
+
+This operation will print the list of package and package states for packages
+with a name that matches any of the Python regular expressions indicated
+as arguments.
+
+h2. path-search
+
+This operation will print the list of remote packages with a path that
+matches any of the Python regular expressions indicated as arguments.
+
+h2. orphan-search
+
+This operation will examine the full hierarchy below the indicated
+paths searching for files that do not appear in the info files from
+@/var/log/packages@. This operation may be very time consuming, and the reuslts
+should always be interpreted carefully. It is not safe to remove every file
+reported by the output of this command, as many important system files do not
+belong to any package, like @/etc/fstab@. If interpreted carefully, however,
+it may be run once in a blue moon and may help keeping the system clean of
+files left behind by some packages, contributing to a manageable system in
+the long run.
+
+h2. broken-symlinks
+
+This operation will examine the full hierarchy below the specified paths
+searching for broken symlinks. It may be a slow operation, and some of the
+broken symlinks it finds may be useful if specific pakages are installed,
+so results should be interpreted carefully.
+
+h2. missing-search
+
+This operation takes every file from the information in @/var/log/packages@
+and checks if it's present in your system. It may take a long time to complete,
+and there are a few known files which always appear in the results, so they
+should be interpreted carefully.  In general, it may indicate damaged packages
+that need to be reinstalled. Take into account results from @/install@, @/dev@
+and @/lib/incoming@ are ignored in order to avoid an unreadable output with
+too much noise.

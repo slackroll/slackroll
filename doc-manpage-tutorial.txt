@@ -1,8 +1,0 @@
-= slackroll-tutorial(1) =
-
-== NAME ==
-
-slackroll-tutorial - SlackRoll Tutorial for New Users
-
-include::doc-manpage-synopsis.txt[]
-include::doc-tutorial.txt[]

@@ -1,4 +1,0 @@
-= SlackRoll: Manage a Slackware system =
-Ricardo Garcia
-
-include::doc-tutorial.txt[]
