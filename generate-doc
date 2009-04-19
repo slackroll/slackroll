@@ -1,8 +1,0 @@
-#!/bin/sh
-asciidoc - <doc-html-tutorial.txt >html/slackroll-tutorial.html
-asciidoc - <doc-html-faq.txt >html/slackroll-faq.html
-asciidoc - <doc-html-operations.txt >html/slackroll-operations.html
-asciidoc -b docbook -d manpage - <doc-manpage-general.txt | xsltproc --nonet -o man/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
-asciidoc -b docbook -d manpage - <doc-manpage-tutorial.txt | xsltproc --nonet -o man/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
-asciidoc -b docbook -d manpage - <doc-manpage-operations.txt | xsltproc --nonet -o man/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
-asciidoc -b docbook -d manpage - <doc-manpage-faq.txt | xsltproc --nonet -o man/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl -
