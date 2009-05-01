@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+# Exit on errors
+set -e
+
+# Set sane umask
+umask 022
+
+# Set language (this helps sometimes)
+export LANG=C
+
+# Set a basic PATH
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Initial variables
+PNAME=slackroll		# Package name
+PVERSION=v31		# Package version (remove dashes if present)
+ARCH=${ARCH:-noarch}	# Package architecture
+BUILD=${BUILD:-1}	# Build number plus packager initials
+
+CWD=$( pwd )
+TMP=${TMP:-/tmp}	# Location to compile the source
+PKG=$TMP/package-$PNAME	# Location to build the package (use "package-$NAME" to avoid poss. conflicts)
+
+# Clear sandbox directory
+rm -rf $PKG
+mkdir -p $PKG
+
+# Copy files to destination directories
+mkdir -p $PKG/usr/sbin
+mkdir -p $PKG/usr/man/man1
+mkdir -p $PKG/usr/doc/$PNAME-$PVERSION
+mkdir -p $PKG/var/slackroll
+install -m 755 slackroll $PKG/usr/sbin
+install -m 644 COPYING $PKG/usr/doc/$PNAME-$PVERSION
+
+# Manpage
+asciidoc -b docbook -d manpage manpage.txt
+xmlto man manpage.xml
+install -m 644 slackroll.1 $PKG/usr/man/man1
+rm manpage.xml
+rm slackroll.1
+
+# Compress man pages
+find $PKG -type f -path '*/man/*' -print0 | xargs -0r gzip --best
+find $PKG -type l -path '*/man/*' -print0 | while read -d '' symlink; do
+	ln -s "$( readlink "$symlink" ).gz" "${symlink}.gz"
+	rm "$symlink"
+done
+
+# Add package description
+mkdir -p $PKG/install
+cat >$PKG/install/slack-desc <<EOF
+         |-----handy-ruler------------------------------------------------------|
+slackroll: slackroll (Package or upgrade manager for Slackware Linux)
+slackroll:
+slackroll: SlackRoll is a package or upgrade manager for Slackware Linux. It is
+slackroll: designed to work with official mirrors in systems mainly composed of
+slackroll: official packages with a few unofficial packages. It lets you
+slackroll: automatically upgrade or install packages, and displays which
+slackroll: packages have been added or removed from the Slackware tree.
+slackroll:
+slackroll:
+slackroll:
+slackroll:
+EOF
+
+# Add install script
+cat >$PKG/install/doinst.sh <<EOF
+EOF
+
+# Create package
+cd $PKG
+makepkg -l y -c n $CWD/$PNAME-$PVERSION-$ARCH-$BUILD.tgz
+
+# Clean up the sandbox directory
+rm -rf $PKG
