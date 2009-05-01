@@ -1,0 +1,20 @@
+= slackroll(1) =
+
+== NAME ==
+
+slackroll - Package or upgrade manager for Slackware Linux
+
+== SYNOPSIS ==
+
+slackroll *
+
+== DESCRIPTION ==
+
+slackroll is a package or upgrade manager for Slackware Linux. For information
+on how to use slackroll, please refer to the slackroll wiki:
+
+http://wiki.github.com/rg3/slackroll
+
+There you will find a tutorial explaining the main concepts and initial
+configuration, a list of frequently asked questions, and detailed information
+about every supported operation.
