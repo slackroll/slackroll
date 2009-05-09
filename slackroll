@@ -1202,7 +1202,7 @@ def verify_local_names(names, local_list):
 				print 'WARNING: %s looks like an unexpected full version' % name
 			sys.exit('ERROR: %s is not a local package name' % name)
 
-def post_kernel_install(): # Operations needed after kernel installation
+def post_kernel_operation(): # Operations needed after kernel installation
 	visual = get_visual()
 
 	while True:
@@ -1913,7 +1913,7 @@ try:
 		if len(names) == 0:
 			print 'No outdated kernel packages'
 		install_operations_family('installpkg', names, local_list, remote_list, persistent_list, use_pasture=False)
-		post_kernel_install()
+		post_kernel_operation()
 		sys.exit()
 
 	if operation == 'clean-cache':
@@ -2280,8 +2280,9 @@ try:
 		outdated_kernel_pkgs = concat(outdated_kernel_pkgs)
 		if len(outdated_kernel_pkgs) == 0:
 			print 'No obsolete kernel packages found'
-		else:
-			remove_pkgs(outdated_kernel_pkgs)
+			sys.exit()
+		remove_pkgs(outdated_kernel_pkgs)
+		post_kernel_operation()
 		sys.exit()
 
 	if operation == 'name-search':
