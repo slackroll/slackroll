@@ -50,6 +50,7 @@ slackroll_patch_indicator = '/patches/'
 slackroll_main_indicator = '/slackware/'
 slackroll_extra_indicator = '/extra/'
 slackroll_prioritized_pkgs = ['glibc-solibs', 'sed', 'pkgtools']
+slackroll_kernel_pkg_indicator = 'kernel'
 
 slackroll_self_filename = os.path.join(slackroll_base_dir, 'self')
 slackroll_mirror_filename = os.path.join(slackroll_base_dir, 'mirror')
@@ -101,6 +102,9 @@ slackroll_default_primary_site_url = 'http://slackware.osuosl.org/slackware-%s/'
 slackroll_locale_envvars = ['LC_COLLATE', 'LC_CTYPE', 'LC_MONETARY', 'LC_MESSAGES', 'LC_NUMERIC', 'LC_TIME', 'LC_ALL', 'LANGUAGE', 'LANG']
 slackroll_locale_mainvar = 'LANG'
 slackroll_locale_value = 'C'
+
+slackroll_bootloader_config_files = ['/etc/lilo.conf', '/boot/grub/menu.lst', '/boot/extlinux.conf', '/boot/extlinux/extlinux.conf']
+slackroll_lilo_path = '/sbin/lilo'
 
 def standarize_locales():
 	for varname in slackroll_locale_envvars:
@@ -1197,6 +1201,29 @@ def verify_local_names(names, local_list):
 				print 'WARNING: %s looks like an unexpected full version' % name
 			sys.exit('ERROR: %s is not a local package name' % name)
 
+def post_kernel_install(): # Operations needed after kernel installation
+	visual = get_visual()
+
+	while True:
+		# Add options to edit known bootloader configuration files
+		existant = [x for x in slackroll_bootloader_config_files if os.path.exists(x)]
+		options = [(str(x + 1), '%s %s' % (visual, existant[x])) for x in xrange(len(existant))]
+		actions = dict([(x, functools.partial(run_visual_on, existant[x])) for x in xrange(len(existant))])
+
+		# Add option to run lilo if present
+		if os.path.exists(slackroll_lilo_path):
+			options.append(('L', slackroll_lilo_path))
+			actions[len(options) - 1] = functools.partial(run_program, [slackroll_lilo_path])
+
+		# Add exit option
+		options.append(('X', 'Done'))
+
+		# Display menu and run action
+		chosen = choose_option(options)
+		if chosen == len(options) - 1: # Exit option
+			break
+		actions[chosen]() # Run selected action
+
 def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage or None) -- auxiliar of parse_install_args()
 	if slackroll_pkg_archive_suffix.search(arg) is not None or os.path.sep in arg:
 		try:
@@ -1430,6 +1457,8 @@ download-upgrades	Like 'upgrade' but without installing
 download-key-packages	Like 'upgrade-key-packages' but without installing
 urls-upgrades		Like 'upgrade' but only printing URLs
 urls-key-packages	Like 'upgrade-key-packages' but only printing URLs
+kernel-upgrade		Install updated kernel packages with installpkg
+kernel-clean		Remove obsolete kernel packages
 clean-cache		Remove unknown package versions from package cache
 erase-cache		Remove every file from package cache
 erase-tmp		Remove every file from the temporary directory
@@ -1543,6 +1572,8 @@ try:
 		'install-new':		0,
 		'install-path':		-1,
 		'installed':		-1,
+		'kernel-upgrade':	0,
+		'kernel-clean':		0,
 		'list-all':		0,
 		'list-alternatives':	0,
 		'list-changelog':	0,
@@ -1874,6 +1905,14 @@ try:
 			sys.exit()
 		opmap = { 'upgrade-key-packages': 'install', 'download-key-packages': 'download', 'urls-key-packages': 'urls' }
 		install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, use_pasture=False)
+		sys.exit()
+	
+	if operation == 'kernel-upgrade':
+		names = [x for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[x] == slackroll_state_outdated]
+		if len(names) == 0:
+			print 'No outdated kernel packages'
+		install_operations_family('installpkg', names, local_list, remote_list, persistent_list, use_pasture=False)
+		post_kernel_install()
 		sys.exit()
 
 	if operation == 'clean-cache':
@@ -2232,6 +2271,16 @@ try:
 				to_be_removed.extend(local_list[name])
 
 		remove_pkgs(to_be_removed)
+		sys.exit()
+	
+	if operation == 'kernel-clean':
+		outdated_kernel_pkgs = [[y for y in local_list[x] if y not in remote_list[x]]
+				for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[x] == slackroll_state_installed]
+		outdated_kernel_pkgs = concat(outdated_kernel_pkgs)
+		if len(outdated_kernel_pkgs) == 0:
+			print 'No obsolete kernel packages found'
+		else:
+			remove_pkgs(outdated_kernel_pkgs)
 		sys.exit()
 
 	if operation == 'name-search':
