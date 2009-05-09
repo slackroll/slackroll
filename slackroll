@@ -5,6 +5,7 @@ import anydbm
 import cPickle
 import cStringIO
 import fcntl
+import functools
 import glob
 import math
 import operator
@@ -699,7 +700,7 @@ def download_file(mirror, filepath, local_temp, local_final): # Does not exit on
 		filename = os.path.basename(filepath)
 		print_flush('Downloading %s ... ' % filename)
 		full_url = urlparse.urljoin(mirror, filepath)
-		hook = lambda a, b, c: download_report_hook(filename, a, b, c)
+		hook = functools.partial(download_report_hook, filename)
 		urllib.urlretrieve(full_url, local_temp, hook)
 		print
 		if not try_to_rename(local_temp, local_final, fatal=False):
