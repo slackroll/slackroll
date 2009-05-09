@@ -88,6 +88,14 @@ h2. urls-key-packages
 
 This operation is similar to @urls-upgrades@, but limiting the output to the key system packages (@glibc-solibs@, @sed@ and @pkgtools@).
 
+h2. kernel-upgrade
+
+Upgrades kernel packages but uses @installpkg@ instead of @upgradepkg@. This way, previous packages are not removed from the system while the new kernel is tested to work.
+
+h2. kernel-clean
+
+Removes kernel package versions not present in the remote tree. This can be used after rebooting to a new kernel, once it has been verified it works properly, to remove the previous kernel packages.
+
 h2. clean-cache
 
 This operation will check the files present in the package cache. If any of them belongs to a package or package version not present in the remote tree, it will be deleted. It should be run from time to time to prevent the package cache from growing too much and keep it with the same contents as the remote mirror. It must be noted that this operation does not remove every package in the package cache (@slackroll erase-cache@ will do that). After an upgrade, you may want to confirm everything is running properly before running this operation, so as to keep the previous package versions in case a problem arises with the new packages.
