@@ -118,6 +118,10 @@ h2. Stable tree
 
 Mostly the same, but in the stable tree it's extremely rare to see packages being removed or being added to the tree, so you probably won't need to run @list-new@ or @list-unavailable@, but you never know. The @list-transient@ operation may be useful to detect these rare cases.
 
+h2. Kernel upgrades
+
+When kernel packages have pending upgrades, you can use two operations created specifically to handle the situation. @kernel-upgrade@ will install the new kernel packages using @installpkg@ instead of @upgradepkg@ and then help you configure your bootloader for the new kernel. This means that, for a small time period, you will have two versions of the kernel packages installed. After a successful reboot to the new kernel, you can use the @kernel-clean@ operation to remove the previous versions of those packages.
+
 h1. Feedback, questions, bug reports
 
 I'm all open for good bug reports and general feedback but I'm, as always, reluctant to change the main program concepts, like adding support for multiple mirrors, or adding dependency support or probably adding more package states. I also know the program currently can't be used to upgrade the system in non-interactive mode (like calling it from a cron entry).  That is very unlikely to change, because when there's an upgrade, there's no easy way to decide which version should be installed if a package has a version in the main tree, another one in @/extra/@ and another one in @/testing/@, so it's always going to need user input.
