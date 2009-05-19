@@ -34,11 +34,11 @@ This operation prints the current primary mirror URL to standard output.
 
 h2. set-primary-mirror
 
-This operation sets the primary mirror URL to the one you specify as its argument. You should avoid changing the primary mirror URL. It is used to download the package signatures and GPG key files among others. This behaviour is intended to protect you from trivial attacks coming from evil mirrors, and it may also let you know when your mirror is not up to date, due to package signatures failing to download.
+This operation sets the primary mirror URL to the one you specify as its argument. You should avoid changing the primary mirror URL. It is used to download the package signatures and GPG key files among others. This behavior is intended to protect you from trivial attacks coming from evil mirrors, and it may also let you know when your mirror is not up to date, due to package signatures failing to download.
 
 h2. update
 
-This operation downloads the new changelog entries if they exist and stores them in your hard drive. After that, it downloads the list of files from the file @FILELIST.TXT@ and stores it in @/var/slackroll@. Both actions take into account the selected mirror.
+This operation downloads the new change log entries if they exist and stores them in your hard drive. After that, it downloads the list of files from the file @FILELIST.TXT@ and stores it in @/var/slackroll@. Both actions take into account the selected mirror.
 
 h2. import-key
 
@@ -266,7 +266,7 @@ This operation connects to the Slackware Package Browser and searches for the fi
 
 h2. local-search
 
-This operation receives a list of Python regular expressions and searches for files with patches that match any of them. This is equivalent to running @grep@ on the contents of @/var/log/packages@, but the regular expressions are more powerful, the paths are considered to have a leading slash and the info file headers will be ignored, preventing false possitives.
+This operation receives a list of Python regular expressions and searches for files with patches that match any of them. This is equivalent to running @grep@ on the contents of @/var/log/packages@, but the regular expressions are more powerful, the paths are considered to have a leading slash and the info file headers will be ignored, preventing false positives.
 
 h2. name-search
 
@@ -278,11 +278,11 @@ This operation will print the list of remote packages with a path that matches a
 
 h2. orphan-search
 
-This operation will examine the full hierarchy below the indicated paths searching for files that do not appear in the info files from @/var/log/packages@. This operation may be very time consuming, and the reuslts should always be interpreted carefully. It is not safe to remove every file reported by the output of this command, as many important system files do not belong to any package, like @/etc/fstab@. If interpreted carefully, however, it may be run once in a blue moon and may help keeping the system clean of files left behind by some packages, contributing to a manageable system in the long run.
+This operation will examine the full hierarchy below the indicated paths searching for files that do not appear in the info files from @/var/log/packages@. This operation may be very time consuming, and the results should always be interpreted carefully. It is not safe to remove every file reported by the output of this command, as many important system files do not belong to any package, like @/etc/fstab@. If interpreted carefully, however, it may be run once in a blue moon and may help keeping the system clean of files left behind by some packages, contributing to a manageable system in the long run.
 
 h2. broken-symlinks
 
-This operation will examine the full hierarchy below the specified paths searching for broken symlinks. It may be a slow operation, and some of the broken symlinks it finds may be useful if specific pakages are installed, so results should be interpreted carefully.
+This operation will examine the full hierarchy below the specified paths searching for broken symlinks. It may be a slow operation, and some of the broken symlinks it finds may be useful if specific packages are installed, so results should be interpreted carefully.
 
 h2. missing-search
 

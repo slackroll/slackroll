@@ -58,7 +58,7 @@ You should first choose a Slackware mirror. Take into account @slackroll@ will s
 slackroll set-mirror 'http://example.org/slackware-current/'
 </code>
 
-*Do not forget the trailing slash!* Great. You are ready to start. Retrieve the remote GPG key to add it to your keyring. Having the GPG key is required, and it should be safe to do this step even if the key is already in your keyring.  You can also get the key from the Slackware CD or DVD. The GPG key and the package signatures will be downloaded from a primary mirror instead of the mirror you chose, in order to increase security.
+*Do not forget the trailing slash!* Great. You are ready to start. Retrieve the remote GPG key to add it to your key ring. Having the GPG key is required, and it should be safe to do this step even if the key is already in your key ring.  You can also get the key from the Slackware CD or DVD. The GPG key and the package signatures will be downloaded from a primary mirror instead of the mirror you chose, in order to increase security.
 
 <code>
 slackroll import-key
@@ -102,7 +102,7 @@ h1. Normal operation
 
 You can run @slackroll help@ to get a full list of operations and a brief description of each one. A full description of each operation can be found in the [[operations guide]]. This program is not a perfect tool. I think it can handle almost every situation and be told to do exactly what you want, but reading the change log and subscribing to the @slackware-security@ mailing list is highly recommended.
 
-In every case you should @update@ whenever the remote tree is changed. Then, you should read the changelog with the @changelog@ operation if there are new entries and, finally, the @list-transient@ operation will provide a summary of activity. There should be no transient packages after you're finished.
+In every case you should @update@ whenever the remote tree is changed. Then, you should read the change log with the @changelog@ operation if there are new entries and, finally, the @list-transient@ operation will provide a summary of activity. There should be no transient packages after you're finished.
 
 Watch out for upgrades in the @glibc-solibs@, @sed@ and @pkgtools@ packages.  They should always be the first ones to be installed or upgraded in that order, even before new packages. You can use the @upgrade-key-packages@ operation to upgrade them first.
 
@@ -120,7 +120,7 @@ Mostly the same, but in the stable tree it's extremely rare to see packages bein
 
 h2. Kernel upgrades
 
-When kernel packages have pending upgrades, you can use two operations created specifically to handle the situation. @kernel-upgrade@ will install the new kernel packages using @installpkg@ instead of @upgradepkg@ and then help you configure your bootloader for the new kernel. This means that, for a small time period, you will have two versions of the kernel packages installed. After a successful reboot to the new kernel, you can use the @kernel-clean@ operation to remove the previous versions of those packages.
+When kernel packages have pending upgrades, you can use two operations created specifically to handle the situation. @kernel-upgrade@ will install the new kernel packages using @installpkg@ instead of @upgradepkg@ and then help you configure your boot loader for the new kernel. This means that, for a small time period, you will have two versions of the kernel packages installed. After a successful reboot to the new kernel, you can use the @kernel-clean@ operation to remove the previous versions of those packages.
 
 h1. Feedback, questions, bug reports
 
