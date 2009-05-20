@@ -48,7 +48,7 @@ slackroll_filelist_pkg_str = 2
 slackroll_source_indicator = '/source/'
 slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
-slackroll_main_indicator = '/slackware/'
+slackroll_main_indicator = re.compile(r'/slackware(?:64)?/')
 slackroll_extra_indicator = '/extra/'
 slackroll_prioritized_pkgs = ['glibc-solibs', 'sed', 'pkgtools']
 slackroll_kernel_pkg_indicator = 'kernel'
@@ -909,7 +909,7 @@ def choose_pkg(pkg_list): # Returns chosen package or None
 	return pkg_list[chosen]
 
 def any_in_main_tree(pkg_list): # True if any package from the list is in the main tree
-	return (len([x for x in pkg_list if slackroll_main_indicator in x.path]) > 0)
+	return (len([x for x in pkg_list if slackroll_main_indicator.search(x.path) is not None]) > 0)
 
 def any_in_extra_tree(pkg_list): # True if any package from the list is in the extra tree
 	return (len([x for x in pkg_list if slackroll_extra_indicator in x.path]) > 0)
@@ -918,10 +918,10 @@ def not_pasture(pkg_list): # Returns packages not in pasture
 	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path]
 
 def not_main(pkg_list): # Returns packages not in the main tree
-	return [x for x in pkg_list if slackroll_main_indicator not in x.path]
+	return [x for x in pkg_list if slackroll_main_indicator.search(x.path) is not None]
 
 def not_main_or_extra(pkg_list): # Returns packages not in the main or extra trees
-	return [x for x in pkg_list if slackroll_main_indicator not in x.path and slackroll_extra_indicator not in x.path]
+	return [x for x in pkg_list if slackroll_main_indicator.search(x.path) is not None and slackroll_extra_indicator not in x.path]
 
 def pkgs_in_state(persistent_list, state_list): # Get persistent_list names with matching state
 	return [x for x in persistent_list if persistent_list[x] in state_list]
