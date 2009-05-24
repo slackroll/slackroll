@@ -42,7 +42,7 @@ h3. FOREIGN
 
 No package will enter the foreign state unless you mark it so. It should be used for packages that do not exist in the remote tree but that, unlike unavailable packages, are present in your system on purpose. For example, the @slackroll@ package in my system is marked as foreign. A foreign package will be marked as installed or outdated if it ever appears in the remote tree, becoming a candidate for upgrading. Hopefully, you'll notice this fact. You could still use your own version instead of the remote (official) one by marking it as frozen.
 
-h1. Get SlackRoll
+h1. Get slackroll
 
 "slackroll":http://github.com/rg3/slackroll/downloads is a self-contained Python script released to the public domain. You can install its package with @installpkg@ for the first time. In the future, you can use @upgradepkg@ or even @slackroll@ itself to upgrade to newer versions. Continue reading for more details.
 
