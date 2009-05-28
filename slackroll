@@ -92,13 +92,13 @@ slackroll_transient_states = [slackroll_state_new, slackroll_state_outdated, sla
 slackroll_all_states = [x for x in xrange(len(slackroll_state_strings))]
 
 slackroll_socket_timeout = 120
-slackroll_mirror_version_re = re.compile(r'/slackware-([^/]+)/')
+slackroll_mirror_version_re = re.compile(r'/slackware(64)?-([^/]+)/')
 slackroll_pb_location = 'http://packages.slackware.it/'
 slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=%s'
 slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?<a[^>]*>(.+?)</a>.*?</div>.*?<div class="pkgdescr">(.+?)</div>.*?</div>'
 slackroll_pb_result_idname = 1
 slackroll_pb_result_files = 2
-slackroll_default_primary_site_url = 'http://slackware.osuosl.org/slackware-%s/'
+slackroll_default_primary_site_url = 'http://slackware.osuosl.org/slackware%s-%s/'
 
 slackroll_locale_envvars = ['LC_COLLATE', 'LC_CTYPE', 'LC_MONETARY', 'LC_MESSAGES', 'LC_NUMERIC', 'LC_TIME', 'LC_ALL', 'LANGUAGE', 'LANG']
 slackroll_locale_mainvar = 'LANG'
@@ -561,7 +561,7 @@ def get_mirror(): # From the 'mirror' file
 def get_primary_mirror(): # From the 'pmirror' file or default value
 	if is_readable_file(slackroll_primary_mirror_filename):
 		return get_mirror_from_file(slackroll_primary_mirror_filename)
-	return slackroll_default_primary_site_url % get_version_from_mirror(get_mirror())
+	return slackroll_default_primary_site_url % get_mirror_version_components(get_mirror())
 
 def set_mirror(mirror): # Writes the mirror name to the 'mirror' file
 	if not mirror.endswith('/'):
@@ -579,11 +579,11 @@ def set_primary_mirror(mirror): # Writes the mirror name to the 'pmirror' file
 	except (OSError, IOError, ValueError), err:
 		sys.exit('ERROR: %s' % err)
 
-def get_version_from_mirror(mirror): # Extract Slackware version from mirror URL
+def get_mirror_version_components(mirror): # Extract Slackware version components from mirror URL
 	match = slackroll_mirror_version_re.search(mirror)
 	if match is None:
 		sys.exit('ERROR: unable to extract Slackware version from mirror name')
-	return match.group(1)
+	return (match.group(1), match.group(2))
 
 def get_pkg_cache_size(): # Return total bytes for files in cache
 	try:
@@ -1056,7 +1056,7 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 		persistent_list[name] = dest_state
 		persistent_list.sync()
 
-def query_pkg_browser(version, searchstr): # Query package browser on given file with given Slackware version
+def query_pkg_browser(opt64, version, searchstr): # Query package browser on given file with given Slackware version
 	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
 	try:
 		data = urllib.urlopen(url).read()
@@ -1733,14 +1733,14 @@ try:
 		sys.exit()
 
 	if operation in ['pb-search', 'remote-search']:
-		slackver = get_version_from_mirror(get_mirror())
+		(opt64, slackver) = get_mirror_version_components(get_mirror())
 		print 'Using the Slackware Package Browser at %s' % slackroll_pb_location
 		term = sys.stdout
 		interceptor = SlackRollOutputInterceptor()
 		for name in args:
 			searchstr = '"%s"' % name
 			print >>term, "Searching for %s..." % searchstr
-			query_pkg_browser(slackver, searchstr)
+			query_pkg_browser(opt64, slackver, searchstr)
 		interceptor.stop()
 		sys.exit()
 
