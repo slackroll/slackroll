@@ -92,7 +92,7 @@ slackroll_transient_states = [slackroll_state_new, slackroll_state_outdated, sla
 slackroll_all_states = [x for x in xrange(len(slackroll_state_strings))]
 
 slackroll_socket_timeout = 120
-slackroll_mirror_version_re = re.compile(r'/slackware(64)?-([^/]+)/')
+slackroll_mirror_version_re = re.compile(r'/slackware(64|)-([^/]+)/')
 slackroll_pb_location = 'http://packages.slackware.it/'
 slackroll_pb_template_url = 'http://packages.slackware.it/search.php?v=%s&t=2&q=%s'
 slackroll_pb_result_re = r'(?is)<div class="result">.*?<div class="pkgtitle">.*?<a[^>]*>(.+?)</a>.*?</div>.*?<div class="pkgdescr">(.+?)</div>.*?</div>'
