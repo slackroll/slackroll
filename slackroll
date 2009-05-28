@@ -918,10 +918,10 @@ def not_pasture(pkg_list): # Returns packages not in pasture
 	return [x for x in pkg_list if slackroll_pasture_indicator not in x.path]
 
 def not_main(pkg_list): # Returns packages not in the main tree
-	return [x for x in pkg_list if slackroll_main_indicator.search(x.path) is not None]
+	return [x for x in pkg_list if slackroll_main_indicator.search(x.path) is None]
 
 def not_main_or_extra(pkg_list): # Returns packages not in the main or extra trees
-	return [x for x in pkg_list if slackroll_main_indicator.search(x.path) is not None and slackroll_extra_indicator not in x.path]
+	return [x for x in pkg_list if slackroll_main_indicator.search(x.path) is None and slackroll_extra_indicator not in x.path]
 
 def pkgs_in_state(persistent_list, state_list): # Get persistent_list names with matching state
 	return [x for x in persistent_list if persistent_list[x] in state_list]
