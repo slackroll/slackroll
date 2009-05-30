@@ -138,7 +138,7 @@ def transient_cmp((name1, state1), (name2, state2)): # Special sort for transien
 		return (index_of(slackroll_transient_states, state1) - index_of(slackroll_transient_states, state2))
 	return cmp(name1, name2)
 
-class SlackRollError(Exception):
+class SlackrollError(Exception):
 	pass
 
 class SlackwarePackage(object):
@@ -211,7 +211,7 @@ class SlackwarePackage(object):
 	def url(self, mirror):
 		return urlparse.urljoin(mirror, self.fullname)
 
-class SlackRollURLopener(urllib.FancyURLopener):
+class SlackrollURLopener(urllib.FancyURLopener):
 	def http_error_default(self, url, fp, errcode, errmsg, headers):
 		raise IOError('%s: %s' % (errcode, errmsg))
 
@@ -222,7 +222,7 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
 	matchobj = slackroll_pkg_re.match(path_or_name)
 
 	if matchobj is None:
-		raise SlackRollError('nonstandard package name: %s' % path_or_name)
+		raise SlackrollError('nonstandard package name: %s' % path_or_name)
 
 	path = matchobj.group(slackroll_pkg_re_path)
 	name = matchobj.group(slackroll_pkg_re_name)
@@ -233,7 +233,7 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
 	try:
 		size = (size_str is not None and long(size_str) or None)
 	except ValueError:
-		raise SlackRollError('invalid file size: %s' % size_str)
+		raise SlackrollError('invalid file size: %s' % size_str)
 	return SlackwarePackage(name, version, arch, build, path, suffix, size)
 
 def pkg_in_map(pkg, map_by_name): # Checks if pkg is in map[pkg.name], usable for local_list and remote_list
@@ -479,7 +479,7 @@ def get_local_pkgs(): # Return a list of packages from /var/log/packages
 		sys.exit('ERROR: could not read list of local packages')
 	try:
 		local_pkgs = [pkg_from_str(x) for x in local_pkgs]
-	except SlackRollError, err:
+	except SlackrollError, err:
 		sys.exit('ERROR: %s' % err)
 	return local_pkgs
 
@@ -623,7 +623,7 @@ def too_many_lines(numlines): # Returns True if lines do not fit in screen
 	(rows, cols) = getwinsize()
 	return (numlines >= rows)
 
-class SlackRollOutputInterceptor(object): # Intercepts stdout and uses a pager if the output is too long
+class SlackrollOutputInterceptor(object): # Intercepts stdout and uses a pager if the output is too long
 	__was_not_tty = None
 	__old_stdout = None
 	__buffer = None
@@ -704,10 +704,10 @@ def download_file(mirror, filepath, local_temp, local_final): # Does not exit on
 		urllib.urlretrieve(full_url, local_temp, hook)
 		print
 		if not try_to_rename(local_temp, local_final, fatal=False):
-			raise SlackRollError('rename error: %s => %s' % (local_temp, local_final))
+			raise SlackrollError('rename error: %s => %s' % (local_temp, local_final))
 	except (OSError, IOError, socket.error, urllib.ContentTooShortError), err:
 		sys.stderr.write('\nERROR: %s\n' % err)
-		raise SlackRollError(str(err))
+		raise SlackrollError(str(err))
 
 def download(mirror, filepath, localdir): # Wrapper that does NOT exit on errors
 	name = os.path.basename(filepath)
@@ -718,7 +718,7 @@ def download(mirror, filepath, localdir): # Wrapper that does NOT exit on errors
 def download_or_exit(mirror, filepath, localdir): # Wrapper that exits on errors
 	try:
 		download(mirror, filepath, localdir)
-	except SlackRollError:
+	except SlackrollError:
 		sys.exit(slackroll_exit_failure)
 
 def handle_writable_dir(dirname): # Make sure dirname is available and writable
@@ -750,8 +750,8 @@ def import_key(filename):
 		print 'Importing keys from %s ...' % filename
 		retcode = subprocess.call([gnupg_exec_name(), '--import', filename], stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
 		if retcode != 0:
-			raise SlackRollError('GnuPG exited with error when importing key')
-	except (OSError, IOError, SlackRollError), err:
+			raise SlackrollError('GnuPG exited with error when importing key')
+	except (OSError, IOError, SlackrollError), err:
 		sys.exit('ERROR: %s' % err)
 
 def verify_signature(filename):	# Does not exit on errors
@@ -760,10 +760,10 @@ def verify_signature(filename):	# Does not exit on errors
 		retcode = subprocess.call([gnupg_exec_name(), '--verify', filename], stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
 		if retcode != 0:
 			sys.stderr.write('ERROR: signature verification failed: %s\n' % filename)
-			raise SlackRollError('GnuPG exited with status code %s' % retcode)
+			raise SlackrollError('GnuPG exited with status code %s' % retcode)
 	except (OSError, IOError), err:
 		sys.stderr.write('ERROR: %s\n' % err)
-		raise SlackRollError(str(err))
+		raise SlackrollError(str(err))
 
 def upgrade_or_install(filename, reinstall): # upgradepkg
 	try:
@@ -824,7 +824,7 @@ def download_verify(mirror, package): # Download package, signature and verify i
 		download(sigmirror, remote_sig, tempdir)
 		download(mirror, remote_name, tempdir)
 		verify_signature(local_sig)
-	except SlackRollError:
+	except SlackrollError:
 		try_to_remove(local_sig)
 		try_to_remove(local_name)
 		return None
@@ -989,7 +989,7 @@ def print_in_states_or(states, persistent_list, header, message_on_empty, print_
 	if len(keys) == 0:
 		print message_on_empty
 		return
-	interceptor = SlackRollOutputInterceptor()
+	interceptor = SlackrollOutputInterceptor()
 	print_in_states(states, persistent_list, header, print_state)
 	interceptor.stop()
 
@@ -1007,7 +1007,7 @@ def print_seq_or(seq, header, message_on_empty): # Idem using interceptor and a 
 	if len(seq) == 0:
 		print message_on_empty
 		return
-	interceptor = SlackRollOutputInterceptor()
+	interceptor = SlackrollOutputInterceptor()
 	print_seq(seq, header)
 	interceptor.stop()
 
@@ -1024,7 +1024,7 @@ def print_list_or(the_list, header, message_on_emtpy): # Idem using interceptor 
 	if len(the_list) == 0:
 		print message_on_emtpy
 		return
-	interceptor = SlackRollOutputInterceptor()
+	interceptor = SlackrollOutputInterceptor()
 	print_list(the_list, header)
 	interceptor.stop()
 
@@ -1191,7 +1191,7 @@ def may_be_full_version(pkg_string):
 	try:
 		pkg_from_str(pkg_string)
 		return True
-	except SlackRollError:
+	except SlackrollError:
 		pass
 	return False
 
@@ -1231,7 +1231,7 @@ def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage o
 			pkg = pkg_from_str(arg)
 			name = pkg.name
 			return (True, name, pkg)
-		except SlackRollError:
+		except SlackrollError:
 			sys.exit('ERROR: unable to parse specific package version: %s' % arg)
 	return (False, arg, None)
 
@@ -1340,7 +1340,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 					info_map[pkg.fullname] = get_remote_info(mirror, pkg)
 			except (OSError, IOError), err:
 				sys.exit('ERROR: %s' % err)
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		for pkg in chosen_pkgs:
 			print info_map[pkg.fullname]
 		interceptor.stop()
@@ -1436,7 +1436,7 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 		persistent_list.sync()
 
 def print_help():
-	interceptor = SlackRollOutputInterceptor()
+	interceptor = SlackrollOutputInterceptor()
 	print """Available operations:
 
 help			Print this help
@@ -1539,7 +1539,7 @@ try:
 	local_list = None
 	remote_list = None
 	persistent_list = None
-	urllib._urlopener = SlackRollURLopener()
+	urllib._urlopener = SlackrollURLopener()
 	socket.setdefaulttimeout(slackroll_socket_timeout)
 	standarize_locales()
 
@@ -1644,7 +1644,7 @@ try:
 		sys.exit()
 	
 	if operation == 'version':
-		print 'SlackRoll v%s' % slackroll_version
+		print 'slackroll v%s' % slackroll_version
 		sys.exit()
 	
 	if operation == 'print-blacklist':
@@ -1691,14 +1691,14 @@ try:
 		sys.exit()
 
 	if operation == 'changelog':
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		cl = try_load(slackroll_local_changelog)
 		print slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch())
 		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'list-changelog':
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		cl = try_load(slackroll_local_changelog)
 		print 'ChangeLog.txt entries:'
 		for idb in xrange(cl.num_batches() - 1, -1, -1):
@@ -1719,7 +1719,7 @@ try:
 				entries.append(cl.get_batch(idb)[ide])
 			except (IndexError, ValueError):
 				sys.exit('ERROR: invalid entry: %s' % code)
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		print slackroll_changelog_entry_separator.join('%s' % x for x in entries)
 		interceptor.stop()
 		sys.exit()
@@ -1727,7 +1727,7 @@ try:
 	if operation == 'full-changelog':
 		cl = try_load(slackroll_local_changelog)
 		entries = concat([[x for x in cl.get_batch(y)] for y in xrange(cl.num_batches() - 1, -1, -1)])
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		print slackroll_changelog_entry_separator.join('%s' % x for x in entries)
 		interceptor.stop()
 		sys.exit()
@@ -1736,7 +1736,7 @@ try:
 		(opt64, slackver) = get_mirror_version_components(get_mirror())
 		print 'Using the Slackware Package Browser at %s' % slackroll_pb_location
 		term = sys.stdout
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		for name in args:
 			searchstr = '"%s"' % name
 			print >>term, "Searching for %s..." % searchstr
@@ -1774,7 +1774,7 @@ try:
 			sys.exit()
 
 		matches.sort()
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		print header
 		for (name, files) in matches:
 			print '    %s' % os.path.basename(name)
@@ -1872,7 +1872,7 @@ try:
 	if operation == 'remote-paths':
 		every_remote_path = concat([[y.fullname for y in remote_list[x]] for x in remote_list])
 		every_remote_path.sort()
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		for path in every_remote_path:
 			print path
 		interceptor.stop()
@@ -1925,7 +1925,7 @@ try:
 		for elem in cache_files:
 			try:
 				cache_pkgs.append(pkg_from_str(elem))
-			except SlackRollError:
+			except SlackrollError:
 				extraneous_files.append(elem)
 
 		to_be_removed = [pkg for pkg in cache_pkgs if not pkg_in_map(pkg, local_list) and not pkg_in_map(pkg, remote_list)]
@@ -1955,7 +1955,7 @@ try:
 				print 'No frozen packages would be outdated'
 			sys.exit()
 
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		if operation == 'list-upgrades':
 			print 'Available upgrades:'
 		else: # list-outdated-frozen
@@ -1992,7 +1992,7 @@ try:
 		format = '    %%-%ss  %%-%ss  %%s' % (max_state_len, max_name_len)
 
 		# Print the transient list
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		print 'Transient packages:'
 		print '\n'.join(format % (state, name, tr_pkg_detail(local_list, remote_list, persistent_list, name)) for (name, state) in pkgs_and_states)
 		print 'End of list'
@@ -2027,7 +2027,7 @@ try:
 
 		names = alternatives.keys()
 		names.sort(cmp=pkg_name_cmp)
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		print 'Packages with alternatives:'
 		for name in names:
 			print '    %s:' % name
@@ -2044,7 +2044,7 @@ try:
 		empty_message = 'No %s packages found' % state_str
 		state = slackroll_state_strings.index(state_str)
 
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		print_in_states_or([state], persistent_list, header, empty_message, False)
 		if state in slackroll_transient_states:
 			maybe_print_key_pkg_watchout(persistent_list)
@@ -2102,7 +2102,7 @@ try:
 
 	if operation == 'list-versions':
 		maybe_error_unknown_packages(args, persistent_list)
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		print 'Available versions:'
 		for name in args:
 			print '    %s:' % name
@@ -2159,7 +2159,7 @@ try:
 	
 	if operation == 'local-info':
 		verify_local_names(args, local_list)
-		interceptor = SlackRollOutputInterceptor()
+		interceptor = SlackrollOutputInterceptor()
 		try:
 			print '\n'.join(file(x.fullname, 'r').read() for x in concat(local_list[pkg] for pkg in args))
 		except (IOError, OSError), err:
@@ -2178,7 +2178,7 @@ try:
 		# Verify and get package names
 		try:
 			pkgs = [pkg_from_str(x) for x in args]
-		except SlackRollError, err:
+		except SlackrollError, err:
 			sys.exit('ERROR: %s' % err)
 
 		# The packages must not be present in persistent list or be foreign already
