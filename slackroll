@@ -2,6 +2,7 @@
 # Author: Ricardo Garcia
 # License: Public domain code
 import anydbm
+import bz2
 import cPickle
 import cStringIO
 import fcntl
@@ -107,6 +108,10 @@ slackroll_locale_value = 'C'
 
 slackroll_bootloader_config_files = ['/etc/lilo.conf', '/boot/grub/menu.lst', '/boot/extlinux.conf', '/boot/extlinux/extlinux.conf']
 slackroll_lilo_path = '/sbin/lilo'
+
+slackroll_manifest_re = re.compile(r'\s+(\./\w+/MANIFEST\.bz2)$')
+slackroll_manifest_basename = 'MANIFEST.bz2'
+slackroll_manifest_filename = os.path.join(slackroll_base_dir, 'manifest.db')
 
 def standarize_locales():
 	for varname in slackroll_locale_envvars:
@@ -1226,6 +1231,84 @@ def post_kernel_operation(): # Operations needed after kernel installation
 			break
 		actions[chosen]() # Run selected action
 
+def update_manifest_database():
+	# Build the list of MANIFEST.bz2 files
+	try:
+		lines = open(slackroll_local_filelist, 'r').readlines()
+	except (IOError, OSError), err:
+		sys.exit('ERROR: %s' % err)
+	files = [slackroll_manifest_re.search(x) for x in lines]
+	files = [x.group(1) for x in files if x is not None]
+	files = [x for x in files if slackroll_source_indicator not in x]
+
+	tmpdir = get_temp_dir()
+	output_name = os.path.join(tmpdir, slackroll_manifest_basename)
+
+	# Download and process files
+	manifestdb = dict()
+	for x in xrange(len(files)):
+		# Download file
+		download_or_exit(get_mirror(), files[x], get_temp_dir())
+
+		# Decompress it
+		print_flush('Processing %s ... ' % files[x])
+		stream = bz2.BZ2File(output_name, 'r')
+		contents = stream.read()
+		stream.close()
+
+		# Read the packages and their files
+		file_counter = 0
+		for mobj in re.finditer(r'(?ms)^\+\+.*?\sPackage:\s+?(\S+?)\n.*?^\+\+=+\n(.*?)\n\n', contents):
+			pkgpath = mobj.group(1)
+			pkgfiles = mobj.group(2)
+			
+			if slackroll_source_indicator in pkgpath:
+				continue
+			database_value = pkg_from_str(pkgpath).archivename
+
+			# Store files in database
+			for y in re.finditer(r'(?m)^\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(\S+)$', pkgfiles):
+				filename = '/' + y.group(1)
+				values = manifestdb.get(filename, [])
+				values.append(database_value)
+				manifestdb[filename] = values
+				file_counter += 1
+		print '%d files' % file_counter
+
+		# Delete local file
+		try_to_remove(output_name)
+	
+	# Dump database to disk
+	print 'Dumping database to disk...'
+	try_dump(manifestdb, slackroll_manifest_filename)
+
+def search_manifest_database(regexp):
+	manifestdb = try_load(slackroll_manifest_filename)
+	
+	results = []
+	for k in manifestdb.iterkeys():
+		if regexp.search(k) is not None:
+			results.append(k)
+	
+	reversed = dict()
+	for key in results:
+		for pkg in manifestdb[key]:
+			values = reversed.get(pkg, [])
+			values.append(key)
+			reversed[pkg] = values
+	
+	if len(reversed) == 0:
+		print 'No matching files'
+	else:
+		interceptor = SlackrollOutputInterceptor()
+		print 'Matching files:'
+		for pkg in reversed:
+			print '    %s:' % pkg
+			print '\n'.join('\t%s' % x for x in reversed[pkg])
+			print
+		print 'End of list'
+		interceptor.stop()
+
 def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage or None) -- auxiliar of parse_install_args()
 	if slackroll_pkg_archive_suffix.search(arg) is not None or os.path.sep in arg:
 		try:
@@ -1440,88 +1523,90 @@ def print_help():
 	interceptor = SlackrollOutputInterceptor()
 	print """Available operations:
 
-help			Print this help
-version			Print the program version
-set-mirror URL		Sets the mirror URL
-print-mirror		Prints the mirror URL
-set-primary-mirror URL	Sets the primary mirror URL (bad practice usually)
-print-primary-mirror	Prints the primary mirror URL
-update			Download remote tree information
-import-key		Download and import the GPG key
-changelog		Displays the last downloaded ChangeLog.txt batch
-download-changelog	Download the full ChangeLog.txt
-list-changelog		List all known changelog entries and their identifiers
-changelog-entries ID...	Display changelog entries by identifier
-full-changelog		Display every known changelog entry
-upgrade			Upgrade system packages
-upgrade-key-packages	Upgrade key system packages
-download-upgrades	Like 'upgrade' but without installing
-download-key-packages	Like 'upgrade-key-packages' but without installing
-urls-upgrades		Like 'upgrade' but only printing URLs
-urls-key-packages	Like 'upgrade-key-packages' but only printing URLs
-kernel-upgrade		Install updated kernel packages with installpkg
-kernel-clean		Remove obsolete kernel packages
-clean-cache		Remove unknown package versions from package cache
-erase-cache		Remove every file from package cache
-erase-tmp		Remove every file from the temporary directory
-erase-all		Remove every file from both locations above
-touch			Force update on persistent database
-list-transient		Combined list of new, unavailable and outdated packages
-list-upgrades		List available upgrades
-list-outdated-frozen	List frozen packages that would be outdated otherwise
-list-alternatives	List packages with alternative versions
-list-versions PKG...	List all known versions of given packages
-state PKG...		Show state of given packages
-list-new		List new packages
-list-unavailable	List unavailable packages
-list-installed		List installed packages
-list-not-installed	List not installed packages
-list-frozen		List frozen packages
-list-foreign		List foreign packages
-list-outdated		List outdated packages
-list-local		List all local packages (present in system)
-list-remote		List all remote packages (present in remote tree)
-list-all		List every known package
-new-not-installed	Mark all new packages as not installed
-unavailable-foreign	Mark all unavailable packages as foreign
-new PKG...		Mark packages as new
-unavailable PKG...	Mark packages as unavailable
-installed PKG...	Mark packages as installed
-not-installed PKG...	Mark packages as not installed
-foreign PKG...		Mark packages as foreign
-frozen PKG...		Mark packages as frozen
-freeze PKG...		Alias for 'frozen'
-install PKG...		Install packages or specific package versions
-install-new		Install all new packages
-install-path REGEX...	Install all packages with matching path
-install-foreign PATH...	Install a foreign package from disk
-reinstall PKG...	Same as 'install' but reinstalls if needed
-replace UNAV NEW	Replace an unavailable package with a new one
-download PKG...		Download packages or specific package versions
-download-new		Download all new packages
-download-path REGEX...	Download all packages with matching path
-info PKG...		Show info about packages or specific package versions
-info-new		Show info about all new packages
-info-path REGEX...	Show info about all packages with matching path
-local-info PKG...	Show full package information from /var/log/packages
-urls PKG...		Show package or specific package version URLs
-urls-new		Show URLs for all new packages
-urls-path REGEX...	Show URLs for all packages with matching path
-remove PKG...		Remove packages
-remove-unavailable	Remove every unavailable package
-remove-path REGEX...	Remove all packages with matching path
-remote-paths		Print a plain list of the remote package paths
-print-blacklist		Print all the expressions in the blacklist
-blacklist-add REGEX...	Add an expression to the blacklist
-blacklist-del INDEX...	Delete an expression from the blacklist
-pb-search FILE...	Search for files in the Slackware Package Browser
-remote-search FILE...	Alias for 'pb-search'
-local-search REGEX...	Search for files in local packages
-name-search REGEX...	Search for package names matching regular expressions
-path-search REGEX...	Search for remote packages having matching path
-orphan-search PATH...	Search for orphan files in local system
-broken-symlinks PATH...	Search for broken symlinks in local system
-missing-search		Search for missing files in local system
+help			 Print this help
+version			 Print the program version
+set-mirror URL		 Sets the mirror URL
+print-mirror		 Prints the mirror URL
+set-primary-mirror URL	 Sets the primary mirror URL (bad practice usually)
+print-primary-mirror	 Prints the primary mirror URL
+update			 Download remote tree information
+import-key		 Download and import the GPG key
+changelog		 Displays the last downloaded ChangeLog.txt batch
+download-changelog	 Download the full ChangeLog.txt
+list-changelog		 List all known changelog entries and their identifiers
+changelog-entries ID...	 Display changelog entries by identifier
+full-changelog		 Display every known changelog entry
+upgrade			 Upgrade system packages
+upgrade-key-packages	 Upgrade key system packages
+download-upgrades	 Like 'upgrade' but without installing
+download-key-packages	 Like 'upgrade-key-packages' but without installing
+urls-upgrades		 Like 'upgrade' but only printing URLs
+urls-key-packages	 Like 'upgrade-key-packages' but only printing URLs
+kernel-upgrade		 Install updated kernel packages with installpkg
+kernel-clean		 Remove obsolete kernel packages
+clean-cache		 Remove unknown package versions from package cache
+erase-cache		 Remove every file from package cache
+erase-tmp		 Remove every file from the temporary directory
+erase-all		 Remove every file from both locations above
+touch			 Force update on persistent database
+list-transient		 Combined list of new, unavailable and outdated packages
+list-upgrades		 List available upgrades
+list-outdated-frozen	 List frozen packages that would be outdated otherwise
+list-alternatives	 List packages with alternative versions
+list-versions PKG...	 List all known versions of given packages
+state PKG...		 Show state of given packages
+list-new		 List new packages
+list-unavailable	 List unavailable packages
+list-installed		 List installed packages
+list-not-installed	 List not installed packages
+list-frozen		 List frozen packages
+list-foreign		 List foreign packages
+list-outdated		 List outdated packages
+list-local		 List all local packages (present in system)
+list-remote		 List all remote packages (present in remote tree)
+list-all		 List every known package
+new-not-installed	 Mark all new packages as not installed
+unavailable-foreign	 Mark all unavailable packages as foreign
+new PKG...		 Mark packages as new
+unavailable PKG...	 Mark packages as unavailable
+installed PKG...	 Mark packages as installed
+not-installed PKG...	 Mark packages as not installed
+foreign PKG...		 Mark packages as foreign
+frozen PKG...		 Mark packages as frozen
+freeze PKG...		 Alias for 'frozen'
+install PKG...		 Install packages or specific package versions
+install-new		 Install all new packages
+install-path REGEX...	 Install all packages with matching path
+install-foreign PATH...	 Install a foreign package from disk
+reinstall PKG...	 Same as 'install' but reinstalls if needed
+replace UNAV NEW	 Replace an unavailable package with a new one
+download PKG...		 Download packages or specific package versions
+download-new		 Download all new packages
+download-path REGEX...	 Download all packages with matching path
+info PKG...		 Show info about packages or specific package versions
+info-new		 Show info about all new packages
+info-path REGEX...	 Show info about all packages with matching path
+local-info PKG...	 Show full package information from /var/log/packages
+urls PKG...		 Show package or specific package version URLs
+urls-new		 Show URLs for all new packages
+urls-path REGEX...	 Show URLs for all packages with matching path
+remove PKG...		 Remove packages
+remove-unavailable	 Remove every unavailable package
+remove-path REGEX...	 Remove all packages with matching path
+remote-paths		 Print a plain list of the remote package paths
+print-blacklist		 Print all the expressions in the blacklist
+blacklist-add REGEX...	 Add an expression to the blacklist
+blacklist-del INDEX...	 Delete an expression from the blacklist
+update-manifest		 Download MANIFEST.bz2 files and create a database
+manifest-search REGEX... Search for files in manifest database
+pb-search FILE...	 Search for files in the Slackware Package Browser
+remote-search FILE...	 Alias for 'pb-search'
+local-search REGEX...	 Search for files in local packages
+name-search REGEX...	 Search for package names matching regular expressions
+path-search REGEX...	 Search for remote packages having matching path
+orphan-search PATH...	 Search for orphan files in local system
+broken-symlinks PATH...	 Search for broken symlinks in local system
+missing-search		 Search for missing files in local system
 
 Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
 """
@@ -1594,6 +1679,7 @@ try:
 		'list-versions':	-1,
 		'local-info':		-1,
 		'local-search':		-1,
+		'manifest-search':	-1,
 		'missing-search':	0,
 		'name-search':		-1,
 		'new':			-1,
@@ -1619,6 +1705,7 @@ try:
 		'unavailable':		-1,
 		'unavailable-foreign':	0,
 		'update':		0,
+		'update-manifest':	0,
 		'upgrade':		0,
 		'upgrade-key-packages':	0,
 		'urls':			-1,
@@ -1826,6 +1913,15 @@ try:
 
 		print_list_or(broken_symlinks, 'Broken symlinks:', 'No broken symlinks found')
 		sys.exit()
+	
+	if operation == 'manifest-search':
+		all_regexes = '|'.join('(?:%s)' % x for x in args)
+		try:
+			regexp = re.compile(all_regexes)
+		except re.error:
+			sys.exit('ERROR: invalid regular expression')
+		search_manifest_database(regexp)
+		sys.exit()
 
 	# Some operations below need to have the temporary directory available to download stuff
 	handle_writable_dir(get_temp_dir())
@@ -1848,6 +1944,10 @@ try:
 
 	if operation == 'download-changelog':
 		update_changelog(get_mirror(), full=True)
+		sys.exit()
+	
+	if operation == 'update-manifest':
+		update_manifest_database()
 		sys.exit()
 
 	# Every operation below needs an updated persistent database
