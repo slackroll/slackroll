@@ -1735,6 +1735,12 @@ try:
 
 	if operation in ['pb-search', 'remote-search']:
 		(opt64, slackver) = get_mirror_version_components(get_mirror())
+
+		# I really hope this is temporary
+		if len(opt64) > 0:
+			sys.stderr.write('WARNING: Package browser does not support Slackware64 yet\n')
+			sys.stderr.write('WARNING: Querying the 32-bit version database for now\n')
+
 		print 'Using the Slackware Package Browser at %s' % slackroll_pb_location
 		term = sys.stdout
 		interceptor = SlackrollOutputInterceptor()
