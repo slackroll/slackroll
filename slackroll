@@ -1753,7 +1753,7 @@ try:
 
 	if operation in ['local-search', 'missing-search']:
 		if operation == 'local-search':
-			all_regexes = '|'.join('(%s)' % x for x in args)
+			all_regexes = '|'.join('(?:%s)' % x for x in args)
 			try:
 				regexp = re.compile(all_regexes)
 			except re.error:
@@ -2137,7 +2137,7 @@ try:
 		sys.exit()
 	
 	if operation in ['install-path', 'download-path', 'info-path', 'urls-path', 'remove-path']:
-		all_regexes = '|'.join('(%s)' % x for x in args)
+		all_regexes = '|'.join('(?:%s)' % x for x in args)
 		try:
 			regexp = re.compile(all_regexes)
 		except re.error:
@@ -2293,7 +2293,7 @@ try:
 		sys.exit()
 
 	if operation == 'name-search':
-		all_regexes = '|'.join('(%s)' % x for x in args)
+		all_regexes = '|'.join('(?:%s)' % x for x in args)
 		try:
 			regexp = re.compile(all_regexes)
 		except re.error:
@@ -2304,7 +2304,7 @@ try:
 		sys.exit()
 	
 	if operation == 'path-search':
-		all_regexes = '|'.join('(%s)' % x for x in args)
+		all_regexes = '|'.join('(?:%s)' % x for x in args)
 		try:
 			regexp = re.compile(all_regexes)
 		except re.error:
