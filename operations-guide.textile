@@ -260,6 +260,14 @@ h2. blacklist-del
 
 This operation removes expressions from the blacklist, specifying one or more expression indexes as its arguments.
 
+h2. update-manifest
+
+This operation downloads every MANIFEST.bz2 file from the Slackware mirror and creates a database with their contents. This manifest database can be used to find out which package or packages contain specific files. Downloading and processing the MANIFEST.bz2 files does not take too long but it could take a bit of time. This is why these files are not downloaded and processed during the @update@ operation. Searching the Slackware Package Browser or using the @local-search@ operation is usually faster, but this operation and the @manifest-search@ operation are provided as a fallback mechanism. For accurate results, update the manifest database before starting to search for files, so the database reflects an up-to-date remote tree.
+
+h2. search-manifest
+
+This operation receives a list of Python regular expressions and uses them to search for matching files in the manifest database. For it to work, you need to have a manifest database built with the @update-manifest@ operation.
+
 h2. pb-search or remote-search
 
 This operation connects to the Slackware Package Browser and searches for the files specified as arguments, printing the search results on the screen. It is important to note that the names are automatically quoted for ease of use, and that you should visit the Slackware Package Browser page to learn more about how it can be used. The Slackware version used to search will be extracted from the mirror URL.
