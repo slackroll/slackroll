@@ -176,7 +176,7 @@ h2. unavailable
 
 Similar to @new@ with the state UNAVAILABLE. Only packages in the states UNAVAILABLE and FOREIGN can be marked as UNAVAILABLE.
 
-h2. installed
+h2. installed or unfreeze
 
 Similar to @new@ with the state INSTALLED. Only packages in the states INSTALLED and FROZEN can be marked as INSTALLED.
 
