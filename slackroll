@@ -1574,6 +1574,7 @@ not-installed PKG...	 Mark packages as not installed
 foreign PKG...		 Mark packages as foreign
 frozen PKG...		 Mark packages as frozen
 freeze PKG...		 Alias for 'frozen'
+unfreeze PKG...		 Alias for 'installed'
 install PKG...		 Install packages or specific package versions
 install-new		 Install all new packages
 install-path REGEX...	 Install all packages with matching path
@@ -1704,6 +1705,7 @@ try:
 		'touch':		0,
 		'unavailable':		-1,
 		'unavailable-foreign':	0,
+		'unfreeze':		-1,
 		'update':		0,
 		'update-manifest':	0,
 		'upgrade':		0,
@@ -2201,7 +2203,7 @@ try:
 		from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_new, persistent_list, args)
 		sys.exit()
 
-	if operation == 'installed':
+	if operation in ['installed', 'unfreeze']:
 		from_states_to_state([slackroll_state_installed, slackroll_state_frozen], slackroll_state_installed, persistent_list, args)
 		analyze_changes(local_list, remote_list, persistent_list) # Forced because it may need to be marked as outdated
 		os.utime(slackroll_persistentlist_filename, None)
