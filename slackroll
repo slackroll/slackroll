@@ -1935,7 +1935,7 @@ try:
 		updated = update_changelog(mirror)
 		download_or_exit(mirror, slackroll_filelist_filename, slackroll_base_dir)
 		if updated:
-			print 'You should now use the "changelog" operation'
+			print 'You should now use the "changelog" and "list-transient" operations'
 		sys.exit()
 
 	if operation == 'import-key':
