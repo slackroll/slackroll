@@ -11,9 +11,9 @@ slackroll *
 == DESCRIPTION ==
 
 slackroll is a package or upgrade manager for Slackware Linux. For information
-on how to use slackroll, please refer to the slackroll wiki:
+on how to use slackroll, please refer to the slackroll site:
 
-http://wiki.github.com/rg3/slackroll
+http://rg3.github.com/slackroll
 
 There you will find a tutorial explaining the main concepts and initial
 configuration, a list of frequently asked questions, and detailed information
