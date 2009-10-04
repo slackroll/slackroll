@@ -1,0 +1,93 @@
+<html>
+<head>
+<title>slackroll: Frequently Asked Questions</title>
+<link rel="stylesheet" href="slackroll.css" type="text/css" />
+</head>
+<body>
+
+<div class="title">slackroll</div>
+<div class="subtitle">Frequently Asked Questions</div>
+
+	<h1>Packages with nonstandard names</h1>
+
+	<p><strong>Question</strong>: While attempting to setup <code>slackroll</code> I get <em>ERROR: Nonstandard package name: &lt;package&gt;</em>. How can I solve this problem?</p>
+
+	<p><strong>Answer</strong>: It seems some people are using packages that don&#8217;t follow the Slackware package name convention of <em>name-version-arch-build</em>. I think it is wrong to have a package that doesn&#8217;t follow the convention. <code>slackroll</code> needs to parse the package names to extract the different components.  These packages make it very difficult or impossible, so they are rejected.  There is no way to create an algorithm to analyze those names properly.  The problem should be solved by removing that package, renaming the package archive to have a standard name and then installing it again.</p>
+
+	<p>Some examples of invalid package names I have seen reported are <code>pyfloppy-1.6-noarch.2AS</code>, <code>gammapage-0.5.i486-1AS</code> and <code>scons-0.96.1-1.noarch</code>.</p>
+
+	<p>Remember: it doesn&#8217;t matter if it&#8217;s an official package or a foreign or custom one. It should follow the naming convention.</p>
+
+	<h1>Saving the list of URLs</h1>
+
+	<p><strong>Question</strong>: Using the <code>urls</code> or <code>urls-upgrades</code> operation I want to save the <span class="caps">URL</span> list to a text file. However, if I use shell redirections and <code>slackroll</code> prompts me to select a specific package version, I can&#8217;t see the questions. Is there an easy way of doing this?</p>
+
+	<p><strong>Answer</strong>: Yes. Pipe the output of <code>slackroll</code> to <code>tee urls.txt</code> and then edit the file to remove the extra lines.</p>
+
+	<h1>Coordinating with rsync</h1>
+
+	<p><strong>Question</strong>: I normally get my remote packages using rsync, so as to keep a local copy of the remote tree. Can I coordinate this with <code>slackroll</code>?</p>
+
+	<p><strong>Answer</strong>: Yes. I would use a script like the following one, replacing the chunks in curly braces by the appropriate contents.</p>
+
+<pre>
+<code>
+SLACKROLL_DIR=/var/slackroll
+LOCAL_MIRROR_DIR={ path to local copy of the tree }
+{ rsync command(s) }
+cd $SLACKROLL_DIR
+slackroll update
+rm -f packages/*
+for pkg in $( slackroll remote-paths ); do
+    ln -sf $LOCAL_MIRROR_DIR/$pkg ./packages
+done
+</code>
+</pre>
+
+	<p>This will synchronize your local copy of the remote tree and then populate the <code>slackroll</code> package cache with symbolic links to the package archives located inside your local copy of the Slackware remote tree. From the point of view of <code>slackroll</code>, it&#8217;s like if it had already downloaded every package.</p>
+
+	<h1>Environment variables</h1>
+
+	<p><strong>Question</strong>: Which environment variables affect <code>slackroll</code>?</p>
+
+	<p><strong>Answer</strong>: <code>TMPDIR</code> lets you specify a temporary directory that will be used to download files before they are moved to their final locations, which is <code>/var/slackroll/tmp</code> by default. <code>PAGER</code> lets you specify a pager program, which is <code>less</code> by default. <code>VISUAL</code> lets you specify a visual editor, which is used to edit single files and is <code>vim</code> by default. <code>SRDIFF</code> lets you specify the diff tool that will be used to edit and compare pairs of files, which is <code>vimdiff</code> by default.</p>
+
+	<h1>Syntax highlighting in vimdiff</h1>
+
+	<p><strong>Question</strong>: Is it possible to disable syntax highlighting in <code>vim</code>, but only when it&#8217;s running in diff mode?</p>
+
+	<p><strong>Answer</strong>: Yes. Add this to your <code>~/.vimrc</code> file, taken from the <code>vim</code> help documents:</p>
+
+<pre>
+<code>
+if &#38;diff
+	syntax off
+endif
+</code>
+</pre>
+
+	<h1>Most frequently used operations</h1>
+
+	<p><strong>Question</strong>: <code>slackroll</code> has a lot of operations available. Some of them are mentioned in the tutorial but, in a few words, which operations do you use more frequently?</p>
+
+	<p><strong>Answer</strong>: There is a first group of operations everybody will be running very frequently: <code>update</code>, <code>changelog</code>, <code>list-transient</code> and <code>upgrade</code>. If you use a few foreign packages you install and upgrade by hand, you could put <code>install-foreign</code> in that first group too. Some users, specially the ones running <code>slackware-current</code> like I do, would have a second group of common operations they run from time to time: <code>clean-cache</code>, <code>install</code>, <code>remove</code>, <code>remove-unavailable</code>, <code>install-new</code> and <code>not-installed</code>.</p>
+
+	<h1>Comparing <code>slackroll</code> to other tools</h1>
+
+	<p><strong>Question</strong>: What are the differences between <code>slackroll</code> and other tools like <code>slapt-get</code>, <code>swaret</code> or <code>slackpkg</code>?</p>
+
+	<p><strong>Answer</strong>: That&#8217;s a hard question which is better answered by exposing the features of <code>slackroll</code>. In any case, it should be clarified that you can run two types of Slackware installations. On the one hand you have stable releases. If you are going to run a stable release any tool will probably be useful enough for you, including <code>slackroll</code>. This is because stable releases are easy to manage, given that the only events they are exposed to are the release of patches. Any of the existing tools can easily tell you which patches have been released and let you automate the download and installation process. It is extremely rare, but not impossible, for a package to be added to or removed from the tree of a stable release.</p>
+
+	<p>On the other hand, you can be running the testing tree of Slackware, also known as slackware-current. In this case, in my humble opinion, <code>slackroll</code> is the best tool. This is because <code>slackroll</code> lets you track almost any event happening in the testing tree, be it packages being added, removed or upgraded, including the events of a foreign package getting an official version and the removal of a package for which a customized version was installed. This is possible thanks to its package states foundation and the preference for working with two different states (foreign and frozen) instead of relying in a blacklisting mechanism. No other tool, as far as I know, can deal with as many events as <code>slackroll</code>. I&#8217;m unable to imagine an event that is not covered by <code>slackroll</code>.</p>
+
+	<p>Apart from the type of Slackware installation you&#8217;re running, there&#8217;s the issue of using external repositories like the one from LinuxPackages.net.  I wouldn&#8217;t recommend using it because, in my own experience, too many packages from that site have been built on nonstandard systems. Some of them have weird dependencies and other ones simply won&#8217;t work in your system, because they are submitted by people running many unofficial builds of official packages. I am not saying that they are all faulty, but the failure rate I&#8217;ve been getting is simply too high, always in my opinion. If you want to use these external repositories you want to run <strong>slapt-get</strong>, but take into account your resulting system can in many cases not be considered Slackware anymore, due to the high number of unofficial builds you will be running. It will be something close to Slackware. A customized Slackware if you prefer.</p>
+
+	<p>If you are not going to use external repositories, or packages from those external repositories are the exception in your system, the dependency mechanism of <code>slapt-get</code> is useless, and you may well be running <code>slackroll</code>, which tracks more events. Another point of failure in <code>slapt-get</code> is that it uses a version comparison algorithm to decide if a package should be upgraded or not. It can fail and, more commonly, it fails to detect package reverts, which happen from time to time in slackware-current, forcing you to pay a lot of attention to the change log.</p>
+
+	<p>Compared to the shell-based <strong>swaret</strong> (there&#8217;s a new <code>swaret</code> being developed in Perl), <code>slackroll</code> lacks tracking binary dependencies, but it compensates that lack by letting you query the Slackware Package Browser from the command line comfortably. Apart from that, <code>swaret</code> is incredibly slow and <span class="caps">CPU</span> hungry even when it&#8217;s only downloading files from the network, and doesn&#8217;t come close to tracking as many events as <code>slackroll</code>. <code>slackroll</code> is, in my humble opinion, a clear winner over <code>swaret</code> unless you absolutely love the binary dependency resolution it provides. For me that&#8217;s a minor feature. The Perl implementation is supposed to be basically the same, but solving the high <span class="caps">CPU</span> usage problem. If that&#8217;s the case, <code>slackroll</code> would still be a much better option, in my opinion, because <code>swaret</code> still doesn&#8217;t do <code>glibc</code> upgrades properly, does not detect removed packages, etc.</p>
+
+	<p><code>slackroll</code>&#8217;s closest friend is <strong>slackpkg</strong>, included in the <code>/extra/</code> tree.  You can think of it like a very much improved <code>slackpkg</code> that works faster, detects more corner cases and has more features. If you run <code>slackpkg</code>, do not hesitate to give <code>slackroll</code> a try.</p>
+
+	<p>Finally, in general, <code>slackroll</code> is at least as fast or faster than any of the above tools, specially faster than the ones that are big shell scripts (<code>slackpkg</code> and <code>swaret</code>). It downloads less meta-data than any other, because it only needs <code>FILELIST.TXT</code> and, for convenience, the new entries from the change log (indeed, it only downloads the new entries). It detects more events, which is specially useful when running <em>slackware-current</em>. And it has some useful features no other tool has, like the operations to detect orphan files, broken symlinks and missing files. You won&#8217;t have to run <code>grep</code> on the contents of <code>/var/log/packages</code> anymore, because it has a local search operation, and also a remote search operation that lets you query the Slackware Package Browser comfortably from the command line and receive the results on your terminal. And it also lets you choose which package version to install when there are several ones available. It lets you upgrade individual packages or every upgrade-able package, install new packages, remove old ones, search for package names or packages with a given tree component, list alternative versions of packages, detect and warn you about activity in <code>glibc</code> packages (giving them priority while upgrading too), etc.</p>
+</body>
+</html>
