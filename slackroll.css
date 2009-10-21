@@ -62,6 +62,7 @@ p {
 	display: block;
 	margin: 1ex auto;
 	width: 60%;
+	text-align: justify;
 }
 
 code {
