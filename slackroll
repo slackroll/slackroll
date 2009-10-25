@@ -1174,15 +1174,23 @@ def handle_dotnew_files_installation(dotnew_files): # Handles .new files present
 				break
 
 def handle_dotnew_files_removal(dotnew_files): # Prompt the user about .new files left behind by removepkg
-	if len(dotnew_files) == 0:
-		return
-
 	pairs = [[x, old_file(x)] for x in dotnew_files]
 	to_be_checked = concat(pairs)
+	existing = [x for x in to_be_checked if os.path.islink(x) or os.path.exists(x)]
 
-	for path in to_be_checked:
-		if not os.path.islink(path) and not os.path.exists(path):
-			continue # Does not exist in any form
+	if len(existing) == 0:
+		return
+
+	print '\nSome previous .new files have been found.'
+	print 'Examining list in detail (this may take some seconds) ...'
+	knownfiles = frozenset(concat(get_pkg_filelists().values()))
+	existing = list(frozenset(existing) - knownfiles)
+
+	if len(existing) == 0:
+		print 'All of them were present in other packages.'
+		return
+
+	for path in existing:
 		print '\nFound %s' % path
 		options = [ ('K', 'Keep it'), ('R', 'Remove it') ]
 		chosen = choose_option(options)
