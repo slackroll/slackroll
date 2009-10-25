@@ -627,7 +627,7 @@ def too_many_lines(numlines): # Returns True if lines do not fit in screen
 	if not sys.stdout.isatty():
 		return False
 	(rows, cols) = getwinsize()
-	return (numlines >= rows)
+	return (numlines >= rows - 2)
 
 class SlackrollOutputInterceptor(object): # Intercepts stdout and uses a pager if the output is too long
 	__was_not_tty = None
