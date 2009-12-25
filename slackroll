@@ -1060,7 +1060,7 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 			print '%s: cannot change state from %s to %s' % (name, slackroll_state_strings[cur_st], dest_st_name)
 			continue
 		persistent_list[name] = dest_state
-		persistent_list.sync()
+	persistent_list.sync()
 
 def query_pkg_browser(opt64, version, searchstr): # Query package browser on given file with given Slackware version
 	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
@@ -1498,7 +1498,6 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 				persistent_list[name] = outdated_or_installed(local_list[name], not_pasture(remote_list[name]))
 			else:
 				persistent_list[name] = slackroll_state_unavailable
-		persistent_list.sync()
 	
 	# Go over remaining remote packages not already analyzed (hence, not present in local system)
 	for name in remote_list:
@@ -1518,14 +1517,15 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
 				persistent_list[name] = slackroll_state_notinstalled
 			else:
 				persistent_list[name] = slackroll_state_new
-		persistent_list.sync()
 	
 	# Remaining packages, not present in local or remote systems, need to disappear
 	for name in persistent_list.keys():	# Must get keys before, as we are going to delete entries
 		if name in already_analyzed:
 			continue
 		del persistent_list[name]
-		persistent_list.sync()
+
+	# Sync database to disk
+	persistent_list.sync()
 
 def print_help():
 	interceptor = SlackrollOutputInterceptor()
@@ -2313,7 +2313,7 @@ try:
 			upgrade_or_install(arg, False)
 		for pkg in pkgs:
 			persistent_list[pkg.name] = slackroll_state_foreign
-			persistent_list.sync()
+		persistent_list.sync()
 
 		# Go over .new files
 		cur_dotnew = extract_dotnew_files([x.local() for x in pkgs])
