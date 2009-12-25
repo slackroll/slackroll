@@ -14,7 +14,7 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # Initial variables
 PNAME=slackroll		# Package name
-PVERSION=v36		# Package version (remove dashes if present)
+PVERSION=v37		# Package version (remove dashes if present)
 ARCH=${ARCH:-noarch}	# Package architecture
 BUILD=${BUILD:-1}	# Build number plus packager initials
 
