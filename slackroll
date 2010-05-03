@@ -1183,8 +1183,9 @@ def handle_dotnew_files_removal(dotnew_files): # Prompt the user about .new file
 
 	print '\nSome previous .new files have been found.'
 	print 'Examining list in detail (this may take some seconds) ...'
-	knownfiles = frozenset(concat(get_pkg_filelists().values()))
-	existing = list(frozenset(existing) - knownfiles)
+	knownfiles = concat(get_pkg_filelists().values())
+	knownfiles.extend(old_file(x) for x in knownfiles if x.endswith(slackroll_new_suffix))
+	existing = list(frozenset(existing) - frozenset(knownfiles))
 
 	if len(existing) == 0:
 		print 'All of them were present in other packages.'
