@@ -1701,7 +1701,7 @@ try:
 		'print-primary-mirror':	0,
 		'reinstall':		-1,
 		'remote-paths':		0,
-		'remote-search':	-1,
+		#'remote-search':	-1,
 		'remove':		-1,
 		'remove-path':		-1,
 		'remove-unavailable':	0,
