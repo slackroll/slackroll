@@ -1618,7 +1618,7 @@ orphan-search PATH...	 Search for orphan files in local system
 broken-symlinks PATH...	 Search for broken symlinks in local system
 missing-search		 Search for missing files in local system
 
-Visit http://slackroll.sourceforge.net/ for a tutorial and more help.
+Visit http://rg3.github.com/slackroll/ for a tutorial and more help.
 """
 	interceptor.stop()
 
