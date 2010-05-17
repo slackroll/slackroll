@@ -39,6 +39,7 @@ slackroll_base_dir = os.path.join(os.path.sep, 'var', 'slackroll')
 slackroll_default_temp_dir = os.path.join(slackroll_base_dir, 'tmp')
 slackroll_pkgs_dir_glob = os.path.join(slackroll_base_dir, 'packages', '*')
 slackroll_pkgs_dir = os.path.dirname(slackroll_pkgs_dir_glob)
+slackroll_help_file_template = os.path.join(os.path.sep, 'usr', 'doc', 'slackroll-v%s' % slackroll_version, 'helpfiles', '%s.txt')
 slackroll_local_pkgs_glob = os.path.join(os.path.sep, 'var', 'log', 'packages', '*')
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 slackroll_local_pkg_filelist_marker = 'FILE LIST:\n'
@@ -1687,8 +1688,13 @@ Visit http://rg3.github.com/slackroll/ for a tutorial and more help.
 """
 	interceptor.stop()
 
-def verify_num_args(opname, num, arg_list): # Verify number of arguments of a given operation (-1 means any nonzero quantity)
-	if num == -1:
+def verify_num_args(opname, num, arg_list): # Verify number of arguments of a given operation
+	# -1 means any nonzero quantity
+	# -2 means zero or one
+	if num == -2:
+		if len(arg_list) > 1:
+			sys.exit('ERROR: %s expects one argument or no arguments' % opname)
+	elif num == -1:
 		if len(arg_list) == 0:
 			sys.exit('ERROR: %s expects more arguments' % opname)
 	else:
@@ -1724,7 +1730,7 @@ try:
 		'frozen':		-1,
 		'freeze':		-1,
 		'full-changelog':	0,
-		'help':			0,
+		'help':			-2,
 		'import-key':		0,
 		'info':			-1,
 		'info-new':		0,
@@ -1804,7 +1810,16 @@ try:
 		sys.exit(slackroll_exit_failure)
 
 	if operation == 'help':
-		print_help()
+		if len(args) == 0:
+			helpname = '00-default'
+		else:
+			helpname = args[0]
+		helpfile = slackroll_help_file_template % helpname
+		if not is_readable_file(helpfile):
+			sys.exit('ERROR: no help found for "%s"' % helpname)
+		interceptor = SlackrollOutputInterceptor()
+		print file(helpfile, 'r').read()
+		interceptor.stop()
 		sys.exit()
 	
 	if operation == 'version':

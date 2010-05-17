@@ -1,0 +1,22 @@
+Usage: slackroll OPERATION [PARAMETER ...]
+
+Common operations:
+
+  update		Download remote tree information
+  changelog		Display the latest new changelog entries
+  list-transient	List packages in transient states
+  upgrade		Upgrade every outdated package
+  install PKG...	Install/Upgrade specific packages or package versions
+  install-new		Install every new package
+  not-installed PKG...	Mark packages as not installed
+  new-not-installed	Mark every new package as not installed
+  remove PKG...		Remove the given packages
+  remove-unavailable	Remove every unavailable package
+  install-foreign FILE  Install a foreign package from disk
+  unavailable-foreign	Mark all unavailable packages as foreign
+  clean-cache		Remove unknown package versions from package cache
+
+"slackroll help all" gives the full operation list with a brief description.
+"slackroll help OPERATION" gives a detailed description of the given operation.
+
+Visit http://rg3.github.com/slackroll/ for a tutorial and more help.

@@ -1,0 +1,155 @@
+Usage: slackroll OPERATION [PARAMETER ...]
+
+Program setup:
+
+  set-mirror		Sets the preferred mirror URL
+  set-primary-mirror	Sets the primary mirror URL (bad practice usually)
+  import-key		Download and import the primary mirror GPG key
+
+  print-mirror		Prints the mirror URL
+  print-primary-mirror	Prints the primary mirror URL
+
+
+Common operations:
+
+  update		Download remote tree information
+  changelog		Display the latest new changelog entries
+  list-transient	List packages in transient states
+  upgrade		Upgrade every outdated package
+  install PKG...	Install/Upgrade specific packages or package versions
+  install-new		Install every new package
+  not-installed PKG...	Mark packages as not installed
+  new-not-installed	Mark every new package as not installed
+  remove PKG...		Remove the given packages
+  remove-unavailable	Remove every unavailable package
+  install-foreign FILE  Install a foreign package from disk
+  unavailable-foreign	Mark all unavailable packages as foreign
+  clean-cache		Remove unknown package versions from package cache
+
+
+Kernel upgrades:
+
+  kernel-upgrade	Install updated kernel packages with installpkg
+  kernel-clean		Remove obsolete kernel packages
+
+
+Key packages (they should normally take precedence):
+
+  upgrade-key-packages	Upgrade all outdated key system packages
+
+
+Selectively operating on package states:
+
+  state PKG...		Show state of given packages
+  new PKG...		Mark packages as new
+  unavailable PKG...	Mark packages as unavailable
+  installed PKG...	Mark packages as installed
+  foreign PKG...	Mark packages as foreign
+  frozen PKG...		Mark packages as frozen
+  freeze PKG...		Alias for 'frozen'
+  unfreeze PKG...	Alias for 'installed'
+
+
+Unusual but useful operations:
+
+  reinstall PKG...	Same as 'install' but reinstalls if needed
+  replace UNAV NEW	Replace an unavailable package with a new package
+  install-path REGEXP	Install all packages with matching remote path
+  remove-path REGEXP	Remove all packages with matching remote path
+
+
+Downloading packages (i.e. without installation):
+
+  download-upgrades	Download new package versions for outdated packages
+  download-key-packages	Like the previous one but only for key packages
+  download PKG...	Download given packages or specific package versions
+  download-new		Download all new packages
+  download-path REGEXP	Download all packages with matching remote path
+
+
+Other package listing operations:
+
+  list-new		List new packages
+  list-outdated		List outdated packages
+  list-unavailable	List unavailable packages
+  list-installed	List installed packages
+  list-not-installed	List not installed packages
+  list-frozen		List frozen packages
+  list-foreign		List foreign packages
+
+  list-local		List all local packages (present in system)
+  list-remote		List all remote packages (present in remote tree)
+  list-all		List every known package
+
+  list-upgrades		List detailed information about outdated packages
+  list-alternatives	List packages with several available versions
+  list-outdated-frozen	List frozen packages that would be outdated otherwise
+  list-versions PKG...	List all known versions of the given packages
+
+
+Other change log operations:
+
+  download-changelog		Download ChangeLog.txt from scratch
+  list-changelog		List all known changelog entries and identifiers
+  changelog-entries ID...	Display changelog entries by identifier
+  full-changelog		Display every known changelog entry
+
+
+Displaying package URLs (e.g. for feeding them to a downloader program):
+
+  urls-upgrades		URLs for new versions of outdated packages
+  urls-key-packages	Like the one above but for key packages only
+  urls PKG...		Show package or specific package version URLs
+  urls-new		Show URLs for all new packages
+  urls-path REGEXP...	Show URLs for all packages with matching path (regexp)
+
+
+Package information (i.e. related to .txt, slack-desc or installation files):
+
+  info PKG...		Show info about packages or specific package versions
+  info-new		Show info about all new packages
+  info-path REGEXP...	Show info about all packages with matching path
+  local-info PKG...	Show full package information from /var/log/packages
+
+
+Package blacklisting:
+
+  Advice: read the operations guide. The package blacklist does not have the
+  intended usage is has in other package management tools.
+
+  print-blacklist	Print all the expressions in the blacklist
+  blacklist-add REGEXP	Add an expression to the blacklist
+  blacklist-del INDEX	Delete an expression from the blacklist
+
+
+Searching for packages and files:
+
+  local-search REGEX...		Search for files in local packages
+  update-manifest		Download MANIFEST files and create a database
+  manifest-search REGEXP...	Search for files in manifest database
+
+  name-search REGEX...		Search for package names by regular expression
+  path-search REGEX...		Search for remote packages having matching path
+
+  orphan-search PATH...		Search for orphan files in local system
+  broken-symlinks PATH...	Search for broken symlinks in local system
+  missing-search		Search for missing files in local system
+
+
+Other maintenance operations (usually not needed):
+
+  erase-cache		Remove every file from package cache
+  erase-tmp		Remove every file from the temporary directory
+  erase-all		Remove every file from both locations above
+  touch			Force update on persistent database
+
+
+Other operations:
+
+  help [ARGUMENT]	Access to the help system
+  version		Print the program version
+  remote-paths		Print a plain list of the remote package paths
+
+
+Visit http://rg3.github.com/slackroll/ for a tutorial and more help.
+Also, use "slackroll help OPERATION" to get help for a specific operation.

@@ -6,15 +6,21 @@ slackroll - Package or upgrade manager for Slackware Linux
 
 == SYNOPSIS ==
 
-slackroll *
+slackroll OPERATION [ARGUMENTS]
 
 == DESCRIPTION ==
 
-slackroll is a package or upgrade manager for Slackware Linux. For information
-on how to use slackroll, please refer to the slackroll site:
+slackroll is a package or upgrade manager for Slackware Linux. The slackroll
+tutorial can be found online at:
 
 http://rg3.github.com/slackroll
 
-There you will find a tutorial explaining the main concepts and initial
-configuration, a list of frequently asked questions, and detailed information
-about every supported operation.
+There you will find information about the program concepts and initial setup
+process. That is the recommended starting point for every slackroll user.
+There, you will also find a FAQ (Frequently Asked Questions) document.
+
+For a brief description of the common operations, run "slackroll help".
+
+For a brief description of every operation, run "slackroll help all".
+
+For a detailed description of an operation, run "slackroll help OPERATION".
