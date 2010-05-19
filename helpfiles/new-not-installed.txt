@@ -1,0 +1,9 @@
+
+new-not-installed
+
+This operation expects no arguments. It's equivalent to the "not-installed"
+operation if you were to run it with the names of all the packages in the "new"
+state as its arguments.
+
+Also see: not-installed.
+

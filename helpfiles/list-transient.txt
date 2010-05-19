@@ -1,0 +1,35 @@
+
+list-transient
+
+This operation expects no arguments. It lists the packages that are currently
+in transient states. Transient states are called so because your goal is to
+perform operations so the packages are moved to non-transient states. The
+tutorial has more information about package states.
+
+Shortly, transient states are:
+
+new		To indicate that a package has been added to the tree.
+outdated	To indicate that your version needs an upgrade.
+unavailable	To indicate that the package has apparently been removed.
+
+New packages are usually installed or skipped, so they are moved to the
+installed or not-installed states. Outdated packages are usually upgraded, so
+they are moved to the installed state. Unavailable packages are usually removed
+to mimic the removal of the package from the remote mirror, but they can
+occasionally represent foreign packages that have not been marked as foreign
+yet.
+
+It's important to note that usually, you want to upgrade the key system
+packages first. Key system packages are glibc-solibs, sed and pkgtools, so they
+are listed first by list-transient if they are outdated. Usually, the next sane
+step to take is to handle new packages, then outdated packages and finally
+unavailable packages. Hence, this is the order in which list-transient lists
+the packages.
+
+However, you need to understand that this may not always be the correct order.
+The order in which to proceed is completely up to you and should be based on
+general good practices, common sense and specific information that may be found
+in the change log entries.
+
+Also see: upgrade-key-packages, install, not-installed, upgrade, remove.
+

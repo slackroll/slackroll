@@ -1,0 +1,19 @@
+
+set-primary-mirror URL
+
+This operations sets the primary mirror URL. You probably do not want to change
+the primary mirror URL, but this operation is provided for completeness and for
+giving the program more flexibility.
+
+The primary mirror is a trusted mirror from which the GPG-KEY file, if
+requested, will be downloaded. More importantly, package signatures are also
+downloaded from the primary mirror, while the full package files are downloaded
+from the mirror you chose with set-mirror.
+
+The default primary mirror is http://slackware.osuosl.org/ followed by a
+subdirectory according to the Slackware variant and version obtained from your
+mirror of choice. This mirror is the main Slackware mirror, is almost
+guaranteed to be up-to-date at any given moment, and is almost never down.
+
+Also see: set-mirror.
+

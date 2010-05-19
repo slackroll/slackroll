@@ -1,0 +1,20 @@
+
+clean-cache
+
+This operation expects no arguments. When downloading package archives,
+slackroll stores them in /var/slackroll/packages/. This is called the package
+cache. As time passes and packages are upgraded, old package archives may
+accumulate in that directory taking up precious hard drive space.
+
+Not automatically removing old package archives from the package cache can be
+useful. Specially if you run slackware-current, the old package archives in
+there may save your life because they allow you to manually go back to a
+previous version should an upgrade bring a nonworking package of some kind.
+
+However, from time to time and as upgrades are proved to be reliable, you
+probably want to run this operation and get rid of any old and no longer
+relevant package archive stored in the package cache. Note that this operation
+will not completely empty the package cache at all.
+
+Also see: erase-cache.
+

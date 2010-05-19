@@ -1,0 +1,10 @@
+
+import-key
+
+This operation is completely optional. It downloads the GPG-KEY file from the
+primary mirror and adds it to your GPG keyring. If you already have the
+Slackware key in your keyring, running this command is not needed at all. It is
+provided just for convenience. Having the Slackware key in the GPG keyring is a
+must, since the key is used to verify the package signature of every package
+you download.
+

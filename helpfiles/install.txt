@@ -1,0 +1,30 @@
+
+install PKG...
+
+This operation expects one or more package names as its arguments, and is
+slackroll's equivalent to the "upgradepkg --install-new" command, with the
+usual extras. This means that "install" can be used to both install packages
+that are currently not installed in your system, as well as upgrade outdated
+packages or change the installed version of a package, provided several
+versions are available.
+
+The usual extras are automatic package downloading from the mirror, signature
+verification and reviewing .new files after installation.
+
+Its arguments can be package names or specific package versions. If you only
+provide the package name and several versions are available, slackroll will ask
+you which version you want to install. In this case, if you already have a
+version installed in your system, the program will print the installed version
+above the option prompt, should it give you a clue about which version you may
+be interested in.
+
+Examples:
+
+slackroll install sqlite
+slackroll install amarok-2.3.0-i486-1.txz
+slackroll install ./slackware/kde/amarok-2.3.0-i486-1.txz
+
+The last two commands are equivalent.
+
+Also see: dotnew, upgrade, remove.
+

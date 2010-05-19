@@ -1,0 +1,115 @@
+
+Reviewing .new files
+
+The following text explains the logic on reviewing .new files, as you
+may be asked to do after running operations like "upgrade", "install" or
+"remove". It does not document any specific operation, and will suppose a lack
+of general knowledge about these .new files.
+
+
+What are .new files?
+
+.new files are files with the .new extension that are normally found somewhere
+inside the /etc directory (but may also appear in other locations). These
+files are usually configuration files with the default settings, or boot
+scripts. They are supposed to be used without the .new extension. However,
+upgradepkg installs them with the .new suffix because you may already have a
+configuration file for that program in place, without the .new suffix. That
+way, after running upgradepkg, your old configuration file is not overwritten.
+
+However, the configuration file format may have changed or new options may
+have been added. Normally, you need to review these pairs of files and keep
+only the one without the .new suffix, maybe after making changes to either file.
+
+
+How does slackroll help you on this?
+
+slackroll helps, first, by automatically detecting which .new files have been
+installed after an upgrade, and prompting you about each one. For each case,
+normally you have up to four options.
+
+First, an option to continue to the next pair once you consider you're done
+with the current pair. Even when you don't want to do anything with the
+pair of files (for example, when only one of them exists because the other
+one has been automatically removed by upgradepkg), slackroll still asks and
+notifies you that a .new file has been detected.
+
+Second, you may want at some point to remove the .new file. Either because
+the current one (without the suffix) is perfectly valid or because you have
+tweaked it so it's valid again.
+
+Third, you may want to overwrite the old file with the .new file. Normally,
+this is because you want to use the .new file directly or because you've
+taken the route of adapting the .new file to your needs instead of modifying
+the old file.
+
+Fourth, you may want to edit either the old file or the .new file or both at
+the same time if they exist.
+
+When editing a single file, the VISUAL environment variable is used to
+determine the text editor of your choice and vim is used by default.
+
+When editing two files at the same time, they are compared with a diff tool,
+which is vimdiff by default because it's the sanest default choice for
+Slackware, but you can set the SRDIFF environment variable to the name of your
+preferred diff tool to be used with slackroll (e.g. kdiff3).
+
+slackroll will not jump to the next pair of files until you tell it to. Some
+users ask why it doesn't jump directly to the next file when you choose to
+remove the .new file or to overwrite the old file. The answer is that you
+may want to further tweak the single remaining file, and it also serves as
+the confirmation that only one file is remaining.
+
+
+.new files left behind
+
+slackroll also helps in a second case. After removing a package with the
+"remove" operation, some old files may be left behind. removepkg does not
+remove these files because in the package, the files appear with the .new
+suffix, so they are not found on disk at package removal time.
+
+When slackroll detects these cases, it asks you what to do with these files.
+You can either remove them or keep them. The safest option is probably to keep
+them in most cases. Keeping them can also be helpful if you decide to reinstall
+the program in question.
+
+After further reviewing the cases, however, you may want to remove them.
+slackroll lets you remove them directly just after removing the package. It's
+up to you to remove them or not, but slackroll prompting is also useful in the
+sense that, even if you decide to keep them, you have a list of the files that
+have been left behind. The only purpose of removing these files, in most cases,
+is to keep the system clean and free of as many untracked files as possible.
+
+
+Notable known cases
+
+bash is usually installed with a version and a .new suffix that are removed
+after the package installation, so don't panic if you see something like
+/bin/bash4 being missing and /bin/bash4.new being missing. Bash is probably
+still there as /bin/bash.
+
+Sometimes the .new file automatically overwrites the old file if no changes to
+the default file are detected. This is done by upgradepkg, not slackroll. In
+these cases, you can see only the old file is present and you normally skip
+directly to the next pair of files.
+
+A few files with the .new extension are not really .new files in the sense
+of this document, and you need to keep them with the .new suffix. This is
+usually noticeable because the "old" file does not exist, but the .new one
+does. For example, as of the time this is being written, the following two
+files fall in this case:
+
+/usr/share/texmf/doc/latex/fancyhdr/fancyheadings.new
+/usr/share/texmf/tex/latex/titlesec/titletoc.new
+
+
+A couple of vimdiff notes
+
+The FAQ contains information about disabling syntax highlighting in vim while
+in diff mode, as the diff colors and syntax colors would be mixed and this
+can be terribly confusing and even render some text invisible. Also, this
+document will not provide a guide to vimdiff. It's pretty straightforward
+provided you know vim, but, if you can't handle it, there are plenty of
+tutorials online and you can always choose to use another diff tool.
+
+

@@ -1,0 +1,15 @@
+
+not-installed PKG...
+
+This operation expects a list of package names as its arguments. It will
+attempt to mark the indicated packages as "not-installed". Not every package
+can be put in the "not-installed" state. The most frequent use of this
+operation is to mark as "not-installed" any "new" packages we are not
+interested in installing.
+
+Example:
+
+slackroll not-installed koffice-l10n-ca@valencia
+
+Also see: install, install-new.
+

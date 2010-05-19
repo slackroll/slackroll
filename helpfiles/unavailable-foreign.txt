@@ -1,0 +1,11 @@
+
+unavailable-foreign
+
+This operation expects no arguments. It is equivalent to the "foreign"
+operation provided you were to call it with the names of the packages in the
+"unavailable" state as its arguments. It's an operation frequently run during
+the program setup and can sometimes be useful if you decide not to use the
+"install-foreign" operation.
+
+Also see: foreign, install-foreign.
+

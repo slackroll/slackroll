@@ -1,0 +1,26 @@
+
+update
+
+This operation expects no arguments. It's probably one of the most frequent
+operations you will be running. Essentially, this operation updates the remote
+tree information by downloading the FILELIST.TXT file from the mirror, which
+contains, among other information, the full list of available packages. This
+list is in turn used to determine if there are new packages, if some of your
+packages are outdated or if some packages have become unavailable.
+
+Apart from this, the operation also downloads any new entrires found in the
+Slackware change log, that you can, and should, later review using the
+"changelog" operation, as this will give you information about changes and
+sometimes helpful hints in performing an upgrade. Normally, running the
+"changelog" operation is followed by running the "list-transient" operation to
+get a list of packages that have been moved to a transient state. From there
+you would perform a variety of operations in order to get them back to
+non-transient states.
+
+As this is a frequently-run operation, "update" also takes the opportunity to
+show you the size of the package cache, should you decide it's a good moment to
+run the "clean-cache" operation to get rid of old and no longer relevant
+package archive files previously downloaded to the package cache.
+
+Also see: changelog, list-transient, clean-cache.
+

@@ -1,0 +1,9 @@
+
+remove PKG...
+
+This operation expects a list of one or more package names as its arguments. It
+is slackroll's equivalent of "removepkg" with a few extras, the most important
+one being the process of reviewing possible .new files left behind.
+
+Also see: dotnew.
+

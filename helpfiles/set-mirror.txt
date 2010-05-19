@@ -1,0 +1,14 @@
+
+set-mirror URL
+
+This operation sets the preferred mirror URL. The change log, FILELIST.TXT and
+package files will be downloaded from this mirror, and this operation is one of
+the first ones that need to be run for the program to work properly. The URL
+you enter should typically be an HTTP or FTP URL, pointing to the directory of
+the specific Slackware version you are running.
+
+Examples:
+
+slackroll set-mirror 'http://slackware.osuosl.org/slackware-current/'
+slackroll set-mirror 'http://slackware.osuosl.org/slackware64-13.0/'
+

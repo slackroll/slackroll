@@ -1,0 +1,36 @@
+
+changelog
+
+This operation displays the most recent set of change log entries that have
+been downloaded from the mirror. Usually, this operation is run after the
+"update" operation when there are available upgrades.
+
+The following paragraphs explain how slackroll manages the change log entries.
+This infomation is usually not important for an end user, but is provided here
+for documentation purposes. Feel free not to read it.
+
+In detail, the "update" operation downloads change log entries by sets, one at
+a time, stopping when it finds an entry it has already downloaded. It stores
+those sets in a database ordered by date, assigning them a set number.  Each
+entry is also assigned a number inside each set. These two numbers, in the
+format "setnumber.entrynumber" form the change log database that can be listed
+using the "list-changelog" operation and selectively displayed using the
+"changelog-entries" operation. Also, the database can be rebuilt from scratch
+by fully downloading the available change log at any point in time, using the
+"download-changelog" operation.
+
+An example from the output of "list-changelog":
+
+    18.0      Tue May 18 06:48:06 UTC 2010
+    17.0      Tue May 18 02:41:17 UTC 2010
+    17.1      Mon May 17 23:19:08 UTC 2010
+    16.0      Mon May 17 07:54:23 UTC 2010
+    16.1      Mon May 17 04:28:49 UTC 2010
+    15.0      Sun May 16 06:00:06 UTC 2010
+
+The "changelog" operation merely takes all the entries from the latest set and
+displays them on screen. Usually, these entries correspond to the pending
+upgrades.
+
+Also see: update, list-changelog, changelog-entries, download-changelog.
+

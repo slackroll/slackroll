@@ -1,0 +1,23 @@
+
+upgrade
+
+This operation expects no arguments. Upgrade will do a lot things for you, but
+the general purpose is to upgrade outdated packages. It will not install new
+packages and it will not remove unavailable packages. Only outdated packages
+are taken into account.
+
+Its main actions are downloading, verifying package signatures and upgrading,
+using upgradepkg, the packages that are outdated. It will do extra things
+sometimes, like letting you review .new files or letting you choose a specific
+package version if several ones are available, but its usage is mostly
+intuitive.
+
+When it prompts you to choose a specific package version, it will also print
+the version currently installed just above the choice question, as this may
+give you clues about which one you may want to install.
+
+For a description on how reviewing .new files works, read the help on the
+"dotnew" topic.
+
+Also see: list-transient.
+

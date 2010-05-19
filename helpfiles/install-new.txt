@@ -1,0 +1,9 @@
+
+install-new
+
+This operation expects no arguments. It is equivalent to the install operation
+if you were to specify as its arguments the list of packages that are currently
+in the "new" state.
+
+Also see: install.
+
