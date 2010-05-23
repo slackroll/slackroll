@@ -1,0 +1,49 @@
+
+replace UNAVAILABLE_PKG NEW_PKG
+
+This operation expects exactly two package names. The first one must be an
+"unavailable" package and the second one must be a "new" package. It is
+slackroll's equivalent of running "upgradepkg" with the "%" notation to replace
+packages that, for example, may have suffered a name change. The old name would
+appear as "unavailable", and the new name would be listed as "new".
+
+In most cases, installing the new package first and then removing the
+unavailable package will do the right thing. However, in some very specific
+cases this is the only command that will do the right thing in one single step.
+As an example, see the following extract from a past change log entry:
+
+
++--------------------------+
+Tue Apr  1 02:41:32 CDT 2008
+...
+a/util-linux-2.12r-i486-6.tgz:  Removed.  See below.
+a/util-linux-ng-2.13.1-i486-1.tgz:  Added util-linux-ng-2.13.1, which replaces
+  the old util-linux package.  To install, either use upgradepkg with the "%"
+  option, or do this:  installpkg util-linux-ng-2.13.1-i486-1.tgz ;
+  removepkg util-linux ; installpkg util-linux-ng-2.13.1-i486-1.tgz
+  Thanks to Robby Workman for a lot of help with this package update.
+...
+
+
+At that moment, util-linux was replaced with the util-linux-ng package, and the
+only step that would correctly perform the upgrade by itself was using the "%"
+upgradepkg notation, as in:
+
+upgradepkg util-linux%/path/to/util-linux-ng-2.13.1-powerpc-1.tgz
+
+The other option meant multiple steps and a package reinstallation. For
+completeness, the slackroll equivalent to both ways were:
+
+slackroll replace util-linux util-linux-ng
+
+and
+
+slackroll install util-linux-ng
+slackroll remove util-linux
+slackroll reinstall util-linux-ng
+
+Obviously, the "replace" operation was easier to use and didn't ask so many
+questions.
+
+Also see: install, install-new, remove, remove-unavailable.
+

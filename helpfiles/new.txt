@@ -1,0 +1,19 @@
+
+new PKG...
+
+This operation expects a list of package names as its arguments. It lets you
+put packages in the "new" state. Normally you don't need to do this at all, as
+slackroll will put packages in that state by itself when it's appropriate, but
+it lets you correct small mistakes. It can only be used with packages in the
+"not-installed" state.
+
+For example, suppose there is a group of new packages but you don't want to
+install them all, so you mark as "not-installed" the ones you're not interested
+in, and you intend to run "slackroll install-new" after that. However, you make
+a small mistake and mark as not-installed a package you wanted to install. You
+can correct this small mistake either running the "install" operation on that
+package explicitly or by marking it as "new", to get it back to the "new"
+state, prior to running "install-new".
+
+Also see: not-installed.
+

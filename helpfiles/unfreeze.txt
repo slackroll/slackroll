@@ -1,0 +1,10 @@
+
+unfreeze PKG...
+
+This operation is an alias for "installed", added because sometimes it's not
+intuitive that you need to mark packages as "installed" when you want to move
+them out of the "frozen" state, so the "unfreeze" operation can be spotted more
+easily.
+
+Also see: installed.
+

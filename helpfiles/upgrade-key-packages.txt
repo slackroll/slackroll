@@ -1,0 +1,23 @@
+
+upgrade-key-packages
+
+This operation expects no arguments. It's essentially an operation similar to
+"upgrade", but it only affects the key system packages (glibc-solibs, sed and
+pkgtools), which usually should be upgraded before any other outdated or new
+package, unless there's a specific reason (probably mentioned in the change
+log) to install or upgrade other packages first. It's normally only run after
+"list-transient" when you detect they are outdated.
+
+Two important notes: list-transient will notice there are outdated system
+packages and emit a big and noticeable warning at the end of the package list
+to let you know, in case you miss the event. Furthermore, the "upgrade"
+operation usually installs packages in alphabetical order, but the key system
+packages are upgraded first. This means that, in the absence of new packages,
+it would still be safe to run the "upgrade" operation directly and you don't
+need to explicitly run "upgrade-key-packages" first.
+
+list-transient always lists packages in the common preferred order, and you
+will notice it always puts key system packages first when they are outdated.
+
+Also see: list-transient.
+

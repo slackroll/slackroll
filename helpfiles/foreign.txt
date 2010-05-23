@@ -1,0 +1,14 @@
+
+foreign PKG...
+
+This operation expects a list of package names as its arguments. It marks them
+as "foreign", and can only be used in "unavailable" packages. When installing
+foreign packages, the "install-foreign" operation can be used to both install
+the package and mark it as foreign at the same time. However, should you decide
+to install packages without "install-foreign" or forget to do so, they will be
+detected as "unavailable" by slackroll, because there's no reliable method to
+tell unofficial from official packages. This operation can be used to mark them
+as foreign, the same way it is done during the initial program setup.
+
+Also see: unavailable-foreign.
+

@@ -1,0 +1,11 @@
+
+frozen PKG...
+
+This operation expects a list of package names as its arguments. It can be used
+on "installed" packages to mark them as "frozen", hence preventing them from
+being moved to the "oudated" state by slackroll, as described in the tutorial.
+Also, as the tutorial mentions, there are a few packages that are required to
+be in the "frozen" state by definition. For example, "aaa-elflibs", if present.
+
+Also see: freeze, unfreeze, installed.
+

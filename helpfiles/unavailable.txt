@@ -1,0 +1,11 @@
+
+unavailable PKG...
+
+This operation expects a list of package names as its arguments. It will mark
+them as "unavailable". Note that you normally don't need to run this operation
+at all, as slackroll will mark packages as "unavailable" in the appropriate
+cases automatically. It could be used, however, to correct small user mistakes.
+Only "foreign" packages can be marked as "unavailable".
+
+Also see: new, for an example of the type of user mistakes in question.
+

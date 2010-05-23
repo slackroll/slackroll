@@ -1,0 +1,10 @@
+
+reinstall PKG...
+
+This operation expects a list of package names as its arguments. Think of this
+operation as slackroll's equivalent of "upgradepkg --reinstall", but with the
+typical extras slackroll provides, like automatically downloading the package
+if needed, or the process of reviewing .new files.
+
+Also see: install, dotnew.
+

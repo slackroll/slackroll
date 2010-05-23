@@ -1,0 +1,11 @@
+
+kernel-upgrade
+
+This operation expects no arguments. It upgrades outdated kernel packages in
+your system, with the main difference that it installs the new package using
+installpkg instead of upgradepkg, which lets you preserve the old kernel while
+you boot to the new one. After you've booted with the new kernel, you can
+remove obsolete kernel packages with the "kernel-clean" operation.
+
+Also see: kernel-clean.
+

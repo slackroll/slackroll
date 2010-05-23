@@ -1,0 +1,11 @@
+
+installed PKG...
+
+This operation expects a list of package names as its arguments. It marks those
+packages as "installed". You can only do this with "frozen" packages. Since
+this is the operation that you need to run to unfreeze a package, but it's
+usually not found by intuition, the "unfreeze" operation was created as an
+alias for this one.
+
+Also see: freeze, frozen, unfreeze.
+

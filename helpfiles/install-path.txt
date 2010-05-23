@@ -1,0 +1,40 @@
+
+install-path REGEXP...
+
+This operation expects a list of regular expressions as its arguments. It will
+install any remote package whose path matches any of the given regular
+expressions.
+
+Every remote package has a path, as can be seen the output of some slackroll
+operations, like "list-versions". See an example as of the time this help text
+is being written:
+
+
+# slackroll list-versions gcc-gfortran
+Available versions:
+    gcc-gfortran:
+        Local:  gcc-gfortran-4.4.4-i486-1
+        Remote: ./slackware/d/gcc-gfortran-4.4.4-i486-1.txz
+
+End of list
+
+
+The "./slackware/d/" part that appears in the remote version is the remote
+path, and that's what install-path checks. For example, if we wanted to install
+every package from the "d" set, including gcc-gfortran, we could use:
+
+slackroll install-path /slackware/d/
+
+The regular expression "/slackware/d/" is found in the path of every package
+from the "d" set.
+
+Note that these regular expressions follow Python's notation. They are, for
+most common cases, compatible and similar to egrep and Perl regular
+expressions, but in case of doubt and for very specific details that are
+normally not needed, the documentation for Python's regular expression notation
+can be found at:
+
+http://docs.python.org/library/re.html#regular-expression-syntax
+
+Also see: remove-path.
+
