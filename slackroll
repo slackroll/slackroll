@@ -944,14 +944,15 @@ def key_pkg_activity_pending(persistent_list): # True if any new, outdated or un
 
 def maybe_print_key_pkg_watchout(persistent_list):
 	if key_pkg_activity_pending(persistent_list):
-		print '\nWATCH OUT: ACTIVITY IN KEY SYSTEM PACKAGES\n'
+		print '\nWATCH OUT: ACTIVITY IN KEY SYSTEM PACKAGES'
+		print 'You can upgrade them using "upgrade-key-packages"\n'
 		return True
 	return False
 
 def maybe_print_key_pkg_warning(persistent_list):
 	if key_pkg_activity_pending(persistent_list):
 		print 'WARNING: It seems there is activity in key system packages'
-		print 'WARNING: You should use "upgrade-key-packages" first'
+		print 'WARNING: You should probably use "upgrade-key-packages" first'
 		return True
 	return False
 
