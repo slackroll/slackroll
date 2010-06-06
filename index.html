@@ -18,9 +18,9 @@
 
 	<p>In the following text I&#8217;m going to be talking about packages. For package, we are going to understand a named piece of software, without having any specific version unless I explicitly mention it. A package can be <code>bash</code> or <code>kdewebdev</code> or <code>gcc-gfortran</code>, for example.</p>
 
-	<p>Each package is in one of several possible states. The program tries to keep a persistent &#8220;database&#8221; that associates each package with its state.  When it runs, it analyzes the list of packages present in your system, the list of remote packages, and tries to keep the persistent database updated by introducing new entries, deleting old ones and changing the state of some of those entries.</p>
+	<p>Each package is in one of several possible states. The program tries to keep a persistent &#8220;database&#8221; that associates each package with its state.  When it runs, it analyzes the list of packages present in your system, the list of remote packages, and tries to keep the persistent database updated by introducing new entries, deleting old ones and changing the state of some of those entries. There are several possible states for a package, divided in two groups. First, we have transient states. As a user, your job is to make sure no packages remain in those states for long periods of time. Second, we have the normal states, in which the different packages should normally be.</p>
 
-	<h2>States to avoid</h2>
+	<h2>States to avoid (transient states)</h2>
 
 	<h3><span class="caps">NEW</span></h3>
 
@@ -68,7 +68,7 @@
 slackroll set-mirror &#39;http://example.org/slackware-current/&#39;
 </code></p>
 
-	<p><strong>Do not forget the trailing slash!</strong> Great. You are ready to start. Retrieve the remote <span class="caps">GPG</span> key to add it to your key ring. Having the <span class="caps">GPG</span> key is required, and it should be safe to do this step even if the key is already in your key ring.  You can also get the key from the Slackware CD or <span class="caps">DVD</span>. The <span class="caps">GPG</span> key and the package signatures will be downloaded from a primary mirror instead of the mirror you chose, in order to increase security.</p>
+	<p><strong>Do not forget the trailing slash!</strong> Great. You are ready to start. Retrieve the remote <span class="caps">GPG</span> key to add it to your key ring. Having the <span class="caps">GPG</span> key is required, and it should be safe to do this step even if the key is already in your key ring. You can also get the key from the Slackware CD or <span class="caps">DVD</span>. The <span class="caps">GPG</span> key and the package signatures will be downloaded from a primary mirror instead of the mirror you chose, in order to increase security.</p>
 
 	<p><code>
 slackroll import-key
@@ -110,23 +110,25 @@ slackroll frozen aaa_elflibs
 
 	<h1>Normal operation</h1>
 
-	<p>You can run <code>slackroll help</code> to get a full list of operations and a brief description of each one. A full description of each operation can be found in the <a href="operations-guide.html">operations guide</a>. This program is not a perfect tool. I think it can handle almost every situation and be told to do exactly what you want, but reading the change log and subscribing to the <code>slackware-security</code> mailing list is highly recommended.</p>
+	<p>First off, <code>slackroll help</code> will give you a summary of the most common operations, plus some advice. You can read a brief description of every supported operation by running <code>slackroll help all</code>. Finally, you can get specific help for an operation using <code>slackroll help OPERATION</code>, where <code>OPERATION</code> is the name of the operation you want to get help for.</p>
 
-	<p>In every case you should <code>update</code> whenever the remote tree is changed. Then, you should read the change log with the <code>changelog</code> operation if there are new entries and, finally, the <code>list-transient</code> operation will provide a summary of activity. There should be no transient packages after you&#8217;re finished.</p>
+	<p>This program is not a perfect tool. I think it can handle almost every situation and be told to do exactly what you want, but reading the change log and subscribing to the <code>slackware-security</code> mailing list is highly recommended.</p>
 
-	<p>Watch out for upgrades in the <code>glibc-solibs</code>, <code>sed</code> and <code>pkgtools</code> packages.  They should always be the first ones to be installed or upgraded in that order, even before new packages. You can use the <code>upgrade-key-packages</code> operation to upgrade them first.</p>
+	<p>In any case, the most frequent command you will probably run is <code>slackware update</code>, which should be run whenever the remote tree is changed. Then, you should read the change log with the <code>changelog</code> operation if there are new entries and, finally, the <code>list-transient</code> operation will provide a summary of activity. There should be no packages in transient states after you&#8217;re finished dealing with the changes.</p>
 
-	<p>When installing or upgrading foreign packages, you can use <strong>installpkg</strong> or <strong>upgradepkg</strong> and then mark them as foreign if needed. However, you can also install them using the <code>install-foreign</code> operation to save time and avoid problems.</p>
+	<p>Watch out for upgrades in the <code>glibc-solibs</code>, <code>sed</code> and <code>pkgtools</code> packages. They should (almost) always be the first ones to be installed or upgraded in that order, even before new packages. You can use the <code>upgrade-key-packages</code> operation to upgrade them first. The program will try to inform you about changes in those packages with a noticeable warning.</p>
+
+	<p>New packages should either be installed selectively with the <code>install</code> operation or all at the same time with <code>install-new</code>. New packages which will not be installed should be put in the not-installed state with <code>not-installed</code>.</p>
+
+	<p>Outdated packages should be upgraded, normally using the <code>upgrade</code> operation.</p>
+
+	<p>Unavailable packages could either be foreign packages that you forgot to mark as such, and should be marked with <code>foreign</code>, or packages which have been removed from the remote tree. In that case, <code>remove</code> or <code>remove-unavailable</code> are the operations you will be looking for.</p>
+
+	<p>When installing or upgrading foreign packages, you can use <strong>installpkg</strong> or <strong>upgradepkg</strong> and then mark them as foreign if needed. However, you can also install them using the <code>install-foreign</code> operation to save time and avoid problems in the future.</p>
 
 	<p>Also, remember to run the <code>clean-cache</code> operation from time to time to get rid of old and outdated package archives stored in the package cache.</p>
 
-	<h2>Rolling tree (slackware-current)</h2>
-
-	<p>Apart from the <code>list-transient</code> operation, you can check for new packages with <code>list-new</code>. Decide to download and install them with <code>install</code> or mark them as not installed with <code>not-installed</code>. List possible upgrades with <code>list-upgrades</code> and upgrade to new versions with <code>upgrade</code>. Finally, list unavailable packages with <code>list-unavailable</code> and remove them or mark them as foreign if a new foreign package is present in the list. This may happen if you had forgotten to mark it when you installed it (and this is the reason why the <code>install-foreign</code> operation exists).</p>
-
-	<h2>Stable tree</h2>
-
-	<p>Mostly the same, but in the stable tree it&#8217;s extremely rare to see packages being removed or being added to the tree, so you probably won&#8217;t need to run <code>list-new</code> or <code>list-unavailable</code>, but you never know. The <code>list-transient</code> operation may be useful to detect these rare cases.</p>
+	<p>The order described above is the order in which you should proceed in most cases. However, sometimes it&#8217;s not the correct order. That&#8217;s why it&#8217;s important to read the change log to detect possible special cases and read comments by Patrick Volkerding. If you break that order, slackroll will emit a warning, but it is only a warning. The choice of what to do is on you.</p>
 
 	<h2>Kernel upgrades</h2>
 

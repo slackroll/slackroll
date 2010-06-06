@@ -8,9 +8,9 @@ So you have decided to try @slackroll@. Let me introduce a few concepts so you d
 
 In the following text I'm going to be talking about packages. For package, we are going to understand a named piece of software, without having any specific version unless I explicitly mention it. A package can be @bash@ or @kdewebdev@ or @gcc-gfortran@, for example.
 
-Each package is in one of several possible states. The program tries to keep a persistent "database" that associates each package with its state.  When it runs, it analyzes the list of packages present in your system, the list of remote packages, and tries to keep the persistent database updated by introducing new entries, deleting old ones and changing the state of some of those entries.
+Each package is in one of several possible states. The program tries to keep a persistent "database" that associates each package with its state.  When it runs, it analyzes the list of packages present in your system, the list of remote packages, and tries to keep the persistent database updated by introducing new entries, deleting old ones and changing the state of some of those entries. There are several possible states for a package, divided in two groups. First, we have transient states. As a user, your job is to make sure no packages remain in those states for long periods of time. Second, we have the normal states, in which the different packages should normally be.
 
-h2. States to avoid
+h2. States to avoid (transient states)
 
 h3. NEW
 
@@ -58,7 +58,7 @@ You should first choose a Slackware mirror. Take into account @slackroll@ will s
 slackroll set-mirror 'http://example.org/slackware-current/'
 </code>
 
-*Do not forget the trailing slash!* Great. You are ready to start. Retrieve the remote GPG key to add it to your key ring. Having the GPG key is required, and it should be safe to do this step even if the key is already in your key ring.  You can also get the key from the Slackware CD or DVD. The GPG key and the package signatures will be downloaded from a primary mirror instead of the mirror you chose, in order to increase security.
+*Do not forget the trailing slash!* Great. You are ready to start. Retrieve the remote GPG key to add it to your key ring. Having the GPG key is required, and it should be safe to do this step even if the key is already in your key ring. You can also get the key from the Slackware CD or DVD. The GPG key and the package signatures will be downloaded from a primary mirror instead of the mirror you chose, in order to increase security.
 
 <code>
 slackroll import-key
@@ -100,23 +100,25 @@ Regarding customized versions of official packages, there are at least three way
 
 h1. Normal operation
 
-You can run @slackroll help@ to get a full list of operations and a brief description of each one. A full description of each operation can be found in the "operations guide":operations-guide.html. This program is not a perfect tool. I think it can handle almost every situation and be told to do exactly what you want, but reading the change log and subscribing to the @slackware-security@ mailing list is highly recommended.
+First off, @slackroll help@ will give you a summary of the most common operations, plus some advice. You can read a brief description of every supported operation by running @slackroll help all@. Finally, you can get specific help for an operation using @slackroll help OPERATION@, where @OPERATION@ is the name of the operation you want to get help for.
 
-In every case you should @update@ whenever the remote tree is changed. Then, you should read the change log with the @changelog@ operation if there are new entries and, finally, the @list-transient@ operation will provide a summary of activity. There should be no transient packages after you're finished.
+This program is not a perfect tool. I think it can handle almost every situation and be told to do exactly what you want, but reading the change log and subscribing to the @slackware-security@ mailing list is highly recommended.
 
-Watch out for upgrades in the @glibc-solibs@, @sed@ and @pkgtools@ packages.  They should always be the first ones to be installed or upgraded in that order, even before new packages. You can use the @upgrade-key-packages@ operation to upgrade them first.
+In any case, the most frequent command you will probably run is @slackware update@, which should be run whenever the remote tree is changed. Then, you should read the change log with the @changelog@ operation if there are new entries and, finally, the @list-transient@ operation will provide a summary of activity. There should be no packages in transient states after you're finished dealing with the changes.
 
-When installing or upgrading foreign packages, you can use *installpkg* or *upgradepkg* and then mark them as foreign if needed. However, you can also install them using the @install-foreign@ operation to save time and avoid problems.
+Watch out for upgrades in the @glibc-solibs@, @sed@ and @pkgtools@ packages. They should (almost) always be the first ones to be installed or upgraded in that order, even before new packages. You can use the @upgrade-key-packages@ operation to upgrade them first. The program will try to inform you about changes in those packages with a noticeable warning.
+
+New packages should either be installed selectively with the @install@ operation or all at the same time with @install-new@. New packages which will not be installed should be put in the not-installed state with @not-installed@.
+
+Outdated packages should be upgraded, normally using the @upgrade@ operation.
+
+Unavailable packages could either be foreign packages that you forgot to mark as such, and should be marked with @foreign@, or packages which have been removed from the remote tree. In that case, @remove@ or @remove-unavailable@ are the operations you will be looking for.
+
+When installing or upgrading foreign packages, you can use *installpkg* or *upgradepkg* and then mark them as foreign if needed. However, you can also install them using the @install-foreign@ operation to save time and avoid problems in the future.
 
 Also, remember to run the @clean-cache@ operation from time to time to get rid of old and outdated package archives stored in the package cache.
 
-h2. Rolling tree (slackware-current)
-
-Apart from the @list-transient@ operation, you can check for new packages with @list-new@. Decide to download and install them with @install@ or mark them as not installed with @not-installed@. List possible upgrades with @list-upgrades@ and upgrade to new versions with @upgrade@. Finally, list unavailable packages with @list-unavailable@ and remove them or mark them as foreign if a new foreign package is present in the list. This may happen if you had forgotten to mark it when you installed it (and this is the reason why the @install-foreign@ operation exists).
-
-h2. Stable tree
-
-Mostly the same, but in the stable tree it's extremely rare to see packages being removed or being added to the tree, so you probably won't need to run @list-new@ or @list-unavailable@, but you never know. The @list-transient@ operation may be useful to detect these rare cases.
+The order described above is the order in which you should proceed in most cases. However, sometimes it's not the correct order. That's why it's important to read the change log to detect possible special cases and read comments by Patrick Volkerding. If you break that order, slackroll will emit a warning, but it is only a warning. The choice of what to do is on you.
 
 h2. Kernel upgrades
 

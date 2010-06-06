@@ -1,4 +1,3 @@
 #!/bin/sh
 php tutorial.php >tutorial.html
 php faq.php >faq.html
-php operations-guide.php >operations-guide.html
