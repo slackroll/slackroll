@@ -1,0 +1,12 @@
+
+local-search REGEXP...
+
+This operation expects a list of Python regular expressions, and can be used to
+answer the question "which package does this file belong to?". It will search
+for those regular expressions in the list of files for each package, and
+provide a summary of the results. It is essentially equivalent to running
+multiple "grep" commands on /var/log/packages/*, except that it will skip
+header lines in those files, hence not providing false positives.
+
+Also see: manifest-search.
+

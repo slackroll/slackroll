@@ -1,0 +1,9 @@
+
+name-search REGEXP...
+
+This operation expects a list of Python regular expressions, and will print a
+list of packages whose name matches any of the provided regular expressions.
+For practical reasons, the state of the packages is printed too.
+
+Also see: path-search, state.
+

@@ -1,0 +1,8 @@
+
+list-all
+
+This operation expects no arguments. It will print a list with every known
+package name.
+
+Also see: list-local, list-remote.
+

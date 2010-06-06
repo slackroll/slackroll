@@ -1,0 +1,10 @@
+
+urls PKG...
+
+This operation, like "install", expects a list of package names or specific
+package versions. It's mostly equivalent to the "install" and "upgrade"
+operations, stopping before the package download takes place, and printing the
+URLs instead.
+
+Also see: install, upgrade.
+

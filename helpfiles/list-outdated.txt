@@ -1,0 +1,9 @@
+
+list-outdated
+
+This operation expects no arguments. It is part of the group of operations that
+list packages names according to their state. In this case, the list of
+packages in the state "outdated" is printed.
+
+Also see: list-new, list-unavailable, etc.
+

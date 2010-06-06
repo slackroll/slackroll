@@ -1,0 +1,9 @@
+
+blacklist-del ID...
+
+This operation expects a list of blacklist entry identifiers, and will remove
+them from the blacklist. Identifiers are printed when you run
+"print-blacklist".
+
+Also see: print-blacklist, blacklist-add.
+

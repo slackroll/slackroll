@@ -1,0 +1,11 @@
+
+download PKG...
+
+This operation expects the same type of arguments as the "install" operation,
+that is, a list of package names or specific package versions. However, instead
+of installing or upgrading packages, this operation will only download the
+package archives, its signatures and verify the signatures. It will not proceed
+with the installation steps, as the install operation would.
+
+Also see: install.
+

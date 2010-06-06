@@ -1,0 +1,13 @@
+
+info PKG...
+
+This operation expects a list of package names or specific package versions,
+and will print information about the selected packages. This information is
+obtained from two sources. It can be from the .txt files present for every
+package in the remote repository. These are used when the package is not
+present in your system. If it is, the same information (plus a little bit more)
+is printed by extracting it from the initial lines of the package file present
+in /var/log/packages.
+
+Also see: local-info, info-new, info-path.
+

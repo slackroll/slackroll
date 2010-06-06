@@ -1,0 +1,10 @@
+
+erase-tmp
+
+This operation expects no arguments. It will erase any file found in
+/var/slackroll/tmp. Normally, you never need to run this operation, but
+occasional files may be left in /var/slackroll/tmp if downloads are interrupted
+and never resumed, for example. Running it should pose no risk whatsoever.
+
+Also see: erase-cache, erase-all.
+

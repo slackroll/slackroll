@@ -1,0 +1,22 @@
+
+urls-upgrades
+
+This operation expects no arguments. It's mostly similar to both the "upgrade"
+operation and the "download-upgrades" operation. This one, in particular, will
+stop the process before reaching the download step, and will print the URLs
+that would be used. It could be useful to feed the URLs to a more advanced
+downloader, or to save the list to a file if you wish to download the package
+archives and signatures from a different computer.
+
+Tip: urls-upgrades, as "install", "upgrade" and every other related operation,
+will ask questions when an outdated package has more than one remote version
+available, in order to let you choose which version you want to install.
+However, if you want to save the list of URLs to a text file, these questions
+can be a minor problem, as they will be hidden if you redirect the command
+output using the common redirect operator, >. As mentioned in the FAQ, you can
+pipe the command output to "tee file.txt" instead to do basically the same.
+Later, you will need to edit the text file and remove the extra lines at the
+beginning.
+
+Also see: upgrade, install, urls.
+

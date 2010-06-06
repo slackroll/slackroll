@@ -1,0 +1,20 @@
+
+orphan-search DIRECTORY...
+
+This operation expects a list of directories in your file system. It will
+attempt to find files that do not belong to any package in those directories
+(called "orphan files"). It is a rarely-run operation, mainly useful to keep
+the system clean if you intend to run it without reinstallations for long
+periods of time. For example, it could be useful for people who keep running
+the -current branch for years.
+
+It's very important to note that it takes some time to find actual orphan
+files, and that the results tend to have a lot of false positives, depending on
+the directory. For example, many files in /etc do not actually belong to any
+package but cannot be removed at all, the most clear example being /etc/fstab.
+In other words, after running orphan-search you should not blindly remove every
+file reported by the program, and should instead check and double-check each
+file to detect if it could be removed or not.
+
+Also see: missing-search, broken-symlinks.
+

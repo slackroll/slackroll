@@ -1,0 +1,48 @@
+
+manifest-search REGEXP...
+
+This operation expects a list of Python regular expressions, and will search
+for them inside the "manifest contents". It should be used in combination with
+"update-manifest" to answer the question "which package provides this file?".
+Note that the "local-search" operation will probably be faster if you already
+have the file.
+
+Deeper explanation follows:
+
+Inside every Slackware mirror, you will notice there are some files called
+MANIFEST.bz2, which are files that list package contents in a way similar to
+the local package files you can find in /var/log/packages. There is not a
+single MANIFEST.bz2 file per Slackware version. Instead, there is a
+MANIFEST.bz2 file for /slackware, another one for /extra, etc.
+
+If you want to know which package provides a given file, and you have the file,
+the local-search operation will search for files using /var/log/packages and is
+generally faster. However, you sometimes may be missing a file, like a library,
+and apparently the file is nowhere to be found in your system, signaling that
+you are missing a package. You want to know which package provides the library
+you need. You would then need to download a relatively up-to-date MANIFEST.bz2
+file from the appropriate tree and run a command like bzgrep on them to find
+the file.
+
+update-manifest is the equivalent of downloading the latest MANIEST.bz2 file,
+while manifest-search is equivalent to running the bzgrep commands on the
+downloaded files.
+
+Two common questions:
+
+Do I really need to run update-manifest before I try to use the manifest-search
+operation?  Not really. Downloading and processing MANIFEST.bz2 files may take
+some time and maybe the library you are looking for has been present for a long
+time, so you could try to use the current "manifest database" that was created
+the last time you ran "update-manifest" before running the same operation
+again.
+
+Why do I need to run update-manifest and why are not those files downloaded
+when I run the update operation? Because searching for files in the manifest
+database is an infrequent operation, and downloading and creating the manifest
+database takes a good amount of seconds. It makes sense to skip downloading
+those files every time you run the update operation, and only update the
+manifest database on request.
+
+Also see: local-search, update-manifest.
+

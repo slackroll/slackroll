@@ -1,0 +1,13 @@
+
+remote-paths
+
+This operation expects no arguments. It will print a plain-text list of all the
+package files in the remote mirror, with their relative paths.
+
+As mentioned in the FAQ, this operation was created ad-hoc, and should be
+useful to artificially populate the slackroll package cache with symbolic links
+to a local mirror of the Slackware tree, which some people have and like to
+keep up-to-date with rsync.
+
+Also see: path-search.
+

@@ -1,0 +1,10 @@
+
+erase-all
+
+This operation expects no arguments, and will delete the contents of
+/var/slackroll/tmp and the contents of /var/slackroll/packages, essentially
+being the sum of "erase-cache" and "erase-tmp" operations. Normally, you never
+need to run this operation.
+
+Also see: erase-cache, erase-tmp.
+

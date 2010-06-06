@@ -1,0 +1,9 @@
+
+list-versions PKG...
+
+This operation expects a list of package names. It will print a list with every
+local and remote version of the given packages, in a format similar to the one
+used in list-upgrades.
+
+Also see: list-alternatives, list-upgrades.
+

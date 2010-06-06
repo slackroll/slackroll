@@ -1,0 +1,10 @@
+
+path-search REGEXP...
+
+This operation needs a list of Python regular expressions and will find remote
+packages whose path matches any of the provided regular expressions. For
+example, if you run "slackroll path-search /slackware/kde/", you should get a
+list of package files in the "kde" set.
+
+Also see: name-search.
+

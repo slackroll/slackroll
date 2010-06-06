@@ -1,0 +1,10 @@
+
+download-key-packages
+
+This operation expects no arguments. Strictly speaking, it should be called
+"download-outdated-key-packages", but the name was shortened for obvious
+reasons. It is equivalent to the "download" operation applied to the list of
+outdated key system packages (glibc-solibs, sed and pkgtools). 
+
+Also see: download, upgrade-key-packages.
+

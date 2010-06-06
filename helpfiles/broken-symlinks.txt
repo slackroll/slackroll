@@ -1,0 +1,17 @@
+
+broken-symlinks DIRECTORY...
+
+This operation expects a list of directories from your file system. It will
+print any broken symlink which is found under that directory. This operation
+may take some time to complete, depending on which directory you specify.
+Broken symlinks, in general, can be removed without being too problematic.
+However, it should be noted that some packages provide symlinks to files found
+in other packages. If those other packages are not installed, the symlink will
+be broken. Still, it could be a good idea to keep the symlink there in case you
+decide to install those other packages.
+
+It's a system maintenance operation that probably will only be needed once in a
+blue moon.
+
+Also see: orphan-search, missing-search.
+

@@ -1,0 +1,17 @@
+
+missing-search
+
+This operation expects no arguments. It will take some time to complete and is
+one of those maintenance operations that are only run on very rare occasions.
+It will study the list of files that should be present in your system,
+according to the contents of /var/log/packages, and attempt to detect if any of
+them is missing. There will be a few false positives in the results. For
+example, bash usually gets installed as /bin/bash4(.new), but is later moved to
+/bin/bash. /bin/bash4 will be detected as missing but it's not a problem at
+all.
+
+It could be useful if you accidentally delete files by mistake, and want to
+know which packages have been affected, in order to reinstall them.
+
+Also see: orphan-search, broken-symlinks.
+

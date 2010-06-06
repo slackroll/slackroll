@@ -1,0 +1,7 @@
+
+download-path REGEXP...
+
+This operation expects a list of Python regular expressions as its arguments. It will attempt to download every remote package with a package path matching any of the provided regular expressions. For more information on remote paths, see the help for the "install-path" operation. This operation is equivalent to it, but it will not proceed with the package installation once the packages have been downloaded.
+
+Also see: download, install-path.
+

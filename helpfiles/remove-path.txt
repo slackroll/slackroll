@@ -1,0 +1,11 @@
+
+remove-path REGEXP...
+
+This operation expects a list of Python regular expressions as its arguments.
+It will remove any installed package present in the remote tree whose path
+matches any of the provided regular expressions.
+
+For more details about remote paths, see the help text for install-path.
+
+Also see: remove, install-path.
+

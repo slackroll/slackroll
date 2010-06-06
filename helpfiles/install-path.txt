@@ -36,5 +36,5 @@ can be found at:
 
 http://docs.python.org/library/re.html#regular-expression-syntax
 
-Also see: remove-path.
+Also see: install, remove-path.
 

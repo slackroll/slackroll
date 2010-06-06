@@ -1,0 +1,8 @@
+
+list-local
+
+This operation expects no arguments. It will print the list of package names
+currently present in your system.
+
+Also see: list-remote, list-all.
+

@@ -1,0 +1,9 @@
+
+print-blacklist
+
+This operation expects no arguments and will print the list of blacklisted
+Python regular expressions with their identifiers. For an explanation to the
+blacklist, see the help for "blacklist-add".
+
+Also see: blacklist-add.
+

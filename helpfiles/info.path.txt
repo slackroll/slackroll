@@ -1,0 +1,10 @@
+
+info-path REGEXP...
+
+This operation expects a list of Python regular expressions, and will apply the
+"info" operation to every package with a remote path that matches any of the
+provided regular expressions. For more details on remote paths and regular
+expressions, see the help text for "install-path".
+
+Also see: info, install-path.
+

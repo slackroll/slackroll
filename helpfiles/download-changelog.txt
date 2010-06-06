@@ -1,0 +1,10 @@
+
+download-changelog
+
+This operation expects no arguments. It will download the whole ChangeLog.txt
+file from the remote mirror and will rebuild the change log database with it.
+Useful to reset the changelog database from time to time if you do not wish to
+keep the whole change log history, specially when running -current.
+
+Also see: changelog.
+

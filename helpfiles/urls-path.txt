@@ -1,0 +1,12 @@
+
+urls-path REGEXP...
+
+This operation expects a list of Python regular expressions as its arguments.
+It will print the URLs of the package archives and signatures of every remote
+package with a matching remote path. For an explanation on this, see
+"install-path". This operation is related to both "install-path" and
+"download-path", with the difference that nothing is installed or downloaded,
+and the URLs are printed.
+
+Also see: install-path, download-path.
+

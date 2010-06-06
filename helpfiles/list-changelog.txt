@@ -1,0 +1,10 @@
+
+list-changelog
+
+This operation will list every change log entry from the change log database,
+with their dates and identifiers, that could later be used with the
+"changelog-entries" operation. To print the last batch of change log entries,
+use the "changelog" operation.
+
+Also see: changelog, download-changelog, changelog-entries, full-changelog.
+

@@ -1,0 +1,16 @@
+
+local-info PKG...
+
+This operation expects a list of package names or specific package versions,
+like the "info" operation. It is mostly equivalent to the latter. The
+difference is that it can only be applied to packages present in your system,
+and the amount of information it prints. "local-info" prints the full contents
+of the files in /var/log/packages, instead of omitting the package contents
+like "info" does.
+
+It was added because it is usually faster to type "slackroll local-info PKG"
+than to run "less /var/log/packages/PKG-something", but other than that they
+are mostly equivalent.
+
+Also see: info.
+
