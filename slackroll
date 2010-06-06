@@ -702,12 +702,13 @@ def download_report_hook(filename, numblocks, blocksize, totalsize): # Template 
 		size = optimum_size_conversion(totalsize)
 	print_flush('\rDownloading %s ... %s%% of %s' % (filename, percent, size))
 
-def download_file(mirror, filepath, local_temp, local_final): # Does not exit on errors and shouldn't be called directly
+def download_file(mirror, filepath, local_temp, local_final, displayed_name=None): # Does not exit on errors and shouldn't be called directly
 	try:
-		filename = os.path.basename(filepath)
-		print_flush('Downloading %s ... ' % filename)
+		if displayed_name is None:
+			displayed_name = os.path.basename(filepath)
+		print_flush('Downloading %s ... ' % displayed_name)
 		full_url = urlparse.urljoin(mirror, filepath)
-		hook = functools.partial(download_report_hook, filename)
+		hook = functools.partial(download_report_hook, displayed_name)
 		urllib.urlretrieve(full_url, local_temp, hook)
 		print
 		if not try_to_rename(local_temp, local_final, fatal=False):
@@ -716,15 +717,15 @@ def download_file(mirror, filepath, local_temp, local_final): # Does not exit on
 		sys.stderr.write('\nERROR: %s\n' % err)
 		raise SlackrollError(str(err))
 
-def download(mirror, filepath, localdir): # Wrapper that does NOT exit on errors
+def download(mirror, filepath, localdir, displayed_name=None): # Wrapper that does NOT exit on errors
 	name = os.path.basename(filepath)
 	localtemp = os.path.join(get_temp_dir(), '%s%s' % (name, slackroll_temp_suffix))
 	localfinal = os.path.join(localdir, name)
-	download_file(mirror, filepath, localtemp, localfinal)
+	download_file(mirror, filepath, localtemp, localfinal, displayed_name)
 
-def download_or_exit(mirror, filepath, localdir): # Wrapper that exits on errors
+def download_or_exit(mirror, filepath, localdir, displayed_name=None): # Wrapper that exits on errors
 	try:
-		download(mirror, filepath, localdir)
+		download(mirror, filepath, localdir, displayed_name)
 	except SlackrollError:
 		sys.exit(slackroll_exit_failure)
 
@@ -1259,7 +1260,7 @@ def update_manifest_database():
 	manifestdb = dict()
 	for x in xrange(len(files)):
 		# Download file
-		download_or_exit(get_mirror(), files[x], get_temp_dir())
+		download_or_exit(get_mirror(), files[x], get_temp_dir(), files[x])
 
 		# Decompress it
 		print_flush('Processing %s ... ' % files[x])
