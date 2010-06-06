@@ -34,7 +34,7 @@ mkdir -p $PKG/usr/doc/$PNAME-$PVERSION/helpfiles
 mkdir -p $PKG/var/slackroll
 install -m 755 slackroll $PKG/usr/sbin
 install -m 644 COPYING $PKG/usr/doc/$PNAME-$PVERSION
-install -m 644 helpfiles/* $PKG/usr/doc/$PNAME-$PVERSION
+install -m 644 helpfiles/* $PKG/usr/doc/$PNAME-$PVERSION/helpfiles
 
 # Manpage
 asciidoc -b docbook -d manpage manpage.txt
@@ -56,7 +56,7 @@ cat >$PKG/install/slack-desc <<EOF
          |-----handy-ruler------------------------------------------------------|
 slackroll: slackroll (Package or upgrade manager for Slackware Linux)
 slackroll:
-slackroll: SlackRoll is a package or upgrade manager for Slackware Linux. It is
+slackroll: slackroll is a package or upgrade manager for Slackware Linux. It is
 slackroll: designed to work with official mirrors in systems mainly composed of
 slackroll: official packages with a few unofficial packages. It lets you
 slackroll: automatically upgrade or install packages, and displays which
