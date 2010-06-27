@@ -114,8 +114,8 @@ Package information (i.e. related to .txt, slack-desc or installation files):
 
 Package blacklisting:
 
-  Advice: read the operations guide. The package blacklist does not have the
-  intended usage is has in other package management tools.
+  Advice: read the help text for the following operations. Blacklisting does
+  not have the intended usage it has in other package management tools.
 
   print-blacklist	Print all the expressions in the blacklist
   blacklist-add REGEXP	Add an expression to the blacklist
