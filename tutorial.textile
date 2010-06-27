@@ -104,7 +104,7 @@ First off, @slackroll help@ will give you a summary of the most common operation
 
 This program is not a perfect tool. I think it can handle almost every situation and be told to do exactly what you want, but reading the change log and subscribing to the @slackware-security@ mailing list is highly recommended.
 
-In any case, the most frequent command you will probably run is @slackware update@, which should be run whenever the remote tree is changed. Then, you should read the change log with the @changelog@ operation if there are new entries and, finally, the @list-transient@ operation will provide a summary of activity. There should be no packages in transient states after you're finished dealing with the changes.
+In any case, the most frequent command you will probably run is @slackroll update@, which should be run whenever the remote tree is changed. Then, you should read the change log with the @changelog@ operation if there are new entries and, finally, the @list-transient@ operation will provide a summary of activity. There should be no packages in transient states after you're finished dealing with the changes.
 
 Watch out for upgrades in the @glibc-solibs@, @sed@ and @pkgtools@ packages. They should (almost) always be the first ones to be installed or upgraded in that order, even before new packages. You can use the @upgrade-key-packages@ operation to upgrade them first. The program will try to inform you about changes in those packages with a noticeable warning.
 

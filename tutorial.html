@@ -114,7 +114,7 @@ slackroll frozen aaa_elflibs
 
 	<p>This program is not a perfect tool. I think it can handle almost every situation and be told to do exactly what you want, but reading the change log and subscribing to the <code>slackware-security</code> mailing list is highly recommended.</p>
 
-	<p>In any case, the most frequent command you will probably run is <code>slackware update</code>, which should be run whenever the remote tree is changed. Then, you should read the change log with the <code>changelog</code> operation if there are new entries and, finally, the <code>list-transient</code> operation will provide a summary of activity. There should be no packages in transient states after you&#8217;re finished dealing with the changes.</p>
+	<p>In any case, the most frequent command you will probably run is <code>slackroll update</code>, which should be run whenever the remote tree is changed. Then, you should read the change log with the <code>changelog</code> operation if there are new entries and, finally, the <code>list-transient</code> operation will provide a summary of activity. There should be no packages in transient states after you&#8217;re finished dealing with the changes.</p>
 
 	<p>Watch out for upgrades in the <code>glibc-solibs</code>, <code>sed</code> and <code>pkgtools</code> packages. They should (almost) always be the first ones to be installed or upgraded in that order, even before new packages. You can use the <code>upgrade-key-packages</code> operation to upgrade them first. The program will try to inform you about changes in those packages with a noticeable warning.</p>
 
