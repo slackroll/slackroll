@@ -752,8 +752,7 @@ def yield_gnupg_exec_name():
 			pass
 	sys.exit('ERROR: unable to run GnuPG')
 
-def gnupg_exec_name():
-	return yield_gnupg_exec_name().next()
+gnupg_exec_name = yield_gnupg_exec_name().next
 
 def import_key(filename):
 	try:
