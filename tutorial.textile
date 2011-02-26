@@ -52,7 +52,7 @@ h1. Getting started
 
 It should be noted that you can start using @slackroll@ whenever you want, but my advice is to do it when your system is under control and there are no upgrades pending. This will give you a chance of configuring the program and setting the package states properly without making serious mistakes.
 
-You should first choose a Slackware mirror. Take into account @slackroll@ will store downloaded packages in a subdirectory of @/var/slackroll@, so you will probably need to have a good amount of space available for them in there. Set the mirror URL with the @set-mirror@ operation. For example:
+You should first choose a Slackware mirror. In case your mirror of choice offers access using both FTP and HTTP, prefer HTTP. Take into account @slackroll@ will store downloaded packages in a subdirectory of @/var/slackroll@, so you will probably need to have a good amount of space available for them in there. Set the mirror URL with the @set-mirror@ operation. For example:
 
 <code>
 slackroll set-mirror 'http://example.org/slackware-current/'
