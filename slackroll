@@ -103,7 +103,7 @@ slackroll_mirror_version_re = re.compile(r'/slackware(64|)-([^/]+)/')
 #slackroll_pb_result_files = 2
 slackroll_default_primary_site_url = 'http://slackware.osuosl.org/slackware%s-%s/'
 
-slackroll_locale_envvars = ['LC_COLLATE', 'LC_CTYPE', 'LC_MONETARY', 'LC_MESSAGES', 'LC_NUMERIC', 'LC_TIME', 'LC_ALL', 'LANGUAGE', 'LANG']
+slackroll_locale_envvars = ['LANG', 'LC_CTYPE', 'LC_NUMERIC', 'LC_TIME', 'LC_COLLATE', 'LC_MONETARY', 'LC_MESSAGES', 'LC_ALL', 'LC_PAPER', 'LC_NAME', 'LC_ADDRESS', 'LC_TELEPHONE', 'LC_MEASUREMENT', 'LC_IDENTIFICATION']
 slackroll_locale_mainvar = 'LANG'
 slackroll_locale_value = 'C'
 
