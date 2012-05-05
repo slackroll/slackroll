@@ -1548,8 +1548,8 @@ def word_to_word_list_distance(w, words): # Distance between word and list of wo
 
 def words_to_words_distance(words1, words2): # Distance between two lists of words.
 	# We will consider this the sum of the minimum distances for each word
-	# against the words of the other list.
-	return sum(word_to_word_list_distance(i, words2) for i in words1)
+	# against the words of the other list, plus the difference in words.
+	return (sum(word_to_word_list_distance(i, words2) for i in words1) + abs(len(words1) - len(words2)))
 
 ### Main program ###
 try:
