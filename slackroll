@@ -1066,33 +1066,6 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 		persistent_list[name] = dest_state
 	persistent_list.sync()
 
-#def query_pkg_browser(opt64, version, searchstr): # Query package browser on given file with given Slackware version
-#	url = slackroll_pb_template_url % (urllib.quote(version), urllib.quote(searchstr))
-#	try:
-#		data = urllib.urlopen(url).read()
-#	except (OSError, IOError, socket.error, urllib.ContentTooShortError), err:
-#		sys.exit('ERROR: %s' % err)
-#
-#	# Extract results from answer webpage
-#	data = re.sub(r'(?s)<!--.*?-->', '', data) # Strip HTML comments
-#	has_results = False
-#	header_printed = False
-#	
-#	for match in re.finditer(slackroll_pb_result_re, data):
-#		has_results = True
-#		if not header_printed:
-#			print 'Results for %s:' % searchstr
-#			header_printed = True
-#		pkgstr = match.group(slackroll_pb_result_idname)
-#		pkgcontents = match.group(slackroll_pb_result_files)
-#
-#		print '    %s' % re.sub(r'\s', '', pkgstr)
-#		print ''.join('\t%s\n' % x for x in re.split(r'(?i)<br[^>]*>', re.sub(r'(?i)(\s)|(</?b>)', '', pkgcontents)))
-#	
-#	if not has_results:
-#		print 'Results for %s:' % searchstr
-#		print '    (No results)\n'
-
 def extract_dotnew_files(local_pkg_list): # Get .new files from multiple packages
 	full = concat([[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list])
 	return sorted(set(full))
@@ -1612,13 +1585,11 @@ try:
 		'not-installed':	-1,
 		'orphan-search':	-1,
 		'path-search':		-1,
-		#'pb-search':		-1,
 		'print-blacklist':	0,
 		'print-mirror':		0,
 		'print-primary-mirror':	0,
 		'reinstall':		-1,
 		'remote-paths':		0,
-		#'remote-search':	-1,
 		'remove':		-1,
 		'remove-path':		-1,
 		'remove-unavailable':	0,
@@ -1754,24 +1725,6 @@ try:
 		print slackroll_changelog_entry_separator.join('%s' % x for x in entries)
 		interceptor.stop()
 		sys.exit()
-
-#	if operation in ['pb-search', 'remote-search']:
-#		(opt64, slackver) = get_mirror_version_components(get_mirror())
-#
-#		# I really hope this is temporary
-#		if len(opt64) > 0:
-#			sys.stderr.write('WARNING: Package browser does not support Slackware64 yet\n')
-#			sys.stderr.write('WARNING: Querying the 32-bit version database for now\n')
-#
-#		print 'Using the Slackware Package Browser at %s' % slackroll_pb_location
-#		term = sys.stdout
-#		interceptor = SlackrollOutputInterceptor()
-#		for name in args:
-#			searchstr = '"%s"' % name
-#			print >>term, "Searching for %s..." % searchstr
-#			query_pkg_browser(opt64, slackver, searchstr)
-#		interceptor.stop()
-#		sys.exit()
 
 	if operation in ['local-search', 'missing-search']:
 		if operation == 'local-search':
