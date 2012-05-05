@@ -1518,6 +1518,39 @@ def verify_num_args(opname, num, arg_list): # Verify number of arguments of a gi
 		if len(arg_list) != num:
 			sys.exit('ERROR: %s expects %s argument%s' % (opname, ['no', str(num)][num > 0], ['s', ''][num == 1]))
 
+def levenshtein_distance(word1, word2): # Levenshtein distance between words.
+	l1 = len(word1)
+	l2 = len(word2)
+
+	# Distances matrix.
+	d = [[0] * (l2+1) for i in xrange(l1+1)]
+
+	# Base cases.
+	for i in xrange(l1+1):
+		d[i][0] = i
+	for j in xrange(l2+1):
+		d[0][j] = j
+
+	# Recursive cases in order.
+	for j in xrange(1, l2+1):
+		for i in xrange(1, l1+1):
+			if word1[i-1] == word2[j-1]:
+				d[i][j] = d[i-1][j-1]
+			else:
+				d[i][j] = min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + 1)
+
+	return d[l1][l2]
+
+def word_to_word_list_distance(w, words): # Distance between word and list of words.
+	# We will consider this the minimum distance from any word in the list of
+	# words to the subject word.
+	return min(levenshtein_distance(w, i) for i in words)
+
+def words_to_words_distance(words1, words2): # Distance between two lists of words.
+	# We will consider this the sum of the minimum distances for each word
+	# against the words of the other list.
+	return sum(word_to_word_list_distance(i, words2) for i in words1)
+
 ### Main program ###
 try:
 	local_list = None
@@ -1527,7 +1560,7 @@ try:
 	socket.setdefaulttimeout(slackroll_socket_timeout)
 	standarize_locales()
 
-	op_num_args = {	# Map of operations and their number of arguments (-1 means any nonzero quantity)
+	op_num_args = {	# Map of operations and their appropriate number of arguments.
 		'blacklist-add':	-1,
 		'blacklist-del':	-1,
 		'broken-symlinks':	-1,
@@ -1617,12 +1650,22 @@ try:
 	args = sys.argv[2:]
 
 	# Verify number of arguments
-	try:
-		verify_num_args(operation, op_num_args[operation], args)
-	except KeyError:
-		sys.stderr.write('ERROR: unknown operation: %s\n' % operation)
-		sys.stderr.write('Use "help" operation to get a list\n')
+	if operation not in op_num_args:
+		# Find the operations that the user may be meaning.
+		given_words = operation.split('-')
+		command_words = [tuple(x.split('-')) for x in op_num_args.keys()]
+		distances = dict((x, words_to_words_distance(given_words, x)) for x in command_words)
+		min_distance = min(distances.values())
+		best_matches = [x for x in distances if distances[x] == min_distance]
+		best_matches.sort()
+
+		# Print the error and the list.
+		sys.stderr.write('ERROR: no operation called "%s"\n' % (operation, ))
+		sys.stderr.write('Use the "help" operation to get a list.\n')
+		sys.stderr.write('Did you mean %s?\n' % ' or '.join('"%s"' % ('-'.join(x), ) for x in best_matches))
 		sys.exit(slackroll_exit_failure)
+	else:
+		verify_num_args(operation, op_num_args[operation], args)
 
 	if operation == 'help':
 		if len(args) == 0:
