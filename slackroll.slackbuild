@@ -1,56 +1,45 @@
 #!/usr/bin/env bash
 
-# Exit on errors
+# Exit on errors.
 set -e
 
-# Set sane umask
+# Set sane umask.
 umask 022
 
-# Set language (this helps sometimes)
+# Set language (this helps sometimes).
 export LANG=C
 
-# Set a basic PATH
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# Initial variables.
+NAME=slackroll
+VERSION=v$( awk '/^slackroll_version / { print $3 }' slackroll )
+ARCH=noarch
+BUILD=${BUILD:-1}
+OUT=${TMP:-/tmp}
+PKG=$OUT/package-$NAME
 
-# Initial variables
-PNAME=slackroll		# Package name
-PVERSION=v40		# Package version (remove dashes if present)
-ARCH=${ARCH:-noarch}	# Package architecture
-BUILD=${BUILD:-1}	# Build number plus packager initials
-
-CWD=$( pwd )
-TMP=${TMP:-/tmp}	# Location to compile the source
-PKG=$TMP/package-$PNAME	# Location to build the package (use "package-$NAME" to avoid poss. conflicts)
-
-# Clear sandbox directory
+# Clear sandbox directory.
 rm -rf $PKG
 mkdir -p $PKG
 
-# Copy files to destination directories
+# Copy files to destination directories.
 mkdir -p $PKG/usr/sbin
 mkdir -p $PKG/usr/man/man1
-mkdir -p $PKG/usr/doc/$PNAME-$PVERSION
-mkdir -p $PKG/usr/doc/$PNAME-$PVERSION/helpfiles
+mkdir -p $PKG/usr/doc/$NAME-$VERSION
+mkdir -p $PKG/usr/doc/$NAME-$VERSION/helpfiles
 mkdir -p $PKG/var/slackroll
 install -m 755 slackroll $PKG/usr/sbin
-install -m 644 COPYING $PKG/usr/doc/$PNAME-$PVERSION
-install -m 644 helpfiles/* $PKG/usr/doc/$PNAME-$PVERSION/helpfiles
+install -m 644 COPYING $PKG/usr/doc/$NAME-$VERSION
+install -m 644 helpfiles/* $PKG/usr/doc/$NAME-$VERSION/helpfiles
 
-# Manpage
+# Generate manpage.
 asciidoc -b docbook -d manpage manpage.txt
 xmlto man manpage.xml
-install -m 644 slackroll.1 $PKG/usr/man/man1
+gzip -9 slackroll.1
+install -m 644 slackroll.1.gz $PKG/usr/man/man1
 rm manpage.xml
-rm slackroll.1
+rm slackroll.1.gz
 
-# Compress man pages
-find $PKG -type f -path '*/man/*' -print0 | xargs -0r gzip --best
-find $PKG -type l -path '*/man/*' -print0 | while read -d '' symlink; do
-	ln -s "$( readlink "$symlink" ).gz" "${symlink}.gz"
-	rm "$symlink"
-done
-
-# Add package description
+# Add package description.
 mkdir -p $PKG/install
 cat >$PKG/install/slack-desc <<EOF
          |-----handy-ruler------------------------------------------------------|
@@ -64,13 +53,9 @@ slackroll: packages have been added or removed from the Slackware tree.
 slackroll:
 EOF
 
-# Add install script
-cat >$PKG/install/doinst.sh <<EOF
-EOF
-
-# Create package
+# Create package.
 cd $PKG
-makepkg -l y -c n $CWD/$PNAME-$PVERSION-$ARCH-$BUILD.tgz
+makepkg -l y -c n $OUT/$NAME-$VERSION-$ARCH-$BUILD.tgz
 
-# Clean up the sandbox directory
+# Clean up the sandbox directory.
 rm -rf $PKG
