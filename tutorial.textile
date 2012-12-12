@@ -44,7 +44,7 @@ No package will enter the foreign state unless you mark it so. It should be used
 
 h1. Get slackroll
 
-"slackroll":http://github.com/rg3/slackroll/downloads is a self-contained Python script released to the public domain. You can install its package with @installpkg@ for the first time. In the future, you can use @upgradepkg@ or even @slackroll@ itself to upgrade to newer versions. Continue reading for more details.
+"slackroll":http://github.com/rg3/slackroll/ is a self-contained Python script released to the public domain. You can download the source code of the master branch or any tagged releases as a ZIP archive from Github, or by cloning the repository. Once you have access to the plain source files, run the SlackBuild script from the source directory as root. This will create a package you can install with @installpkg@ for the first time. In the future, you can use @upgradepkg@ or even @slackroll@ itself to install newer package versions. Continue reading for more details.
 
 h1. Getting started
 
