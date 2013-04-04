@@ -1065,7 +1065,7 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
 def extract_dotnew_files(local_pkg_list, etc_too=False): # Get .new files from multiple packages
     full = concat([[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list])
     if etc_too:
-        walk_append_if(slackroll_etc_dir, lambda x: x.endswith(slackroll_new_suffix), full)
+        walk_append_if(slackroll_etc_dir, is_dotnew_file, full)
     return sorted(set(full))
 
 def old_file(filename): # Returns filename without .new suffix
@@ -1434,6 +1434,9 @@ def is_not_link(path):
 
 def is_broken_link(path):
     return os.path.islink(path) and not os.path.exists(path)
+
+def is_dotnew_file(path):
+    return os.path.isfile(path) and not os.path.islink(path) and path.endswith(slackroll_new_suffix)
 
 def up_to_date(local_versions, remote_versions): # Is the local package up to date?
     return (len([x for x in local_versions if x in remote_versions]) > 0)
