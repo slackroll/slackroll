@@ -76,6 +76,7 @@ slackroll_temp_suffix = '.part'
 slackroll_signature_suffix = '.asc'
 slackroll_info_suffix = '.txt'
 slackroll_new_suffix = '.new'
+slackroll_etc_dir = '/etc'
 slackroll_pkg_archive_suffix = re.compile(r'\.t[bglx]z$')
 slackroll_default_pager = 'less'
 slackroll_default_visual = 'vim'
@@ -1061,8 +1062,10 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
         persistent_list[name] = dest_state
     persistent_list.sync()
 
-def extract_dotnew_files(local_pkg_list): # Get .new files from multiple packages
+def extract_dotnew_files(local_pkg_list, etc_too=False): # Get .new files from multiple packages
     full = concat([[x for x in extract_file_list(pkg.fullname) if x.endswith(slackroll_new_suffix)] for pkg in local_pkg_list])
+    if etc_too:
+        walk_append_if(slackroll_etc_dir, lambda x: x.endswith(slackroll_new_suffix), full)
     return sorted(set(full))
 
 def old_file(filename): # Returns filename without .new suffix
@@ -1412,7 +1415,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
     
     # Review installed .new files
     if is_real_install:
-        cur_dotnew = extract_dotnew_files([x.local() for x in chosen_pkgs])
+        cur_dotnew = extract_dotnew_files([x.local() for x in chosen_pkgs], etc_too=True)
         if operation == 'installpkg':
             handle_dotnew_files_installation(cur_dotnew)
         else:
@@ -2232,7 +2235,7 @@ try:
         persistent_list.sync()
 
         # Go over .new files
-        cur_dotnew = extract_dotnew_files([x.local() for x in pkgs])
+        cur_dotnew = extract_dotnew_files([x.local() for x in pkgs], etc_too=True)
         handle_dotnew_files_both(prev_dotnew, cur_dotnew)
         sys.exit()
     
@@ -2271,7 +2274,7 @@ try:
         # upgradepkg
         prev_dotnew = extract_dotnew_files(local_list[unavpkg])
         replace_pkg(unavpkg, filename_new)
-        cur_dotnew = extract_dotnew_files([chosen_new.local()])
+        cur_dotnew = extract_dotnew_files([chosen_new.local()], etc_too=True)
         handle_dotnew_files_both(prev_dotnew, cur_dotnew)
 
         sys.exit()
