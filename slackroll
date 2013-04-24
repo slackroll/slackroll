@@ -152,8 +152,9 @@ class SlackwarePackage(object):
     __path = None
     __suffix = None
     __size = None
+    __base_url = None
 
-    def __init__(self, name, version, arch, build, path, suffix, size):
+    def __init__(self, name, version, arch, build, path, suffix, size, url):
         self.__name = name
         self.__version = version
         self.__arch = arch
@@ -161,6 +162,7 @@ class SlackwarePackage(object):
         self.__path = (path is not None and path or '')
         self.__suffix = (suffix is not None and suffix or '')
         self.__size = size
+        self.__base_url = url
 
     def __eq__(self, other):
         return self.__name == other.__name and self.__version == other.__version and self.__arch == other.__arch and self.__build == other.__build
@@ -202,17 +204,33 @@ class SlackwarePackage(object):
         return '%s%s' % (self.idname, self.suffix)
 
     @property
+    def signame(self):
+        return '%s%s' % (self.archivename, slackroll_signature_suffix)
+
+    @property
     def fullname(self):
         return os.path.join(self.path, '%s-%s-%s-%s%s' % (self.__name, self.__version, self.__arch, self.__build, self.__suffix))
+
+    @property
+    def fullsigname(self):
+        return '%s%s' % (self.fullname, slackroll_signature_suffix)
 
     def __cmp__(self, other):
         return pkg_name_cmp(self.__name, other.__name)
 
     def local(self): # Returns the equivalent local pkg
-        return SlackwarePackage(self.__name, self.__version, self.__arch, self.__build, slackroll_local_pkgs_dir, None, None)
+        return SlackwarePackage(self.__name, self.__version, self.__arch, self.__build, slackroll_local_pkgs_dir, None, None, None)
+
+    def base_url(self, mirror):
+        if self.__base_url is None:
+            return mirror
+        return self.__base_url
 
     def url(self, mirror):
-        return urlparse.urljoin(mirror, self.fullname)
+        return urlparse.urljoin(self.base_url(), self.fullname)
+
+    def sig_url(self, mirror):
+        return urlparse.urljoin(self.base_url(), self.fullsigname)
 
 class SlackrollURLopener(urllib.FancyURLopener):
     def http_error_default(self, url, fp, errcode, errmsg, headers):
@@ -237,7 +255,7 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
         size = (size_str is not None and long(size_str) or None)
     except ValueError:
         raise SlackrollError('invalid file size: %s' % size_str)
-    return SlackwarePackage(name, version, arch, build, path, suffix, size)
+    return SlackwarePackage(name, version, arch, build, path, suffix, size, None)
 
 def pkg_in_map(pkg, map_by_name): # Checks if pkg is in map[pkg.name], usable for local_list and remote_list
     return pkg in map_by_name.get(pkg.name, [])
@@ -820,9 +838,9 @@ def download_verify(mirror, package): # Download package, signature and verify i
     sigmirror = get_primary_mirror()
     tempdir = get_temp_dir()
     remote_name = package.fullname
-    remote_sig = '%s%s' % (remote_name, slackroll_signature_suffix)
+    remote_sig = package.fullsigname
     local_name = os.path.join(tempdir, package.archivename)
-    local_sig = '%s%s' % (local_name, slackroll_signature_suffix)
+    local_sig = os.path.join(tempdir, package.signame)
     local_final = os.path.join(slackroll_pkgs_dir, package.archivename)
 
     try:
@@ -891,7 +909,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 def print_urls(mirror, package):
     sigmirror = get_primary_mirror()
     pkgurl = package.url(mirror)
-    sigurl = '%s%s' % (package.url(sigmirror), slackroll_signature_suffix)
+    sigurl = package.sigurl(mirror)
     print sigurl
     print pkgurl
 
