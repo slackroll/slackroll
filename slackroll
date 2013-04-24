@@ -522,43 +522,42 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
         try_dump(local_list, slackroll_locallist_filename)
     return try_load(slackroll_locallist_filename)
 
-def get_remote_pkgs(): # Return a list of packages from FILELIST.TXT
+def get_remote_pkgs(local_filelist): # Return a list of packages from FILELIST.TXT
     try:
-        lines = file(slackroll_local_filelist, 'r').readlines()
+        lines = file(local_filelist, 'r').readlines()
         matches = [slackroll_filelist_pkg_re.match(x) for x in lines]
         nm_sz = [(x.group(slackroll_filelist_pkg_str), x.group(slackroll_filelist_pkg_size)) for x in matches if x is not None]
         return [pkg_from_name_and_size(nm, sz) for (nm, sz) in nm_sz if slackroll_source_indicator not in nm]
     except (OSError, IOError), err:
         sys.exit('ERROR: %s' % err)
 
-def get_remote_list(forced_rebuild): # Return list of remote packages from cached list, updating if needed
+def build_remote_list(local_filelist):
+    print 'Building remote packages list...'
     bl = get_blacklist_re()
-    if (newer_than(slackroll_local_filelist, slackroll_remotelist_filename)
-        or newer_than(slackroll_blacklist_filename, slackroll_remotelist_filename)
-        or forced_rebuild):
-        print 'Rebuilding remote packages list...'
-        remote_list = dict()
-        has_patch = set()
-        for pkg in get_remote_pkgs():
-            # Ignore packages matching blacklist
-            fullname = pkg.fullname
-            matches = [x.search(fullname) for x in bl]
-            if len([x for x in matches if x is not None]) > 0:
-                continue
-            # Mark packages with patches
-            name = pkg.name
-            if slackroll_patch_indicator in pkg.path:
-                has_patch.add(name)
-            value = remote_list.get(name, [])
-            value.append(pkg)
-            remote_list[name] = value
-        # Remove unpatched versions
-        for name in has_patch:
-            if any_in_main_tree(remote_list[name]) and any_in_extra_tree(remote_list[name]):
-                remote_list[name] = not_main(remote_list[name])
-            else:
-                remote_list[name] = not_main_or_extra(remote_list[name])
-        try_dump(remote_list, slackroll_remotelist_filename)
+    remote_list = dict()
+    has_patch = set()
+    for pkg in get_remote_pkgs(local_filelist):
+        # Ignore packages matching blacklist
+        fullname = pkg.fullname
+        matches = [x.search(fullname) for x in bl]
+        if len([x for x in matches if x is not None]) > 0:
+            continue
+        # Mark packages with patches
+        name = pkg.name
+        if slackroll_patch_indicator in pkg.path:
+            has_patch.add(name)
+        value = remote_list.get(name, [])
+        value.append(pkg)
+        remote_list[name] = value
+    # Remove unpatched versions
+    for name in has_patch:
+        if any_in_main_tree(remote_list[name]) and any_in_extra_tree(remote_list[name]):
+            remote_list[name] = not_main(remote_list[name])
+        else:
+            remote_list[name] = not_main_or_extra(remote_list[name])
+    try_dump(remote_list, slackroll_remotelist_filename)
+
+def get_remote_list(): # Return list of remote packages from cached list, updating if needed
     return try_load(slackroll_remotelist_filename)
 
 def get_mirror_from_file(filepath):
@@ -1236,6 +1235,7 @@ def post_kernel_operation(): # Operations needed after kernel installation
 def update_manifest_database():
     # Build the list of MANIFEST.bz2 files
     try:
+        # XXX BROKEN: THERE IS NO slackroll_local_filelist NOW
         lines = open(slackroll_local_filelist, 'r').readlines()
     except (IOError, OSError), err:
         sys.exit('ERROR: %s' % err)
@@ -1881,9 +1881,15 @@ try:
         mirror = get_mirror()
         print 'Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size())
         updated = update_changelog(mirror)
-        download_or_exit(mirror, slackroll_filelist_filename, slackroll_base_dir)
+        download_or_exit(mirror, slackroll_filelist_filename, get_temp_dir())
+        local_filelist = os.path.join(get_temp_dir(), slackroll_filelist_filename)
+        build_remote_list(local_filelist)
+        try_to_remove(local_filelist)
         if updated:
             print 'You should now use the "changelog" and "list-transient" operations'
+        if os.path.exists(slackroll_local_filelist):
+            # Remove old file that may have been left behind by old program versions
+            try_to_remove(slackroll_local_filelist)
         sys.exit()
 
     if operation == 'import-key':
@@ -1902,11 +1908,10 @@ try:
 
     # Every operation below needs an updated persistent database
     handle_writable_dir(slackroll_pkgs_dir)
-    #print 'Initializing package lists...'
 
     needs_forced_rebuild = (not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
     local_list = get_local_list(needs_forced_rebuild)
-    remote_list = get_remote_list(needs_forced_rebuild)
+    remote_list = get_remote_list()
 
     needs_update = (newer_than(slackroll_remotelist_filename, slackroll_persistentlist_filename)
             or newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename)
