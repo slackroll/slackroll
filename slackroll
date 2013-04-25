@@ -109,6 +109,7 @@ slackroll_lilo_path = '/sbin/lilo'
 slackroll_manifest_re = re.compile(r'\s+(\./\w+/MANIFEST\.bz2)$')
 slackroll_manifest_basename = 'MANIFEST.bz2'
 slackroll_manifest_filename = os.path.join(slackroll_base_dir, 'manifest.db')
+slackroll_manifest_list_filename = os.path.join(slackroll_base_dir, 'manifestlist.db')
 
 def standarize_locales():
     for varname in slackroll_locale_envvars:
@@ -751,7 +752,7 @@ def handle_writable_dir(dirname): # Make sure dirname is available and writable
     if not os.path.isdir(dirname):
         sys.exit('ERROR: %s exists but is not a directory' % dirname)
     if not os.access(dirname, os.R_OK | os.W_OK):
-        sys.exit('ERROR: directory %s is not available for read and writing' % dirname)
+        sys.exit('ERROR: directory %s is not available for read and writing (are you root?)' % dirname)
 
 def yield_gnupg_exec_name():
     for opt in slackroll_gnupg_exec_names:
@@ -982,12 +983,6 @@ def maybe_print_outdated_warning(persistent_list):
         print 'WARNING: There are outdated packages'
         return True
     return False
-
-def maybe_print_proxies_warning():
-    proxies = [x for x in os.environ if re.search(r'(?i)_proxy$', x) is not None]
-    if len(proxies) == 0:
-        return
-    print 'WARNING: the following proxies are set: %s' % ' '.join(proxies)
 
 def confirm_continue():
     raw_input('Press Ctrl+C to cancel or Enter to continue... ')
@@ -1233,27 +1228,22 @@ def post_kernel_operation(): # Operations needed after kernel installation
         actions[chosen]() # Run selected action
 
 def update_manifest_database():
-    # Build the list of MANIFEST.bz2 files
-    try:
-        # XXX BROKEN: THERE IS NO slackroll_local_filelist NOW
-        lines = open(slackroll_local_filelist, 'r').readlines()
-    except (IOError, OSError), err:
-        sys.exit('ERROR: %s' % err)
-    files = [slackroll_manifest_re.search(x) for x in lines]
-    files = [x.group(1) for x in files if x is not None]
-    files = [x for x in files if slackroll_source_indicator not in x]
+    if not os.path.exists(slackroll_manifest_list_filename):
+        sys.exit('ERROR: %s not found: run "update" first' % slackroll_manifest_list_filename)
 
+    # manifest_list is a list of (mirror_url, file_path) pairs
+    manifest_list = try_load(slackroll_manifest_list_filename)
     tmpdir = get_temp_dir()
     output_name = os.path.join(tmpdir, slackroll_manifest_basename)
 
     # Download and process files
     manifestdb = dict()
-    for x in xrange(len(files)):
-        # Download file
-        download_or_exit(get_mirror(), files[x], get_temp_dir(), files[x])
+    for x in xrange(len(manifest_list)):
+        # Download file 
+        download_or_exit(manifest_list[x][0], manifest_list[x][1], get_temp_dir(), manifest_list[x][1])
 
         # Decompress it
-        print_flush('Processing %s ... ' % files[x])
+        print_flush('Processing %s ... ' % manifest_list[x][1])
         stream = bz2.BZ2File(output_name, 'r')
         contents = stream.read()
         stream.close()
@@ -1438,6 +1428,28 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
             handle_dotnew_files_installation(cur_dotnew)
         else:
             handle_dotnew_files_both(prev_dotnew, cur_dotnew)
+
+def build_manifest_list(mirror, local_filelist):
+    # Build the list of MANIFEST.bz2 files
+    try:
+        lines = open(local_filelist, 'r').readlines()
+    except (IOError, OSError), err:
+        sys.exit('ERROR: %s' % err)
+    files = [slackroll_manifest_re.search(x) for x in lines]
+    files = [x.group(1) for x in files if x is not None]
+    files = [x for x in files if slackroll_source_indicator not in x]
+    manifest_list = [(mirror, x) for x in files]
+    try_dump(manifest_list, slackroll_manifest_list_filename)
+
+def update_operation(mirror):
+    download_or_exit(mirror, slackroll_filelist_filename, get_temp_dir())
+    local_filelist = os.path.join(get_temp_dir(), slackroll_filelist_filename)
+    build_remote_list(local_filelist)
+    build_manifest_list(mirror, local_filelist)
+    try_to_remove(local_filelist)
+    if os.path.exists(slackroll_local_filelist):
+        # Remove old file that may have been left behind by old program versions
+        try_to_remove(slackroll_local_filelist)
 
 def walk_append_if(root, condition, output): # Walk with os.walk() and append if entries make condition true
     abspath = os.path.abspath(root)
@@ -1686,6 +1698,8 @@ try:
     else:
         verify_num_args(operation, op_num_args[operation], args)
 
+    handle_writable_dir(slackroll_base_dir)
+
     if operation == 'help':
         if len(args) == 0:
             helpname = '00-default'
@@ -1876,22 +1890,6 @@ try:
     # Some operations below need to have the temporary directory available to download stuff
     handle_writable_dir(get_temp_dir())
 
-    if operation == 'update':
-        maybe_print_proxies_warning()
-        mirror = get_mirror()
-        print 'Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size())
-        updated = update_changelog(mirror)
-        download_or_exit(mirror, slackroll_filelist_filename, get_temp_dir())
-        local_filelist = os.path.join(get_temp_dir(), slackroll_filelist_filename)
-        build_remote_list(local_filelist)
-        try_to_remove(local_filelist)
-        if updated:
-            print 'You should now use the "changelog" and "list-transient" operations'
-        if os.path.exists(slackroll_local_filelist):
-            # Remove old file that may have been left behind by old program versions
-            try_to_remove(slackroll_local_filelist)
-        sys.exit()
-
     if operation == 'import-key':
         download_or_exit(get_primary_mirror(), slackroll_gpgkey_filename, slackroll_base_dir)
         import_key(slackroll_local_gpgkey)
@@ -1909,24 +1907,34 @@ try:
     # Every operation below needs an updated persistent database
     handle_writable_dir(slackroll_pkgs_dir)
 
-    needs_forced_rebuild = (not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
-    local_list = get_local_list(needs_forced_rebuild)
+    needs_rebuild = (not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
+    if needs_rebuild or operation == 'update':
+        update_operation(get_mirror())
+    local_list = get_local_list(needs_rebuild)
     remote_list = get_remote_list()
 
-    needs_update = (newer_than(slackroll_remotelist_filename, slackroll_persistentlist_filename)
+    needs_analyze = (newer_than(slackroll_remotelist_filename, slackroll_persistentlist_filename)
             or newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename)
-            or operation == 'touch' or needs_forced_rebuild)
+            or operation == 'touch' or needs_rebuild)
 
     try:
         persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
     except anydbm.error:
         sys.exit('ERROR: unable to properly open %s' % slackroll_persistentlist_filename)
 
-    if needs_update:
+    if needs_analyze:
         analyze_changes(local_list, remote_list, persistent_list)
         os.utime(slackroll_persistentlist_filename, None)
 
     write_self_file_version()
+
+    if operation == 'update':
+        mirror = get_mirror()
+        print 'Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size())
+        updated = update_changelog(mirror)
+        if updated:
+            print 'You should now use the "changelog" and "list-transient" operations'
+        sys.exit()
 
     if operation == 'touch':
         sys.exit()
