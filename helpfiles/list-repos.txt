@@ -1,0 +1,7 @@
+
+list-repos
+
+This operation prints the list of configured external repositories.
+
+Also see: add-repo, remove-repo.
+

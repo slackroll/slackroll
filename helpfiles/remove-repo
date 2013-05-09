@@ -1,0 +1,11 @@
+
+remove-repo NUMBER...
+
+This operation removes URLs from the list of external repositories. Instead of
+providing URLs directly, you need to provide the URL number as printed by the
+list-repos operation.
+
+Please note URL numbers may change after running this operation.
+
+Also see: add-repo, list-repos.
+

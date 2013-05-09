@@ -65,6 +65,7 @@ slackroll_remotelist_filename = os.path.join(slackroll_base_dir, 'remote.db')
 slackroll_pkg_files_filename = os.path.join(slackroll_base_dir, 'pkgfiles.db')
 slackroll_known_files = os.path.join(slackroll_base_dir, 'knownfiles.db')
 slackroll_blacklist_filename = os.path.join(slackroll_base_dir, 'blacklist.db')
+slackroll_repolist_filename = os.path.join(slackroll_base_dir, 'repos.db')
 slackroll_filelist_filename = 'FILELIST.TXT'
 slackroll_changelog_filename = 'ChangeLog.txt'
 slackroll_changelog_entry_separator = '+--------------------------+\n'
@@ -605,6 +606,15 @@ def get_mirror_version_components(mirror): # Extract Slackware version component
     if match is None:
         sys.exit('ERROR: unable to extract Slackware version from mirror name')
     return (match.group(1), match.group(2))
+
+def get_repo_list():
+    if not is_readable_file(slackroll_repolist_filename):
+        repo_list = []
+        try_dump(repo_list, slackroll_repolist_filename)
+    return try_load(slackroll_repolist_filename)
+
+def dump_repo_list(repo_list):
+    try_dump(repo_list, slackroll_repolist_filename)
 
 def get_pkg_cache_size(): # Return total bytes for files in cache
     try:
@@ -1592,6 +1602,7 @@ try:
     standarize_locales()
 
     op_num_args = {    # Map of operations and their appropriate number of arguments.
+        'add-repo':                 -1,
         'blacklist-add':            -1,
         'blacklist-del':            -1,
         'broken-symlinks':          -1,
@@ -1635,6 +1646,7 @@ try:
         'list-outdated':            0,
         'list-outdated-frozen':     0,
         'list-remote':              0,
+        'list-repos':               0,
         'list-transient':           0,
         'list-unavailable':         0,
         'list-upgrades':            0,
@@ -1656,6 +1668,7 @@ try:
         'remote-paths':             0,
         'remove':                   -1,
         'remove-path':              -1,
+        'remove-repo':              -1,
         'remove-unavailable':       0,
         'replace':                  2,
         'set-mirror':               1,
@@ -1743,6 +1756,44 @@ try:
     
     if operation == 'set-primary-mirror':
         set_primary_mirror(args[0])
+        sys.exit()
+
+    if operation == 'add-repo':
+        repo_list = get_repo_list()
+        for r in args:
+            if not r.endswith('/'):
+                r = r + '/'
+            if r not in repo_list:
+                repo_list.append(r)
+        dump_repo_list(repo_list)
+        sys.exit()
+
+    if operation == 'list-repos':
+        repo_list = get_repo_list()
+        formatted_list = ['%s  %s' % (i, r) for (i, r) in enumerate(repo_list)]
+        print_list_or(formatted_list, 'List of repos:', 'No external repositories found')
+        sys.exit()
+
+    if operation == 'remove-repo':
+        repo_list = get_repo_list()
+        repo_dict = dict(enumerate(repo_list))
+        valid = []
+        invalid = []
+        for x in args:
+            try:
+                num = long(x)
+                if num in repo_dict:
+                    valid.append(num)
+                else:
+                    invalid.append(num)
+            except:
+                invalid.append(x)
+        if len(invalid) > 0:
+            sys.exit('ERROR: invalid repo numbers: %s' % ', '.join(str(x) for x in invalid)) 
+        for x in valid:
+            del repo_dict[x]
+        repo_list = [repo_dict[x] for x in sorted(repo_dict.keys())]
+        dump_repo_list(repo_list)
         sys.exit()
 
     if operation in ['erase-cache', 'erase-tmp', 'erase-all']:
