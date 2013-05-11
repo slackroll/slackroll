@@ -10,29 +10,35 @@
 
 	<h1>Target audience</h1>
 
-	<p><code>slackroll</code> is a package or update manager for Slackware systems. It does not provide dependency checking and uses <code>pkgtools</code> to install or upgrade packages. It&#8217;s designed to work with official mirrors. If you have a Slackware system mainly composed of official packages and a handful of unofficial packages, <code>slackroll</code> can help you manage it and keep in touch with the remote tree. It tries to know when new packages appear, when packages are removed and when packages are upgraded.</p>
+	<p><code>slackroll</code> is a package or update manager for Slackware systems. It does not provide dependency checking and uses <code>pkgtools</code> to install or upgrade packages. It&#8217;s designed to work with official mirrors and external repositories. If you have a Slackware system mainly composed of official packages, unofficial packages and a few custom packages, <code>slackroll</code> can help you manage it and keep in touch with the remote tree. It tries to know when new packages appear, when packages are removed and when packages are upgraded.</p>
 
 	<h1>Before you start</h1>
 
 	<p>So you have decided to try <code>slackroll</code>. Let me introduce a few concepts so you don&#8217;t get lost.</p>
 
-	<p>In the following text I&#8217;m going to be talking about packages. For package, we are going to understand a named piece of software, without having any specific version unless I explicitly mention it. A package can be <code>bash</code> or <code>kdewebdev</code> or <code>gcc-gfortran</code>, for example.</p>
+	<h2>Packages</h2>
 
-	<p>Each package is in one of several possible states. The program tries to keep a persistent &#8220;database&#8221; that associates each package with its state.  When it runs, it analyzes the list of packages present in your system, the list of remote packages, and tries to keep the persistent database updated by introducing new entries, deleting old ones and changing the state of some of those entries. There are several possible states for a package, divided in two groups. First, we have transient states. As a user, your job is to make sure no packages remain in those states for long periods of time. Second, we have the normal states, in which the different packages should normally be.</p>
+	<p>In the following text I&#8217;m going to be talking about packages. For package, we are going to understand a <em>named piece of software</em>, without having any specific version unless I explicitly mention it. A package can be <code>bash</code> or <code>kdewebdev</code> or <code>gcc-gfortran</code>, for example.</p>
 
-	<h2>States to avoid (transient states)</h2>
+	<h2>States</h2>
+
+	<p>Each package is in one of several possible states. The program tries to keep a persistent database that associates each package with its state. When it runs, it analyzes the list of packages present in your system, the list of remote packages, and tries to keep the persistent database updated by introducing new entries, deleting old ones and changing the state of some of those entries.</p>
+
+	<p>There are several possible states for a package, divided in two groups. First, we have <strong>transient states</strong>. As a user, your job is to make sure no packages remain in those states for long periods of time. Second, we have the normal states, in which the different packages should normally be.</p>
+
+	<h2>Transient states (to be avoided)</h2>
 
 	<h3><span class="caps">NEW</span></h3>
 
-	<p>A package is in this state when it&#8217;s present in the remote tree and it wasn&#8217;t present before. If you detect you have packages in this state you should decide if you want to install them or mark them as not installed. This state lets you see which packages are being added to the remote tree.</p>
+	<p>A package is in this state when it&#8217;s present in a remote tree and it wasn&#8217;t present before. If you detect you have packages in this state you should decide if you want to install them or mark them as not installed. This state lets you see which packages are being added to remote trees.</p>
 
 	<h3><span class="caps">UNAVAILABLE</span></h3>
 
-	<p>Sorry if this name is somehow confusing. A package is in this state when it&#8217;s present in your system, but not in the remote tree. You should decide if you want to remove them from your system or mark them as foreign packages. This state lets you see which packages are being removed from the remote tree.</p>
+	<p>Sorry if this name is somehow confusing. A package is in this state when it&#8217;s present in your system, but not in a remote tree. You should decide if you want to remove them from your system or mark them as foreign packages. This state lets you see which packages are being removed from remote trees.</p>
 
 	<h3><span class="caps">OUTDATED</span></h3>
 
-	<p>A package is outdated if it&#8217;s present in your system and in the remote tree, but the local version does not match any relevant one in the remote tree. The program will try to upgrade these packages.</p>
+	<p>A package is outdated if it&#8217;s present in your system and in a remote tree, but the local version does not match any relevant remote one. The program will try to upgrade these packages.</p>
 
 	<h2>Normal states</h2>
 
@@ -42,15 +48,21 @@
 
 	<h3><span class="caps">NOT</span> <span class="caps">INSTALLED</span></h3>
 
-	<p>A package is not installed if it&#8217;s a known package which is not present in your system but exists in the remote tree. It&#8217;s also a very common state.</p>
+	<p>A package is not installed if it&#8217;s a known package which is not present in your system but exists in a remote tree. It&#8217;s also a very common state.</p>
 
 	<h3><span class="caps">FROZEN</span></h3>
 
-	<p>No package will enter the frozen state unless you mark it so. It should be used for packages present in your system and in the remote tree, but that you don&#8217;t want to upgrade automatically.  This state can be used for packages which are not meant to be upgraded automatically or ever, like <code>aaa_elflibs</code> and others, and probably for customized versions of official packages. For example, my custom build of <code>freetype</code> is marked as frozen. You must pay attention to these packages, as upgrades to them will be silently ignored. You may find the <code>list-versions</code> and <code>list-outdated-frozen</code> operations useful to detect version mismatches between your local copy and the ones in the remote tree. Having a package in the frozen state does not prevent you from using the install operation to download and install a different version. If the package ever disappears from the remote tree, it will be marked as unavailable and you will probably see it. You could continue to use it by marking it as foreign if you wish.</p>
+	<p>No package will enter the frozen state unless you mark it so. It should be used for packages present in your system and in a remote tree, but that you don&#8217;t want to upgrade automatically. This state can be used for packages which are not meant to be upgraded automatically or ever, like <code>aaa_elflibs</code> and others, and probably for customized versions of official packages. For example, my custom build of <code>freetype</code> is marked as frozen. You must pay attention to these packages, as upgrades to them will be silently ignored. You may find the <code>list-versions</code> and <code>list-outdated-frozen</code> operations useful to detect version mismatches between your local copy and the ones in remote trees. Having a package in the frozen state does not prevent you from using the install operation to download and install a different version. If the package ever disappears from the remote trees, it will be marked as unavailable and you will probably see it. You could continue to use it by marking it as foreign if you wish.</p>
 
 	<h3><span class="caps">FOREIGN</span></h3>
 
-	<p>No package will enter the foreign state unless you mark it so. It should be used for packages that do not exist in the remote tree but that, unlike unavailable packages, are present in your system on purpose. For example, the <code>slackroll</code> package in my system is marked as foreign. A foreign package will be marked as installed or outdated if it ever appears in the remote tree, becoming a candidate for upgrading. Hopefully, you&#8217;ll notice this fact. You could still use your own version instead of the remote (official) one by marking it as frozen.</p>
+	<p>No package will enter the foreign state unless you mark it so. It should be used for packages that exist in your system but do not have a known remote origin. For example, the <code>slackroll</code> package in my system is marked as foreign. A foreign package will be marked as installed or outdated if it ever appears in a remote tree, usually becoming a candidate for upgrading. Hopefully, you&#8217;ll notice this fact. You could still use your own version instead of the remote one by marking it as frozen.</p>
+
+	<h2>Remote trees</h2>
+
+	<p><code>slackroll</code> works with two types of remote trees. It needs a <strong>mirror</strong>, which is a <span class="caps">URL</span> pointing to a replica of the official Slackware package tree for the Slackware version you&#8217;re using. There can be only one mirror and it&#8217;s selected with the <code>set-mirror</code> operation, as you will see later.</p>
+
+	<p>In addition, <code>slackroll</code> can work with a number of additional external repositories. These are managed with the <code>add-repo</code>, <code>list-repos</code> and <code>remove-repo</code> operations, and they will be explained later.</p>
 
 	<h1>Get slackroll</h1>
 
@@ -68,13 +80,13 @@
 slackroll set-mirror &#39;http://example.org/slackware-current/&#39;
 </code></p>
 
-	<p><strong>Do not forget the trailing slash!</strong> Great. You are ready to start. Retrieve the remote <span class="caps">GPG</span> key to add it to your key ring. Having the <span class="caps">GPG</span> key is required, and it should be safe to do this step even if the key is already in your key ring. You can also get the key from the Slackware CD or <span class="caps">DVD</span>. The <span class="caps">GPG</span> key and the package signatures will be downloaded from a primary mirror instead of the mirror you chose, in order to increase security.</p>
+	<p>Great. You are ready to start. Retrieve the remote <span class="caps">GPG</span> key to add it to your key ring. Having the <span class="caps">GPG</span> key is required, and it should be safe to do this step even if the key is already in your key ring. You can also get the key from the Slackware CD or <span class="caps">DVD</span>. The <span class="caps">GPG</span> key and the official package signatures will be downloaded from a primary mirror instead of the mirror you chose, in order to increase security.</p>
 
 	<p><code>
 slackroll import-key
 </code></p>
 
-	<p>Retrieve information about the remote packages. You&#8217;ll have to perform this step every time Patrick Volkerding changes the remote tree.</p>
+	<p>Retrieve information about the remote packages. You&#8217;ll have to perform this step every time a remote tree changes.</p>
 
 	<p><code>
 slackroll update
@@ -98,7 +110,7 @@ slackroll list-unavailable
 slackroll unavailable-foreign
 </code></p>
 
-	<p>Some people like to &#8220;blacklist&#8221; packages so they are not upgraded normally. Almost always, you want to do this with the package <code>aaa_elflibs</code> if it&#8217;s present in your system, and maybe with some other packages. If you don&#8217;t want them to be upgraded normally, they belong to the frozen state.  Mark them as frozen. The same applies to customized builds of official packages.</p>
+	<p>Some people like to &#8220;blacklist&#8221; packages so they are not upgraded normally. Almost always, you want to do this with the package <code>aaa_elflibs</code> if it&#8217;s present in your system, and maybe with some other packages. If you don&#8217;t want them to be upgraded normally, they belong to the frozen state. Mark them as frozen. The same applies to customized builds of official packages.</p>
 
 	<p><code>
 slackroll frozen aaa_elflibs
@@ -128,15 +140,25 @@ slackroll frozen aaa_elflibs
 
 	<p>Also, remember to run the <code>clean-cache</code> operation from time to time to get rid of old and outdated package archives stored in the package cache.</p>
 
-	<p>The order described above is the order in which you should proceed in most cases. However, sometimes it&#8217;s not the correct order. That&#8217;s why it&#8217;s important to read the change log to detect possible special cases and read comments by Patrick Volkerding. If you break that order, slackroll will emit a warning, but it is only a warning. The choice of what to do is on you.</p>
+	<p>The order described above is the order in which you should proceed in most cases. However, sometimes it&#8217;s not the correct order. That&#8217;s why it&#8217;s important to read the change log to detect possible special cases and read comments by Patrick Volkerding. If you break that order, slackroll will emit a warning, but it&#8217;s only a warning. The choice of what to do is on you.</p>
 
 	<h2>Kernel upgrades</h2>
 
 	<p>When kernel packages have pending upgrades, you can use two operations created specifically to handle the situation. <code>kernel-upgrade</code> will install the new kernel packages using <code>installpkg</code> instead of <code>upgradepkg</code> and then help you configure your boot loader for the new kernel. This means that, for a small time period, you will have two versions of the kernel packages installed. After a successful reboot to the new kernel, you can use the <code>kernel-clean</code> operation to remove the previous versions of those packages.</p>
 
+	<h2>External repositories</h2>
+
+	<p>As mentioned previously, <code>slackroll</code> can also work with a number of external repositories that would normally contain known but unofficial packages for the Slackware version you&#8217;re running. If you&#8217;re going to work with external repositories, I recommend adding them after the initial setup phase described above.</p>
+
+	<p>You can add a new repository with the <code>add-repo</code> operation. Once you&#8217;ve added all the external repositories you want, run the &#8220;update&#8221; operation to retrieve information about remote packages and &#8220;list-transient&#8221; to check the summary of activity.</p>
+
+	<p>For <code>slackroll</code> to be able to work with an external repository, the repository needs to provide a <code>FILELIST.TXT</code> file in the repository root, and packages need to be signed with external .asc files like the official ones. These package signatures will be verified by the program when downloading packages, which means the signature key needs to be in the superuser&#8217;s keyring. It&#8217;s very important to note the <code>import-key</code> operation <strong>will not download <span class="caps">GPG</span> keys from external repositories as a security measure</strong>. You need to download the keys by yourself and import them with <code>gpg --import KEY_FILE</code>, where <code>KEY_FILE</code> is the path to the <span class="caps">GPG</span> key file. Then, you will be able to download and install packages from the repository.</p>
+
+	<p>The list of external repositories can be printed with the <code>list-repos</code> operation, and you can remove a repository from the list with the <code>remove-repo</code> operation, by providing the repo number as listed with <code>list-repos</code>.</p>
+
 	<h1>Feedback, questions, bug reports</h1>
 
-	<p>I&#8217;m all open for good bug reports and general feedback but I&#8217;m, as always, reluctant to change the main program concepts, like adding support for multiple mirrors, or adding dependency support or probably adding more package states. I also know the program currently can&#8217;t be used to upgrade the system in non-interactive mode (like calling it from a cron entry).  That is very unlikely to change, because when there&#8217;s an upgrade, there&#8217;s no easy way to decide which version should be installed if a package has a version in the main tree, another one in <code>/extra/</code> and another one in <code>/testing/</code>, so it&#8217;s always going to need user input.</p>
+	<p>I&#8217;m all open for good bug reports and general feedback but I&#8217;m, as always, reluctant to change the main program concepts, like adding dependency support or probably adding more package states. I also know the program currently can&#8217;t be used to upgrade the system in non-interactive mode (like calling it from a cron entry). That is very unlikely to change, because when there&#8217;s an upgrade, there&#8217;s no easy way to decide which version should be installed if a package has a version in the main tree, another one in <code>/extra/</code> and another one in <code>/testing/</code>, so it&#8217;s always going to need user input.</p>
 
 	<p>If you have a question, you should first read the <a href="faq.html">FAQ</a>. For other questions, comments or suggestions, <a href="http://rg3.name/contact.html">contact me</a> by email, or report an issue in the issue tracker.  Keep in mind I&#8217;m using the program under <code>slackware64-current</code>. If you detect a problem under another version, please report it as soon as possible because it may go unnoticed to me.</p>
 </body>
