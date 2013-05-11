@@ -44,7 +44,10 @@ slackroll_local_pkgs_glob = os.path.join(os.path.sep, 'var', 'log', 'packages', 
 slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 slackroll_local_pkg_filelist_marker = 'FILE LIST:\n'
 slackroll_filelist_pkg_re = re.compile(
-    r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+(\d+)\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\./.+/[^/]+-[^/-]+-[^/-]+-[^/-]+\.t[bglx]z)$'
+        # Output line in ls form
+        r'^-[rwx-]{9}\s+\d+\s+\w+\s+\w+\s+(\d+)\s+'                 # Everything up to the date
+        r'\S+(?:\s+\S+){1,2}'                                       # Date itself in several forms (two or three "words")
+        r'\s+(\./(?:.+/)?[^/]+-[^/-]+-[^/-]+-[^/-]+\.t[bglx]z)$'    # Package path
 )
 slackroll_filelist_pkg_size = 1
 slackroll_filelist_pkg_str = 2
@@ -107,7 +110,7 @@ slackroll_locale_value = 'C'
 slackroll_bootloader_config_files = ['/etc/lilo.conf', '/boot/grub/menu.lst', '/boot/extlinux.conf', '/boot/extlinux/extlinux.conf']
 slackroll_lilo_path = '/sbin/lilo'
 
-slackroll_manifest_re = re.compile(r'\s+(\./\w+/MANIFEST\.bz2)$')
+slackroll_manifest_re = re.compile(r'\s+(\./(?:\w+/)?MANIFEST\.bz2)$')
 slackroll_manifest_basename = 'MANIFEST.bz2'
 slackroll_manifest_filename = os.path.join(slackroll_base_dir, 'manifest.db')
 slackroll_manifest_list_filename = os.path.join(slackroll_base_dir, 'manifestlist.db')
@@ -239,9 +242,9 @@ class SlackrollURLopener(urllib.FancyURLopener):
         raise IOError('%s: %s' % (errcode, errmsg))
 
 def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
-    return pkg_from_name_and_size(path_or_name, None)
+    return pkg_from_name_size_url(path_or_name)
 
-def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage object from a name string and a size string
+def pkg_from_name_size_url(path_or_name, size_str=None, url=None): # Create a SlackwarePackage object from a name string and a size string
     matchobj = slackroll_pkg_re.match(path_or_name)
 
     if matchobj is None:
@@ -257,7 +260,7 @@ def pkg_from_name_and_size(path_or_name, size_str): # Create a SlackwarePackage 
         size = (size_str is not None and long(size_str) or None)
     except ValueError:
         raise SlackrollError('invalid file size: %s' % size_str)
-    return SlackwarePackage(name, version, arch, build, path, suffix, size, None)
+    return SlackwarePackage(name, version, arch, build, path, suffix, size, url)
 
 def pkg_in_map(pkg, map_by_name): # Checks if pkg is in map[pkg.name], usable for local_list and remote_list
     return pkg in map_by_name.get(pkg.name, [])
@@ -524,21 +527,19 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
         try_dump(local_list, slackroll_locallist_filename)
     return try_load(slackroll_locallist_filename)
 
-def get_remote_pkgs(local_filelist): # Return a list of packages from FILELIST.TXT
+def get_remote_pkgs(local_filelist, url): # Return a list of packages from FILELIST.TXT
     try:
         lines = file(local_filelist, 'r').readlines()
         matches = [slackroll_filelist_pkg_re.match(x) for x in lines]
         nm_sz = [(x.group(slackroll_filelist_pkg_str), x.group(slackroll_filelist_pkg_size)) for x in matches if x is not None]
-        return [pkg_from_name_and_size(nm, sz) for (nm, sz) in nm_sz if slackroll_source_indicator not in nm]
+        return [pkg_from_name_size_url(nm, sz, url) for (nm, sz) in nm_sz if slackroll_source_indicator not in nm]
     except (OSError, IOError), err:
         sys.exit('ERROR: %s' % err)
 
-def build_remote_list(local_filelist):
-    print 'Building remote packages list...'
+def extend_remote_list(local_filelist, remote_list, pkgs_url=None):
     bl = get_blacklist_re()
-    remote_list = dict()
     has_patch = set()
-    for pkg in get_remote_pkgs(local_filelist):
+    for pkg in get_remote_pkgs(local_filelist, pkgs_url):
         # Ignore packages matching blacklist
         fullname = pkg.fullname
         matches = [x.search(fullname) for x in bl]
@@ -557,7 +558,6 @@ def build_remote_list(local_filelist):
             remote_list[name] = not_main(remote_list[name])
         else:
             remote_list[name] = not_main_or_extra(remote_list[name])
-    try_dump(remote_list, slackroll_remotelist_filename)
 
 def get_remote_list(): # Return list of remote packages from cached list, updating if needed
     return try_load(slackroll_remotelist_filename)
@@ -994,6 +994,9 @@ def maybe_print_outdated_warning(persistent_list):
         return True
     return False
 
+def print_repo_mod_advice():
+    print 'Repository list modified. Remember to run "update" and "list-transient".'
+
 def confirm_continue():
     raw_input('Press Ctrl+C to cancel or Enter to continue... ')
 
@@ -1248,12 +1251,13 @@ def update_manifest_database():
 
     # Download and process files
     manifestdb = dict()
-    for x in xrange(len(manifest_list)):
+    for (index, url, path) in manifest_list:
         # Download file 
-        download_or_exit(manifest_list[x][0], manifest_list[x][1], get_temp_dir(), manifest_list[x][1])
+        displayed_name = '%s from %s' % (path, ['repository %s' % index, 'mirror'][index is None])
+        download_or_exit(url, path, get_temp_dir(), displayed_name)
 
         # Decompress it
-        print_flush('Processing %s ... ' % manifest_list[x][1])
+        print_flush('Processing manifest... ')
         stream = bz2.BZ2File(output_name, 'r')
         contents = stream.read()
         stream.close()
@@ -1439,7 +1443,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
         else:
             handle_dotnew_files_both(prev_dotnew, cur_dotnew)
 
-def build_manifest_list(mirror, local_filelist):
+def extend_manifest_list(manifest_list, index, mirror, local_filelist):
     # Build the list of MANIFEST.bz2 files
     try:
         lines = open(local_filelist, 'r').readlines()
@@ -1448,15 +1452,31 @@ def build_manifest_list(mirror, local_filelist):
     files = [slackroll_manifest_re.search(x) for x in lines]
     files = [x.group(1) for x in files if x is not None]
     files = [x for x in files if slackroll_source_indicator not in x]
-    manifest_list = [(mirror, x) for x in files]
-    try_dump(manifest_list, slackroll_manifest_list_filename)
+    new_elements = [(index, mirror, x) for x in files]
+    manifest_list.extend(new_elements)
 
 def update_operation(mirror):
-    download_or_exit(mirror, slackroll_filelist_filename, get_temp_dir())
+    remote_list = dict()
+    manifest_list = []
     local_filelist = os.path.join(get_temp_dir(), slackroll_filelist_filename)
-    build_remote_list(local_filelist)
-    build_manifest_list(mirror, local_filelist)
+
+    displayed_name = '%s from mirror' % slackroll_filelist_filename
+    download_or_exit(mirror, slackroll_filelist_filename, get_temp_dir(), displayed_name)
+    extend_remote_list(local_filelist, remote_list)
+    extend_manifest_list(manifest_list, None, mirror, local_filelist)
     try_to_remove(local_filelist)
+
+    for (x, repo) in enumerate(get_repo_list()):
+        displayed_name = '%s from repository %s' % (slackroll_filelist_filename, x)
+        full_url = urlparse.urljoin(repo, slackroll_filelist_filename)
+        download_or_exit(repo, slackroll_filelist_filename, get_temp_dir(), displayed_name)
+        extend_remote_list(local_filelist, remote_list, repo)
+        extend_manifest_list(manifest_list, x, repo, local_filelist)
+        try_to_remove(local_filelist)
+
+    try_dump(remote_list, slackroll_remotelist_filename)
+    try_dump(manifest_list, slackroll_manifest_list_filename)
+
     if os.path.exists(slackroll_local_filelist):
         # Remove old file that may have been left behind by old program versions
         try_to_remove(slackroll_local_filelist)
@@ -1766,12 +1786,13 @@ try:
             if r not in repo_list:
                 repo_list.append(r)
         dump_repo_list(repo_list)
+        print_repo_mod_advice()
         sys.exit()
 
     if operation == 'list-repos':
         repo_list = get_repo_list()
-        formatted_list = ['%s  %s' % (i, r) for (i, r) in enumerate(repo_list)]
-        print_list_or(formatted_list, 'List of repos:', 'No external repositories found')
+        formatted_list = ['Number %s: %s' % (i, r) for (i, r) in enumerate(repo_list)]
+        print_list_or(formatted_list, 'List of repositories:', 'No external repositories found')
         sys.exit()
 
     if operation == 'remove-repo':
@@ -1789,11 +1810,12 @@ try:
             except:
                 invalid.append(x)
         if len(invalid) > 0:
-            sys.exit('ERROR: invalid repo numbers: %s' % ', '.join(str(x) for x in invalid)) 
+            sys.exit('ERROR: invalid repository numbers: %s' % ', '.join(str(x) for x in invalid)) 
         for x in valid:
             del repo_dict[x]
         repo_list = [repo_dict[x] for x in sorted(repo_dict.keys())]
         dump_repo_list(repo_list)
+        print_repo_mod_advice()
         sys.exit()
 
     if operation in ['erase-cache', 'erase-tmp', 'erase-all']:
