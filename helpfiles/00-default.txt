@@ -19,4 +19,4 @@ Common operations:
 "slackroll help all" gives the full operation list with a brief description.
 "slackroll help OPERATION" gives a detailed description of the given operation.
 
-Visit http://rg3.github.com/slackroll/ for a tutorial and more help.
+Visit http://rg3.github.io/slackroll/ for a tutorial and more help.
