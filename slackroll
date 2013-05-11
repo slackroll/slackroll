@@ -2014,8 +2014,13 @@ try:
         mirror = get_mirror()
         print 'Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size())
         updated = update_changelog(mirror)
-        if updated:
-            print 'You should now use the "changelog" and "list-transient" operations'
+        transient_packages_present = any(persistent_list[x] in slackroll_transient_states for x in persistent_list)
+        if updated or transient_packages_present:
+            print
+            if updated:
+                print 'New change log entries found. Use "changelog" to read them.'
+            if transient_packages_present:
+                print 'Found packages in transient states. Use "list-transient" to list them.'
         sys.exit()
 
     if operation == 'touch':
