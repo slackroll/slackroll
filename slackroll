@@ -227,15 +227,24 @@ class SlackwarePackage(object):
         return SlackwarePackage(self.__name, self.__version, self.__arch, self.__build, slackroll_local_pkgs_dir, None, None, None)
 
     def base_url(self, mirror):
+        # An official package doesn't have a base URL, because it comes from the
+        # current configured mirror and primary mirror as given by the user.
+        # This could change in the future, but would require an "update"
+        # everytime the user changes mirrors, so it will probably stay this way.
+        #
+        # An unofficial package does have a base URL (corresponding to its
+        # repository) and will take precedence above the mirror passed to this
+        # method. Signatures for repository packages are downloaded from the
+        # repository and not the primary mirror.
         if self.__base_url is None:
             return mirror
         return self.__base_url
 
     def url(self, mirror):
-        return urlparse.urljoin(self.base_url(), self.fullname)
+        return urlparse.urljoin(self.base_url(mirror), self.fullname)
 
     def sig_url(self, mirror):
-        return urlparse.urljoin(self.base_url(), self.fullsigname)
+        return urlparse.urljoin(self.base_url(mirror), self.fullsigname)
 
 class SlackrollURLopener(urllib.FancyURLopener):
     def http_error_default(self, url, fp, errcode, errmsg, headers):
@@ -854,8 +863,8 @@ def download_verify(mirror, package): # Download package, signature and verify i
     local_final = os.path.join(slackroll_pkgs_dir, package.archivename)
 
     try:
-        download(sigmirror, remote_sig, tempdir)
-        download(mirror, remote_name, tempdir)
+        download(package.base_url(sigmirror), remote_sig, tempdir)
+        download(package.base_url(mirror), remote_name, tempdir)
         verify_signature(local_sig)
     except SlackrollError:
         try_to_remove(local_sig)
@@ -919,7 +928,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 def print_urls(mirror, package):
     sigmirror = get_primary_mirror()
     pkgurl = package.url(mirror)
-    sigurl = package.sigurl(mirror)
+    sigurl = package.sig_url(mirror)
     print sigurl
     print pkgurl
 
