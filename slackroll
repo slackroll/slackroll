@@ -928,7 +928,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 def print_urls(mirror, package):
     sigmirror = get_primary_mirror()
     pkgurl = package.url(mirror)
-    sigurl = package.sig_url(mirror)
+    sigurl = package.sig_url(sigmirror)
     print sigurl
     print pkgurl
 
