@@ -15,6 +15,7 @@ Common operations:
   install-foreign FILE  Install a foreign package from disk
   unavailable-foreign	Mark all unavailable packages as foreign
   clean-cache		Remove unknown package versions from package cache
+  add-repo URL...	Add a new external repository URL
 
 "slackroll help all" gives the full operation list with a brief description.
 "slackroll help OPERATION" gives a detailed description of the given operation.
