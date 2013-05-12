@@ -7,6 +7,7 @@
 
 <div class="title">slackroll</div>
 <div class="subtitle">Introduction and Tutorial</div>
+<div class="navbar">Also available: <a href="faq.html">FAQ</a> <a href="slackroll.rss">RSS feed</a></div>
 
 <?php
 

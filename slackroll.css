@@ -19,10 +19,16 @@ body {
 }
 
 .subtitle {
+	font-size: x-large;
 	text-align: center;
 	font-weight: bold;
 	color: #dd5500;
 	margin: 1ex;
+}
+
+.navbar {
+	text-align: center;
+	font-size: small;
 }
 
 h1 {

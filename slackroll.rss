@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>slackroll package manager</title>
+    <description>slackroll is a package or update manager for Slackware systems.</description>
+    <link>http://rg3.github.io/slackroll/</link>
+    <language>en</language>
+    <pubDate>Sun, 12 May 2013 19:32:48 +0000</pubDate>
+
+<item>
+<title>slackroll v43 released</title>
+<link>https://github.com/rg3/slackroll/archive/v43.zip</link>
+<pubDate>Sun, 12 May 2013 19:32:48 +0000</pubDate>
+<description><![CDATA[
+	<p>slackroll v43 has been released. This version adds support for external repositories. The introduction and tutorial has been updated and is a recommended read. slackroll veterans could simply read the "Remote trees" subsection and the "External repositories" subsection. Also, see the help for the "add-repo", "list-repos" and "remove-repo" operations.</p>
+]]></description>
+</item>
+
+  </channel>
+</rss>
