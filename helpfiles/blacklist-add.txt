@@ -17,7 +17,7 @@ be used, of course, for that same purpose if you want but it's not recommended.
 In slackroll, the blacklist is used to filter remote packages, and the regular
 expressions will be used in the whole package name, including the package path.
 If any of the blacklisted regular expressions matches the name and/or path of a
-given remote package, slackroll will completely ignore the existance of that
+given remote package, slackroll will completely ignore the existence of that
 package in the remote tree.
 
 While you can use this to prevent slackroll from upgrading specific packages,
@@ -29,7 +29,7 @@ unavailable or foreign.
 
 The blacklisting mechanism was introduced with the specific purpose of either
 ignoring parts of the tree (for example, if you don't want to ever hear about
-packages in /testing), or to ignore the existance of a specific version of a
+packages in /testing), or to ignore the existence of a specific version of a
 package, so that slackroll will not ask you again and again which package
 version you want to install when there's an upgrade. For example, if you don't
 use the "nosmp" kernels, you can blacklist "/extra/linux-[^-/]+-nosmp-sdk/" to
