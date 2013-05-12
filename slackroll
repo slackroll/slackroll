@@ -878,7 +878,7 @@ def download_verify(mirror, package): # Download package, signature and verify i
 def get_remote_info(mirror, package): # Downloads info file and returns its contents
     remote_file = package.fullname[:-len(slackroll_info_suffix)] + slackroll_info_suffix
     local_file = os.path.join(slackroll_base_dir, os.path.basename(remote_file))
-    download_or_exit(mirror, remote_file, slackroll_base_dir)
+    download_or_exit(package.base_url(mirror), remote_file, slackroll_base_dir)
     data = file(local_file, 'r').read()
     try_to_remove(local_file)
     return data
