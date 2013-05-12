@@ -7,15 +7,18 @@ found. For external repositories to work properly with slackroll, they need to
 have a file named FILELIST.TXT at the path indicated by the URL, with the exact
 same internal format as official mirrors.
 
+All packages in external repositories need to be signed with an additional .asc
+file like official packages, and the key used to sign these packages needs to be
+present in the superuser's keyring so they can be verified. Please note the
+import-key operation will not download and import keys from external
+repositories, as a security measure. They need to be imported by hand.
+
 In addition, they could have MANIFEST.bz2 files in standard format just like an
 official mirror. If present, this makes it possible to search for specific files
-in packages from that repository using the manifest-related operations.
+in packages from those repositories using the manifest-related operations.
 
-All packages in the external repository need to be signed with an additional
-.asc file like official packages, and the key used to sign these packages needs
-to be present in the superuser's keyring so they can be verified. Please note
-the import-key operation will not download and import keys from external
-repositories, as a security measure. They need to be imported by hand.
+Also, if repositories provide a .txt file for each package, like an official
+mirror, it's possible to use info-related operations with their packages too.
 
 Also see: list-repos, remove-repo
 
