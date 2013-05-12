@@ -62,7 +62,7 @@
 
 	<p><code>slackroll</code> works with two types of remote trees. It needs a <strong>mirror</strong>, which is a <span class="caps">URL</span> pointing to a replica of the official Slackware package tree for the Slackware version you&#8217;re using. There can be only one mirror and it&#8217;s selected with the <code>set-mirror</code> operation, as you will see later.</p>
 
-	<p>In addition, <code>slackroll</code> can work with a number of additional external repositories. These are managed with the <code>add-repo</code>, <code>list-repos</code> and <code>remove-repo</code> operations, and they will be explained later.</p>
+	<p>In addition, <code>slackroll</code> can work with a number of additional <strong>external repositories</strong>. These are managed with the <code>add-repo</code>, <code>list-repos</code> and <code>remove-repo</code> operations, and they will be explained later.</p>
 
 	<h1>Get slackroll</h1>
 
@@ -148,11 +148,11 @@ slackroll frozen aaa_elflibs
 
 	<h2>External repositories</h2>
 
-	<p>As mentioned previously, <code>slackroll</code> can also work with a number of external repositories that would normally contain known but unofficial packages for the Slackware version you&#8217;re running. If you&#8217;re going to work with external repositories, I recommend adding them after the initial setup phase described above.</p>
+	<p>As mentioned previously, <code>slackroll</code> can also work with a number of external repositories that would normally contain known but unofficial packages for the Slackware version you&#8217;re running. If you&#8217;re going to work with external repositories, I recommend adding them after the initial setup phase described in this tutorial.</p>
 
-	<p>You can add a new repository with the <code>add-repo</code> operation. Once you&#8217;ve added all the external repositories you want, run the &#8220;update&#8221; operation to retrieve information about remote packages and &#8220;list-transient&#8221; to check the summary of activity.</p>
+	<p>You can add a new repository with the <code>add-repo</code> operation. Once you&#8217;ve added all the external repositories you want, run the <code>update</code> operation to retrieve information about remote packages and the <code>list-transient</code> operation to check the summary of activity.</p>
 
-	<p>For <code>slackroll</code> to be able to work with an external repository, the repository needs to provide a <code>FILELIST.TXT</code> file in the repository root, and packages need to be signed with external .asc files like the official ones. These package signatures will be verified by the program when downloading packages, which means the signature key needs to be in the superuser&#8217;s keyring. It&#8217;s very important to note the <code>import-key</code> operation <strong>will not download <span class="caps">GPG</span> keys from external repositories as a security measure</strong>. You need to download the keys by yourself and import them with <code>gpg --import KEY_FILE</code>, where <code>KEY_FILE</code> is the path to the <span class="caps">GPG</span> key file. Then, you will be able to download and install packages from the repository.</p>
+	<p>For <code>slackroll</code> to be able to work with an external repository, the repository needs to provide a <code>FILELIST.TXT</code> file in the repository root, and packages need to be signed with external <code>.asc</code> files like the official ones. These package signatures will be verified by the program when downloading packages, which means the signature key needs to be in the superuser&#8217;s keyring. It&#8217;s very important to note the <code>import-key</code> operation <strong>will not download <span class="caps">GPG</span> keys from external repositories as a security measure</strong>. You need to download the keys by yourself and import them with <code>gpg --import KEY_FILE</code>, where <code>KEY_FILE</code> is the path to the <span class="caps">GPG</span> key file. Then, you will be able to download and install packages from the repository.</p>
 
 	<p>The list of external repositories can be printed with the <code>list-repos</code> operation, and you can remove a repository from the list with the <code>remove-repo</code> operation, by providing the repo number as listed with <code>list-repos</code>.</p>
 

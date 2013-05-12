@@ -52,7 +52,7 @@ h2. Remote trees
 
 @slackroll@ works with two types of remote trees. It needs a *mirror*, which is a URL pointing to a replica of the official Slackware package tree for the Slackware version you're using. There can be only one mirror and it's selected with the @set-mirror@ operation, as you will see later.
 
-In addition, @slackroll@ can work with a number of additional external repositories. These are managed with the @add-repo@, @list-repos@ and @remove-repo@ operations, and they will be explained later.
+In addition, @slackroll@ can work with a number of additional *external repositories*. These are managed with the @add-repo@, @list-repos@ and @remove-repo@ operations, and they will be explained later.
 
 h1. Get slackroll
 
@@ -138,7 +138,7 @@ When kernel packages have pending upgrades, you can use two operations created s
 
 h2. External repositories
 
-As mentioned previously, @slackroll@ can also work with a number of external repositories that would normally contain known but unofficial packages for the Slackware version you're running. If you're going to work with external repositories, I recommend adding them after the initial setup phase described above.
+As mentioned previously, @slackroll@ can also work with a number of external repositories that would normally contain known but unofficial packages for the Slackware version you're running. If you're going to work with external repositories, I recommend adding them after the initial setup phase described in this tutorial.
 
 You can add a new repository with the @add-repo@ operation. Once you've added all the external repositories you want, run the @update@ operation to retrieve information about remote packages and the @list-transient@ operation to check the summary of activity.
 
