@@ -11,7 +11,8 @@ All packages in external repositories need to be signed with an additional .asc
 file like official packages, and the key used to sign these packages needs to be
 present in the superuser's keyring so they can be verified. Please note the
 import-key operation will not download and import keys from external
-repositories, as a security measure. They need to be imported by hand.
+repositories, as a security measure. They need to be imported by hand. You can
+download the key file and use "gpg --import".
 
 In addition, they could have MANIFEST.bz2 files in standard format just like an
 official mirror. If present, this makes it possible to search for specific files
