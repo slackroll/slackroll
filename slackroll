@@ -1801,7 +1801,7 @@ try:
     if operation == 'list-repos':
         repo_list = get_repo_list()
         formatted_list = ['Number %s: %s' % (i, r) for (i, r) in enumerate(repo_list)]
-        print_list_or(formatted_list, 'List of repositories:', 'No external repositories found')
+        print_list_or(formatted_list, 'List of repositories:', 'No third-party repositories found')
         sys.exit()
 
     if operation == 'remove-repo':
