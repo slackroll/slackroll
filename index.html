@@ -11,7 +11,7 @@
 
 	<h1>Target audience</h1>
 
-	<p><code>slackroll</code> is a package or update manager for Slackware systems. It does not provide dependency checking and uses <code>pkgtools</code> to install or upgrade packages. It&#8217;s designed to work with official mirrors and external repositories. If you have a Slackware system mainly composed of official packages, unofficial packages and a few custom packages, <code>slackroll</code> can help you manage it and keep in touch with the remote tree. It tries to know when new packages appear, when packages are removed and when packages are upgraded.</p>
+	<p><code>slackroll</code> is a package or update manager for Slackware systems. It does not provide dependency checking and uses <code>pkgtools</code> to install or upgrade packages. It&#8217;s designed to work with official mirrors and third-party repositories. If you have a Slackware system mainly composed of official packages, unofficial packages and a few custom packages, <code>slackroll</code> can help you manage it and keep in touch with the remote trees. It tries to know when new packages appear, when packages are removed and when packages are upgraded.</p>
 
 	<h1>Before you start</h1>
 
@@ -63,7 +63,7 @@
 
 	<p><code>slackroll</code> works with two types of remote trees. It needs a <strong>mirror</strong>, which is a <span class="caps">URL</span> pointing to a replica of the official Slackware package tree for the Slackware version you&#8217;re using. There can be only one mirror and it&#8217;s selected with the <code>set-mirror</code> operation, as you will see later.</p>
 
-	<p>In addition, <code>slackroll</code> can work with a number of additional <strong>external repositories</strong>. These are managed with the <code>add-repo</code>, <code>list-repos</code> and <code>remove-repo</code> operations, and they will be explained later.</p>
+	<p>In addition, <code>slackroll</code> can work with a number of additional <strong>third-party repositories</strong>. These are managed with the <code>add-repo</code>, <code>list-repos</code> and <code>remove-repo</code> operations, and they will be explained later.</p>
 
 	<h1>Get slackroll</h1>
 
@@ -147,15 +147,15 @@ slackroll frozen aaa_elflibs
 
 	<p>When kernel packages have pending upgrades, you can use two operations created specifically to handle the situation. <code>kernel-upgrade</code> will install the new kernel packages using <code>installpkg</code> instead of <code>upgradepkg</code> and then help you configure your boot loader for the new kernel. This means that, for a small time period, you will have two versions of the kernel packages installed. After a successful reboot to the new kernel, you can use the <code>kernel-clean</code> operation to remove the previous versions of those packages.</p>
 
-	<h2>External repositories</h2>
+	<h2>Third-party repositories</h2>
 
-	<p>As mentioned previously, <code>slackroll</code> can also work with a number of external repositories that would normally contain known but unofficial packages for the Slackware version you&#8217;re running. If you&#8217;re going to work with external repositories, I recommend adding them after the initial setup phase described in this tutorial.</p>
+	<p>As mentioned previously, <code>slackroll</code> can also work with a number of third-party repositories that would normally contain known but unofficial packages for the Slackware version you&#8217;re running. If you&#8217;re going to work with third-party repositories, I recommend adding them after the initial setup phase described in this tutorial.</p>
 
-	<p>You can add a new repository with the <code>add-repo</code> operation. Once you&#8217;ve added all the external repositories you want, run the <code>update</code> operation to retrieve information about remote packages and the <code>list-transient</code> operation to check the summary of activity.</p>
+	<p>You can add a new repository with the <code>add-repo</code> operation. Once you&#8217;ve added all the third-party repositories you want, run the <code>update</code> operation to retrieve information about remote packages and the <code>list-transient</code> operation to check the summary of activity.</p>
 
-	<p>For <code>slackroll</code> to be able to work with an external repository, the repository needs to provide a <code>FILELIST.TXT</code> file in the repository root, and packages need to be signed with external <code>.asc</code> files like the official ones. These package signatures will be verified by the program when downloading packages, which means the signature key needs to be in the superuser&#8217;s keyring. It&#8217;s very important to note the <code>import-key</code> operation <strong>will not download <span class="caps">GPG</span> keys from external repositories as a security measure</strong>. You need to download the keys by yourself and import them with <code>gpg --import KEY_FILE</code>, where <code>KEY_FILE</code> is the path to the <span class="caps">GPG</span> key file. Then, you will be able to download and install packages from the repository.</p>
+	<p>For <code>slackroll</code> to be able to work with a third-party repository, the repository needs to provide a <code>FILELIST.TXT</code> file in the repository root, and packages need to be signed with external <code>.asc</code> files like the official ones. These package signatures will be verified by the program when downloading packages, which means the signature key needs to be in the superuser&#8217;s keyring. It&#8217;s very important to note the <code>import-key</code> operation <strong>will not download <span class="caps">GPG</span> keys from third-party repositories as a security measure</strong>. You need to download the keys by yourself and import them with <code>gpg --import KEY_FILE</code>, where <code>KEY_FILE</code> is the path to the <span class="caps">GPG</span> key file. Then, you will be able to download and install packages from the repository.</p>
 
-	<p>The list of external repositories can be printed with the <code>list-repos</code> operation, and you can remove a repository from the list with the <code>remove-repo</code> operation, by providing the repo number as listed with <code>list-repos</code>.</p>
+	<p>The list of third-party repositories can be printed with the <code>list-repos</code> operation, and you can remove a repository from the list with the <code>remove-repo</code> operation, by providing the repo number as listed with <code>list-repos</code>.</p>
 
 	<h1>Feedback, questions, bug reports</h1>
 

@@ -1,6 +1,6 @@
 h1. Target audience
 
-@slackroll@ is a package or update manager for Slackware systems. It does not provide dependency checking and uses @pkgtools@ to install or upgrade packages. It's designed to work with official mirrors and external repositories. If you have a Slackware system mainly composed of official packages, unofficial packages and a few custom packages, @slackroll@ can help you manage it and keep in touch with the remote tree. It tries to know when new packages appear, when packages are removed and when packages are upgraded.
+@slackroll@ is a package or update manager for Slackware systems. It does not provide dependency checking and uses @pkgtools@ to install or upgrade packages. It's designed to work with official mirrors and third-party repositories. If you have a Slackware system mainly composed of official packages, unofficial packages and a few custom packages, @slackroll@ can help you manage it and keep in touch with the remote trees. It tries to know when new packages appear, when packages are removed and when packages are upgraded.
 
 h1. Before you start
 
@@ -52,7 +52,7 @@ h2. Remote trees
 
 @slackroll@ works with two types of remote trees. It needs a *mirror*, which is a URL pointing to a replica of the official Slackware package tree for the Slackware version you're using. There can be only one mirror and it's selected with the @set-mirror@ operation, as you will see later.
 
-In addition, @slackroll@ can work with a number of additional *external repositories*. These are managed with the @add-repo@, @list-repos@ and @remove-repo@ operations, and they will be explained later.
+In addition, @slackroll@ can work with a number of additional *third-party repositories*. These are managed with the @add-repo@, @list-repos@ and @remove-repo@ operations, and they will be explained later.
 
 h1. Get slackroll
 
@@ -136,15 +136,15 @@ h2. Kernel upgrades
 
 When kernel packages have pending upgrades, you can use two operations created specifically to handle the situation. @kernel-upgrade@ will install the new kernel packages using @installpkg@ instead of @upgradepkg@ and then help you configure your boot loader for the new kernel. This means that, for a small time period, you will have two versions of the kernel packages installed. After a successful reboot to the new kernel, you can use the @kernel-clean@ operation to remove the previous versions of those packages.
 
-h2. External repositories
+h2. Third-party repositories
 
-As mentioned previously, @slackroll@ can also work with a number of external repositories that would normally contain known but unofficial packages for the Slackware version you're running. If you're going to work with external repositories, I recommend adding them after the initial setup phase described in this tutorial.
+As mentioned previously, @slackroll@ can also work with a number of third-party repositories that would normally contain known but unofficial packages for the Slackware version you're running. If you're going to work with third-party repositories, I recommend adding them after the initial setup phase described in this tutorial.
 
-You can add a new repository with the @add-repo@ operation. Once you've added all the external repositories you want, run the @update@ operation to retrieve information about remote packages and the @list-transient@ operation to check the summary of activity.
+You can add a new repository with the @add-repo@ operation. Once you've added all the third-party repositories you want, run the @update@ operation to retrieve information about remote packages and the @list-transient@ operation to check the summary of activity.
 
-For @slackroll@ to be able to work with an external repository, the repository needs to provide a @FILELIST.TXT@ file in the repository root, and packages need to be signed with external @.asc@ files like the official ones. These package signatures will be verified by the program when downloading packages, which means the signature key needs to be in the superuser's keyring. It's very important to note the @import-key@ operation *will not download GPG keys from external repositories as a security measure*. You need to download the keys by yourself and import them with @gpg --import KEY_FILE@, where @KEY_FILE@ is the path to the GPG key file. Then, you will be able to download and install packages from the repository.
+For @slackroll@ to be able to work with a third-party repository, the repository needs to provide a @FILELIST.TXT@ file in the repository root, and packages need to be signed with external @.asc@ files like the official ones. These package signatures will be verified by the program when downloading packages, which means the signature key needs to be in the superuser's keyring. It's very important to note the @import-key@ operation *will not download GPG keys from third-party repositories as a security measure*. You need to download the keys by yourself and import them with @gpg --import KEY_FILE@, where @KEY_FILE@ is the path to the GPG key file. Then, you will be able to download and install packages from the repository.
 
-The list of external repositories can be printed with the @list-repos@ operation, and you can remove a repository from the list with the @remove-repo@ operation, by providing the repo number as listed with @list-repos@.
+The list of third-party repositories can be printed with the @list-repos@ operation, and you can remove a repository from the list with the @remove-repo@ operation, by providing the repo number as listed with @list-repos@.
 
 h1. Feedback, questions, bug reports
 
