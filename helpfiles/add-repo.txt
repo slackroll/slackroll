@@ -1,16 +1,16 @@
 
 add-repo URL...
 
-This operation adds one or more URLs to the list of external repository URLs.
-An external repository is a non-official URL were Slackware packages can be
-found. For external repositories to work properly with slackroll, they need to
-have a file named FILELIST.TXT at the path indicated by the URL, with the exact
-same internal format as official mirrors.
+This operation adds one or more URLs to the list of third-party repository
+URLs. A third-party repository is a non-official URL were Slackware packages
+can be found. For third-party repositories to work properly with slackroll,
+they need to have a file named FILELIST.TXT at the path indicated by the URL,
+with the exact same internal format as official mirrors.
 
-All packages in external repositories need to be signed with an additional .asc
-file like official packages, and the key used to sign these packages needs to be
-present in the superuser's keyring so they can be verified. Please note the
-import-key operation will not download and import keys from external
+All packages in third-party repositories need to be signed with an additional
+.asc file like official packages, and the key used to sign these packages needs
+to be present in the superuser's keyring so they can be verified. Please note
+the import-key operation will not download and import keys from third-party
 repositories, as a security measure. They need to be imported by hand. You can
 download the key file and use "gpg --import".
 

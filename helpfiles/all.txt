@@ -58,11 +58,11 @@ Unusual but useful operations:
   remove-path REGEXP	Remove all packages with matching remote path
 
 
-Managing external repositories:
+Managing third-party repositories:
 
-  add-repo URL...	Add URLs to the list of external repositories
-  list-repos		Print the list of external repositories
-  remove-repo NUMBER...	Remove external repositories from the list
+  add-repo URL...	Add URLs to the list of third-party repositories
+  list-repos		Print the list of third-party repositories
+  remove-repo NUMBER...	Remove third-party repositories from the list
 
 
 Downloading packages (i.e. without installation):
