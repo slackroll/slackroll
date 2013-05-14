@@ -3,9 +3,9 @@ list-alternatives
 
 This operation expects no arguments. It will print a list of every package for
 which more than one version is currently known, and a detailed list of every
-available version, either locally installed or available in the remote tree. It
-is sometimes useful to see, for example, which packages have alternative
-versions in the /testing tree, or in /pasture.
+available version, either locally installed or available in remote trees. It is
+sometimes useful to see, for example, which packages have alternative versions
+in the /testing tree, or in /pasture.
 
 Also see: list-versions.
 

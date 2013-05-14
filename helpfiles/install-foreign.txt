@@ -3,11 +3,11 @@ install-foreign FILE...
 
 This operation expects a list of one or more package archives present in the
 file system. As you may know, the "foreign" package state is reserved to
-packages you install yourself and which don't have an official package in the
-remote tree. Instead of installing those package using "installpkg" or
-"upgradepkg" and then marking them as "foreign" with the "foreign" operation,
-you can directly use this operation to perform both tasks at the same time.
-It's the recommended method to install "foreign" packages.
+packages you install yourself and which don't have any known remote source.
+Instead of installing those package using "installpkg" or "upgradepkg" and then
+marking them as "foreign" with the "foreign" operation, you can directly use
+this operation to perform both tasks at the same time. It's the recommended
+method to install "foreign" packages.
 
 Also, it features some extras like the automated process of reviewing .new
 files after installation.

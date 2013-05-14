@@ -2,7 +2,7 @@
 update-manifest
 
 This operation expects no arguments and will download the MANIFEST.bz2 files
-present in the remote mirror and create a database with them, so you can later
+present in the remote trees and create a database with them, so you can later
 use the "manifest-search" operation for searching which package provides a
 given file.
 

@@ -2,7 +2,7 @@
 list-remote
 
 This operation expects no arguments. It will print the list of package names
-present in the remote tree.
+present in any remote tree.
 
 Also see: list-local, list-all.
 

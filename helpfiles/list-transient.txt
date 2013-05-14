@@ -15,7 +15,7 @@ unavailable	To indicate that the package has apparently been removed.
 New packages are usually installed or skipped, so they are moved to the
 installed or not-installed states. Outdated packages are usually upgraded, so
 they are moved to the installed state. Unavailable packages are usually removed
-to mimic the removal of the package from the remote mirror, but they can
+to mimic the removal of the package from its remote source, but they can
 occasionally represent foreign packages that have not been marked as foreign
 yet.
 

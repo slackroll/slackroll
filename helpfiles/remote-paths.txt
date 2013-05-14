@@ -2,7 +2,7 @@
 remote-paths
 
 This operation expects no arguments. It will print a plain-text list of all the
-package files in the remote mirror, with their relative paths.
+package files in any remote tree, with their relative paths.
 
 As mentioned in the FAQ, this operation was created ad-hoc, and should be
 useful to artificially populate the slackroll package cache with symbolic links

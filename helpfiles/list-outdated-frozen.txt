@@ -3,7 +3,7 @@ list-outdated-frozen
 
 This operation expects no arguments. When packages are in the frozen state, no
 attempt will be performed by slackroll to upgrade them. Even if their versions
-do not match any available version in the remote tree, they will not be put in
+do not match any available version in any remote tree, they will not be put in
 the "outdated" state, as with the "installed" packages. This operation lets you
 see which packages would be "outdated" if they were not "frozen".
 

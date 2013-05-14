@@ -2,7 +2,7 @@ Usage: slackroll OPERATION [PARAMETER ...]
 
 Common operations:
 
-  update		Download remote tree information
+  update		Download remote trees information
   changelog		Display the latest new changelog entries
   list-transient	List packages in transient states
   upgrade		Upgrade every outdated package

@@ -12,7 +12,7 @@ Program setup:
 
 Common operations:
 
-  update		Download remote tree information
+  update		Download remote trees information
   changelog		Display the latest new changelog entries
   list-transient	List packages in transient states
   upgrade		Upgrade every outdated package
@@ -85,7 +85,7 @@ Other package listing operations:
   list-foreign		List foreign packages
 
   list-local		List all local packages (present in system)
-  list-remote		List all remote packages (present in remote tree)
+  list-remote		List all remote packages (present in remote trees)
   list-all		List every known package
 
   list-upgrades		List detailed information about outdated packages
