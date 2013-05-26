@@ -12,6 +12,7 @@ import math
 import operator
 import os
 import os.path
+import pwd
 import re
 import shelve
 import socket
@@ -692,9 +693,9 @@ class SlackrollOutputInterceptor(object): # Intercepts stdout and uses a pager i
         else:
             sys.stdout.write(output)
 
-def run_program(arg_list): # Does not exit on errors
+def run_program(arg_list, env=None): # Does not exit on errors
     try:
-        subprocess.call(arg_list)
+        subprocess.call(arg_list, env=env)
     except (OSError, IOError), err:
         sys.stderr.write('ERROR: %s\n' % err)
 
@@ -1240,6 +1241,15 @@ def post_kernel_operation(): # Operations needed after kernel installation
             options.append(('L', slackroll_lilo_path))
             actions[len(options) - 1] = functools.partial(run_program, [slackroll_lilo_path])
 
+        # Add option to drop to shell, with a trivial attempt at setting a
+        # prompt. This may not work if the shell does not understand PS1 or if
+        # the user sets PS1 from a script like .bashrc.
+        shell = pwd.getpwuid(os.geteuid()).pw_shell
+        newenv = dict(os.environ)
+        newenv['PS1'] = '(slackroll) %s$ ' % (os.path.basename(shell), )
+        options.append(('S', 'Run shell'))
+        actions[len(options) - 1] = functools.partial(run_program, [shell], env=newenv)
+
         # Add exit option
         options.append(('X', 'Done'))
 
@@ -1248,6 +1258,7 @@ def post_kernel_operation(): # Operations needed after kernel installation
         if chosen == len(options) - 1: # Exit option
             break
         actions[chosen]() # Run selected action
+        print
 
 def update_manifest_database():
     if not os.path.exists(slackroll_manifest_list_filename):
