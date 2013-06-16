@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # Exit on errors.
 set -e
@@ -11,7 +11,7 @@ export LANG=C
 
 # Initial variables.
 NAME=slackroll
-VERSION=v$( awk '/^slackroll_version / { print $3 }' slackroll )
+VERSION=v`grep '^slackroll_version' slackroll | cut -d' ' -f3`
 ARCH=noarch
 BUILD=${BUILD:-1}
 OUT=${TMP:-/tmp}
