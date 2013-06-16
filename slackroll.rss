@@ -8,6 +8,15 @@
     <pubDate>Sun, 12 May 2013 19:32:48 +0000</pubDate>
 
 <item>
+<title>slackroll v44 released</title>
+<link>https://github.com/rg3/slackroll/archive/v44.zip</link>
+<pubDate>Sun, 16 Jun 2013 09:46:00 +0000</pubDate>
+<description><![CDATA[
+	<p>slackroll v44 has been released. This version fixes some documentation bugs and adds an option to get a shell to run arbitrary commands after kernel-related operations without exiting the program (similar to stopping the program with Ctrl+Z). In addition, while slackroll is still published to the public domain, the approach has changed from a mere public domain note to CC0, as recommended by the FSF and others, in order to increase legal safety.</p>
+]]></description>
+</item>
+
+<item>
 <title>slackroll v43 released</title>
 <link>https://github.com/rg3/slackroll/archive/v43.zip</link>
 <pubDate>Sun, 12 May 2013 19:32:48 +0000</pubDate>
