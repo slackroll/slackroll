@@ -1246,8 +1246,8 @@ def post_kernel_operation(): # Operations needed after kernel installation
         # the user sets PS1 from a script like .bashrc.
         shell = pwd.getpwuid(os.geteuid()).pw_shell
         newenv = dict(os.environ)
-        newenv['PS1'] = '(slackroll) %s$ ' % (os.path.basename(shell), )
-        options.append(('S', 'Run shell'))
+        newenv['PS1'] = '(slackroll) %s%% ' % (os.path.basename(shell), )
+        options.append(('S', 'Shell'))
         actions[len(options) - 1] = functools.partial(run_program, [shell], env=newenv)
 
         # Add exit option
