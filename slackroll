@@ -1384,7 +1384,7 @@ def parse_install_args(args, local_list, remote_list, use_local_version, use_pas
         candidates = []
         if use_local_version:
             candidates.extend(local_list.get(name, []))
-        candidates.extend(x for x in remote_list.get(name, []) if x not in candidates)
+        candidates.extend(x for x in remote_list.get(name, []))
 
         if not use_pasture: # Filter /pasture/ candidates if indicated
             candidates = not_pasture(candidates)
