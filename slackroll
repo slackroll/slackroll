@@ -1357,7 +1357,7 @@ def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage o
             sys.exit('ERROR: unable to parse specific package version: %s' % arg)
     return (False, arg, None)
 
-def parse_install_args(args, local_list, remote_list, use_local_version, use_pasture): # Return chosen_pkgs -- auxiliar of install_operations_family()
+def parse_install_args(args, local_list, remote_list, use_local_version, use_pasture, filter_dupes): # Return chosen_pkgs -- auxiliar of install_operations_family()
     chosen_pkgs = []
     for arg in args:
         # Decide the type of argument (full name or simple name)
@@ -1384,7 +1384,7 @@ def parse_install_args(args, local_list, remote_list, use_local_version, use_pas
         candidates = []
         if use_local_version:
             candidates.extend(local_list.get(name, []))
-        candidates.extend(x for x in remote_list.get(name, []))
+        candidates.extend(x for x in remote_list.get(name, []) if x not in candidates or not filter_dupes)
 
         if not use_pasture: # Filter /pasture/ candidates if indicated
             candidates = not_pasture(candidates)
@@ -1406,6 +1406,7 @@ def parse_install_args(args, local_list, remote_list, use_local_version, use_pas
 def install_operations_family(operation, args, local_list, remote_list, persistent_list, use_pasture=True):
     is_real_install = (operation in ['install', 'reinstall', 'installpkg'])
     use_local_version = (operation == 'info')
+    filter_dupes = (operation == 'info')
 
     # Warn the user on install and reinstall operations if there is key package activity and they have not indicated key packages
     if is_real_install and not key_pkg_in(args) and maybe_print_key_pkg_warning(persistent_list):
@@ -1413,7 +1414,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
     # Get mirror and parse arguments (package names or full versions)
     mirror = get_mirror()
-    chosen_pkgs = parse_install_args(args, local_list, remote_list, use_local_version, use_pasture)
+    chosen_pkgs = parse_install_args(args, local_list, remote_list, use_local_version, use_pasture, filter_dupes)
 
     # For install and reinstall operations save list of existing .new file pairs
     if is_real_install and operation != 'installpkg':
