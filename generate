@@ -1,4 +1,0 @@
-#!/bin/sh
-php tutorial.php >tutorial.html
-php faq.php >faq.html
-cp tutorial.html index.html

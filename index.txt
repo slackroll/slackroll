@@ -1,0 +1,521 @@
+slackroll
+=========
+:title: slackroll: package or update manager for Slackware systems
+:description: Package or update manager for Slackware systems
+:keywords: slackroll,slackware,package manager,update manager
+:lang: en
+:encoding: utf-8
+:doctype: article
+:docinfo1:
+:toc2:
+:theme: flask
+
+== Target audience ==
+
+`slackroll` is a package or update manager for Slackware systems. It does not
+provide dependency checking and uses `pkgtools` to install or upgrade
+packages. It's designed to work with official mirrors and third-party
+repositories. If you have a Slackware system mainly composed of official
+packages, unofficial packages and a few custom packages, `slackroll` can help
+you manage it and keep in touch with the remote trees. It tries to know when
+new packages appear, when packages are removed and when packages are upgraded.
+
+== Before you start ==
+
+So you have decided to try `slackroll`. Let me introduce a few concepts so you
+don't get lost.
+
+=== Packages ===
+
+In the following text I'm going to be talking about packages. For package, we
+are going to understand a _named piece of software_, without having any
+specific version unless I explicitly mention it. A package can be `bash` or
+`kdewebdev` or `gcc-gfortran`, for example.
+
+=== States ===
+
+Each package is in one of several possible states. The program tries to keep a
+persistent database that associates each package with its state. When it runs,
+it analyzes the list of packages present in your system, the list of remote
+packages, and tries to keep the persistent database updated by introducing new
+entries, deleting old ones and changing the state of some of those entries.
+
+There are several possible states for a package, divided in two groups. First,
+we have *transient states*. As a user, your job is to make sure no packages
+remain in those states for long periods of time. Second, we have the normal
+states, in which the different packages should normally be.
+
+=== Transient states (to be avoided) ===
+
+==== NEW ====
+
+A package is in this state when it's present in a remote tree and it wasn't
+present before. If you detect you have packages in this state you should
+decide if you want to install them or mark them as not installed. This state
+lets you see which packages are being added to remote trees.
+
+==== UNAVAILABLE ====
+
+Sorry if this name is somehow confusing. A package is in this state when it's
+present in your system, but not in a remote tree. You should decide if you
+want to remove them from your system or mark them as foreign packages. This
+state lets you see which packages are being removed from remote trees.
+
+==== OUTDATED ====
+
+A package is outdated if it's present in your system and in a remote tree, but
+the local version does not match any relevant remote one. The program will try
+to upgrade these packages.
+
+=== Normal states ===
+
+==== INSTALLED ====
+
+A package is installed if it's present in your system and in the remote tree,
+and the local version is not outdated. Very common state, as you can suppose.
+
+==== NOT INSTALLED ====
+
+A package is not installed if it's a known package which is not present in
+your system but exists in a remote tree. It's also a very common state.
+
+==== FROZEN ====
+
+No package will enter the frozen state unless you mark it so. It should be
+used for packages present in your system and in a remote tree, but that you
+don't want to upgrade automatically. This state can be used for packages which
+are not meant to be upgraded automatically or ever, like `aaa_elflibs` and
+others, and probably for customized versions of official packages. For
+example, my custom build of `freetype` is marked as frozen. You must pay
+attention to these packages, as upgrades to them will be silently ignored. You
+may find the `list-versions` and `list-outdated-frozen` operations useful to
+detect version mismatches between your local copy and the ones in remote
+trees. Having a package in the frozen state does not prevent you from using
+the install operation to download and install a different version. If the
+package ever disappears from the remote trees, it will be marked as
+unavailable and you will probably see it. You could continue to use it by
+marking it as foreign if you wish.
+
+==== FOREIGN ====
+
+No package will enter the foreign state unless you mark it so. It should be
+used for packages that exist in your system but do not have a known remote
+origin. For example, the `slackroll` package in my system is marked as
+foreign. A foreign package will be marked as installed or outdated if it ever
+appears in a remote tree, usually becoming a candidate for upgrading.
+Hopefully, you'll notice this fact. You could still use your own version
+instead of the remote one by marking it as frozen.
+
+=== Remote trees ===
+
+`slackroll` works with two types of remote trees. It needs a *mirror*, which
+is a URL pointing to a replica of the official Slackware package tree for the
+Slackware version you're using. There can be only one mirror and it's selected
+with the `set-mirror` operation, as you will see later.
+
+In addition, `slackroll` can work with a number of additional *third-party
+repositories*. These are managed with the `add-repo`, `list-repos` and
+`remove-repo` operations, and they will be explained later.
+
+== Get slackroll ==
+
+link:https://github.com/rg3/slackroll/releases/latest[slackroll] is a
+self-contained Python script released to the public domain. You can download a
+premade package if available from Github, or grab the source code of the
+master branch or any tagged releases as a ZIP archive or by cloning the
+repository.
+
+If you use the source, run the SlackBuild script from the source directory as
+root. This will create a package you can install with `installpkg` for the
+first time. In the future, you can use `upgradepkg` or even `slackroll` itself
+to install newer package versions. Continue reading for more details.
+
+== Getting started ==
+
+`slackroll` requires `python`, `pkgtools`, `gnupg` (or `gnupg2`), an editor
+and diff tool (which are `vim` and `vimdiff` by default (provided by package
+`vim`), and a pager (`less` by default) to operate properly.
+
+It should be noted that you can start using `slackroll` whenever you want, but
+my advice is to do it when your system is under control and there are no
+upgrades pending. This will give you a chance of configuring the program and
+setting the package states properly without making serious mistakes.
+
+You should first choose a Slackware mirror. In case your mirror of choice
+offers access using both FTP and HTTP, prefer HTTP. Take into account
+`slackroll` will store downloaded packages in a subdirectory of
+`/var/slackroll`, so you will probably need to have a good amount of space
+available for them in there. Set the mirror URL with the `set-mirror`
+operation. For example:
+
+-----------------------------------------
+slackroll set-mirror
+'http://example.org/slackware-current/'
+-----------------------------------------
+
+Great. You are ready to start. Retrieve the remote GPG key to add it to your
+key ring. Having the GPG key is required, and it should be safe to do this
+step even if the key is already in your key ring. You can also get the key
+from the Slackware CD or DVD. The GPG key and the official package signatures
+will be downloaded from a primary mirror instead of the mirror you chose, in
+order to increase security.
+
+-----------------------------------------
+slackroll import-key
+-----------------------------------------
+
+Retrieve information about the remote packages. You'll have to perform this
+step every time a remote tree changes.
+
+-----------------------------------------
+slackroll update
+-----------------------------------------
+
+Finally, you could start checking if there are new packages, unavailable
+packages or upgrades. However, the first time you use `slackroll`, any package
+not installed in your system will be marked as new, every foreign package will
+be marked as unavailable, and every customized package will probably be a
+candidate for upgrading if you try to do so. If you have your system under
+control (and I hope you do!), you can in most cases blindly mark all new
+packages as not installed. There's a command to do it, being a common first
+operation.
+
+-----------------------------------------
+slackroll new-not-installed
+-----------------------------------------
+
+In most cases, you can also mark any unavailable packages as foreign.
+However, the number of foreign packages is usually quite low, and forgetting
+to uninstall a package which has been removed is a very common mistake, so my
+advice is to review the list of unavailable packages by hand, detecting which
+ones may not be foreign packages and need to be uninstalled.
+
+-----------------------------------------
+slackroll list-unavailable
+-----------------------------------------
+
+Once you've got rid of old packages (using *removepkg* or the `remove`
+operation), mark the rest as foreign packages.
+
+-----------------------------------------
+slackroll unavailable-foreign
+-----------------------------------------
+
+Some people like to ``blacklist'' packages so they are not upgraded normally.
+Almost always, you want to do this with the package `aaa_elflibs` if it's
+present in your system, and maybe with some other packages. If you don't want
+them to be upgraded normally, they belong to the frozen state. Mark them as
+frozen. The same applies to customized builds of official packages.
+
+-----------------------------------------
+slackroll frozen aaa_elflibs
+-----------------------------------------
+
+The frozen operation accepts a list of packages as its arguments. You don't
+need to issue a separate command for each one of them.
+
+Regarding customized versions of official packages, there are at least three
+ways of dealing with them. Some people prefer to give them version names that
+match the official ones, despite being customized builds, and keep them in the
+installed state. The program will want to upgrade them automatically in that
+case, and maybe the official version will overwrite the custom one after an
+upgrade, before you rebuild it, if you don't mark it as frozen in the mean
+time. Some other people prefer to do the same but putting the package
+permanently in the frozen state. In that case, `list-outdated-frozen` is
+useful to detect version mismatches between your local copy and the remote
+ones. Finally, some other people prefer to give them custom version names,
+normally via personalized build numbers that usually include some packager
+initials, and mark them as frozen. In that case, `list-versions` can help you
+see if your local copy needs to be rebuilt for a new version.
+
+== Normal operation ==
+
+First off, `slackroll help` will give you a summary of the most common
+operations, plus some advice. You can read a brief description of every
+supported operation by running `slackroll help all`. Finally, you can get
+specific help for an operation using `slackroll help OPERATION`, where
+`OPERATION` is the name of the operation you want to get help for.
+
+This program is not a perfect tool. I think it can handle almost every
+situation and be told to do exactly what you want, but reading the change log
+and subscribing to the `slackware-security` mailing list is highly
+recommended.
+
+In any case, the most frequent command you will probably run is `slackroll
+update`, which should be run whenever the remote tree is changed. Then, you
+should read the change log with the `changelog` operation if there are new
+entries and, finally, the `list-transient` operation will provide a summary of
+activity. There should be no packages in transient states after you're
+finished dealing with the changes.
+
+Watch out for upgrades in the `glibc-solibs`, `sed` and `pkgtools` packages.
+They should (almost) always be the first ones to be installed or upgraded in
+that order, even before new packages. You can use the `upgrade-key-packages`
+operation to upgrade them first. The program will try to inform you about
+changes in those packages with a noticeable warning.
+
+New packages should either be installed selectively with the `install`
+operation or all at the same time with `install-new`. New packages which will
+not be installed should be put in the not-installed state with
+`not-installed`.
+
+Outdated packages should be upgraded, normally using the `upgrade` operation.
+
+Unavailable packages could either be foreign packages that you forgot to mark
+as such, and should be marked with `foreign`, or packages which have been
+removed from the remote tree. In that case, `remove` or `remove-unavailable`
+are the operations you will be looking for.
+
+When installing or upgrading foreign packages, you can use *installpkg* or
+*upgradepkg* and then mark them as foreign if needed. However, you can also
+install them using the `install-foreign` operation to save time and avoid
+problems in the future.
+
+Also, remember to run the `clean-cache` operation from time to time to get rid
+of old and outdated package archives stored in the package cache.
+
+The order described above is the order in which you should proceed in most
+cases. However, sometimes it's not the correct order. That's why it's
+important to read the change log to detect possible special cases and read
+comments by Patrick Volkerding. If you break that order, slackroll will emit a
+warning, but it's only a warning. The choice of what to do is on you.
+
+=== Kernel upgrades ===
+
+When kernel packages have pending upgrades, you can use two operations created
+specifically to handle the situation. `kernel-upgrade` will install the new
+kernel packages using `installpkg` instead of `upgradepkg` and then help you
+configure your boot loader for the new kernel. This means that, for a small
+time period, you will have two versions of the kernel packages installed.
+After a successful reboot to the new kernel, you can use the `kernel-clean`
+operation to remove the previous versions of those packages.
+
+=== Third-party repositories ===
+
+As mentioned previously, `slackroll` can also work with a number of
+third-party repositories that would normally contain known but unofficial
+packages for the Slackware version you're running. If you're going to work
+with third-party repositories, I recommend adding them after the initial setup
+phase described in this tutorial.
+
+You can add a new repository with the `add-repo` operation. Once you've added
+all the third-party repositories you want, run the `update` operation to
+retrieve information about remote packages and the `list-transient` operation
+to check the summary of activity.
+
+For `slackroll` to be able to work with a third-party repository, the
+repository needs to provide a `FILELIST.TXT` file in the repository root, and
+packages need to be signed with external `.asc` files like the official ones.
+These package signatures will be verified by the program when downloading
+packages, which means the signature key needs to be in the superuser's
+keyring. It's very important to note the `import-key` operation *will not
+download GPG keys from third-party repositories as a security measure*. You
+need to download the keys by yourself and import them with `gpg --import
+KEY_FILE`, where `KEY_FILE` is the path to the GPG key file. Then, you will be
+able to download and install packages from the repository.
+
+The list of third-party repositories can be printed with the `list-repos`
+operation, and you can remove a repository from the list with the
+`remove-repo` operation, by providing the repo number as listed with
+`list-repos`.
+
+== Feedback ==
+
+I'm all open for good bug reports and general feedback but I'm, as always,
+reluctant to change the main program concepts, like adding dependency support
+or probably adding more package states. I also know the program currently
+can't be used to upgrade the system in non-interactive mode (like calling it
+from a cron entry). That is very unlikely to change, because when there's an
+upgrade, there's no easy way to decide which version should be installed if a
+package has a version in the main tree, another one in `/extra/` and another
+one in `/testing/`, so it's always going to need user input.
+
+If you have a question, you should first read the FAQ. For other questions,
+comments or suggestions, link:http://rg3.name/contact.html[contact me] by
+email, or report an issue in the
+link:https://github.com/rg3/slackroll/issues[issue tracker]. Keep in mind I'm
+using the program under `slackware64-current`. If you detect a problem under
+another version, please report it as soon as possible because it may go
+unnoticed to me.
+
+== Frequently Asked Questions ==
+
+=== Packages with nonstandard names ===
+
+*Question*: While attempting to setup `slackroll` I get _ERROR: Nonstandard
+package name: <package>_. How can I solve this problem?
+
+*Answer*: It seems some people are using packages that don't follow the
+Slackware package name convention of _name-version-arch-build_. I think it is
+wrong to have a package that doesn't follow the convention. `slackroll` needs
+to parse the package names to extract the different components. These packages
+make it very difficult or impossible, so they are rejected. There is no way to
+analyze those names properly in a predictable way. The problem should be
+solved by removing that package, renaming the package archive to have a
+standard name and then installing it again.
+
+Some examples of invalid package names I have seen reported are
+`pyfloppy-1.6-noarch.2AS`, `gammapage-0.5.i486-1AS` and
+`scons-0.96.1-1.noarch`.
+
+Remember: it doesn't matter if it's an official package or a foreign or custom
+one. It should follow the naming convention.
+
+=== Saving the list of URLs ===
+
+*Question*: Using the `urls` or `urls-upgrades` operation I want to save the
+URL list to a text file. However, if I use shell redirections and `slackroll`
+prompts me to select a specific package version, I can't see the questions. Is
+there an easy way of doing this?
+
+*Answer*: Yes. Pipe the output of `slackroll` to `tee urls.txt` and then edit
+the file to remove the extra lines.
+
+=== Coordinating with rsync ===
+
+*Question*: I normally get my packages using rsync, so as to keep a local copy
+of the remote tree. Can I coordinate this with `slackroll`?
+
+*Answer*: Yes. I would use a script like the following one, replacing the
+chunks in curly braces by the appropriate contents.
+
+--------------------------------------------------
+SLACKROLL_DIR=/var/slackroll
+LOCAL_MIRROR_DIR={ path to local copy of the remote trees }
+{ rsync command(s) }
+cd $SLACKROLL_DIR
+slackroll update
+rm -f packages/*
+for pkg in $( slackroll remote-paths ); do
+    ln -sf $LOCAL_MIRROR_DIR/$pkg ./packages
+done
+--------------------------------------------------
+
+This will synchronize your local copy of the remote trees and then populate
+the `slackroll` package cache with symbolic links to the package archives
+located inside your local copy of the Slackware remote trees. From the point
+of view of `slackroll`, it's like if it had already downloaded every package.
+
+=== Environment variables ===
+
+*Question*: Which environment variables affect `slackroll`?
+
+*Answer*: `TMPDIR` lets you specify a temporary directory that will be used to
+download files before they are moved to their final locations, which is
+`/var/slackroll/tmp` by default. `PAGER` lets you specify a pager program,
+which is `less` by default. `VISUAL` lets you specify a visual editor, which
+is used to edit single files and is `vim` by default. `SRDIFF` lets you
+specify the diff tool that will be used to edit and compare pairs of files,
+which is `vimdiff` by default.
+
+=== Syntax highlighting in vimdiff ===
+
+*Question*: Is it possible to disable syntax highlighting in `vim`, but only
+when it's running in diff mode?
+
+*Answer*: Yes. Add this to your `~/.vimrc` file, taken from the `vim` help
+documents:
+
+------------------------
+if &diff
+	syntax off
+endif
+------------------------
+
+=== Most frequently used operations ===
+
+*Question*: `slackroll` has a lot of operations available. Some of them are
+mentioned in the tutorial but, in a few words, which operations do you use
+more frequently?
+
+*Answer*: There is a first group of operations everybody will be running very
+frequently: `update`, `changelog`, `list-transient` and `upgrade`. If you use
+a few foreign packages you install and upgrade by hand, you could put
+`install-foreign` in that first group too. Some users, specially the ones
+running `slackware-current` like I do, would have a second group of common
+operations they run from time to time: `clean-cache`, `install`, `remove`,
+`remove-unavailable`, `install-new` and `not-installed`.
+
+=== Comparing `slackroll` to other tools ===
+
+*Question*: What are the differences between `slackroll` and other tools like
+`slapt-get`, `swaret` or `slackpkg`?
+
+*Answer*: That's a hard question which is better answered by exposing the
+features of `slackroll`. In any case, it should be clarified that you can run
+two types of Slackware installations. On the one hand you have stable
+releases. If you are going to run a stable release any tool will probably be
+useful enough for you, including `slackroll`. This is because stable releases
+are easy to manage, given that the only events they are exposed to are the
+release of patches. Any of the existing tools can easily tell you which
+patches have been released and let you automate the download and installation
+process. It is extremely rare, but not impossible, for a package to be added
+to or removed from the tree of a stable release.
+
+On the other hand, you can be running the rolling release of Slackware which
+serves as the testing tree, called slackware(64)-current, or using third-party
+repositories. In this case, in my humble opinion, `slackroll` is the best
+tool. This is because `slackroll` lets you track almost any event happening in
+the remote trees, be it packages being added, removed or upgraded, including
+the events of a foreign package getting a remote version and the removal of a
+package for which a customized version was installed. This is possible thanks
+to its package states foundation and the preference for working with two
+different states (foreign and frozen) instead of relying on a blacklisting
+mechanism. No other tool, as far as I know, can deal with as many events as
+`slackroll`. I'm unable to imagine an event that is not covered by
+`slackroll`.
+
+Apart from the type of Slackware installation you're running, there's the
+issue of using third-party repositories. Starting with version 43 and inspired
+by community forks of `slackpkg`, `slackroll` added support for external
+repositories, and performs a decent job at handling them. This makes it a
+viable alternative to *slapt-get* in those situations. Some of those
+repositories provide dependency information for packages, which `slapt-get`
+can use, while `slackroll` doesn't use it.
+
+Compared to the shell-based *swaret* (there was a new `swaret` being developed
+in Perl), `slackroll` lacks tracking binary dependencies, but it compensates
+that lack by letting you search for files in remote packages with the
+manifest-related operations. Apart from that, `swaret` is incredibly slow and
+CPU hungry even when it's only downloading files from the network, and doesn't
+come close to tracking as many events as `slackroll`. `slackroll` is, in my
+humble opinion, a clear winner over `swaret` unless you absolutely love the
+binary dependency detection and resolution it provides. For me that's a minor
+feature. The Perl implementation was supposed to be basically the same, but
+solving the high CPU usage problem. If that's the case, `slackroll` would
+still be a much better option, in my opinion, because `swaret` still doesn't
+do `glibc` upgrades properly, does not detect removed packages, etc.
+
+`slackroll`'s closest friend is *slackpkg*, included in the `/extra/` tree.
+You can think of it like a very much improved `slackpkg` that works faster,
+detects more corner cases and has more features. If you run `slackpkg`, do not
+hesitate to give `slackroll` a try. The main difference between `slackpkg` and
+`slackroll` is that the latter, like many other package management tools,
+keeps a persistent database of packages on disk. For example, `slackpkg` uses
+a reliable method of parsing the change log to detect when a package has been
+added, while `slackroll` downloads FILELIST.TXT and notices which packages are
+new because it didn't have information on them before. This method also works
+with third-party repositories. Another example is `slackpkg`'s clean-system
+operation, which prompts you about packages with are not in any official
+package set. This operation helps you remove packages that have been removed
+from the official Slackware tree, but you need to blacklist your own packages
+if you don't want them to appear in the list. `slackroll`, on the other hand,
+can be told those packages are foreign and it _remembers_ that information.
+
+Finally, in general, `slackroll` is at least as fast or faster than any of the
+above tools, specially faster than the ones that are big shell scripts
+(`slackpkg` and `swaret`). It downloads less meta-data than any other, because
+it only needs `FILELIST.TXT` and, for convenience, the new entries from the
+change log (indeed, it only downloads the new entries). It detects more
+events, which is specially useful when running Slackware's rolling release,
+_slackware(64)-current_. And it has some useful features no other tool has,
+like the operations to detect orphan files, broken symlinks and missing files.
+You won't have to run `grep` on the contents of `/var/log/packages` anymore,
+because it has a local search operation. It lets you download and search the
+MANIFEST list for specific files if, for example, you're missing a library. It
+also lets you choose which package version to install when there are several
+ones available. It lets you upgrade individual packages or every upgrade-able
+package, install new packages, remove old ones, search for package names or
+packages with a given tree component, list alternative versions of packages,
+detect and warn you about activity in `glibc` packages (giving them priority
+while upgrading too), etc.
