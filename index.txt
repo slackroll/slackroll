@@ -149,8 +149,7 @@ available for them in there. Set the mirror URL with the `set-mirror`
 operation. For example:
 
 -----------------------------------------
-slackroll set-mirror
-'http://example.org/slackware-current/'
+slackroll set-mirror 'http://example.org/slackware-current/'
 -----------------------------------------
 
 Great. You are ready to start. Retrieve the remote GPG key to add it to your
