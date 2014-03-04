@@ -10,6 +10,10 @@ slackroll
 :toc2:
 :theme: flask
 
+Latest release is
+link:https://github.com/rg3/slackroll/releases/download/v46/slackroll-v46-noarch-1.tgz[slackroll
+v46].
+
 == Target audience ==
 
 `slackroll` is a package or update manager for Slackware systems. It does not
