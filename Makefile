@@ -1,7 +1,4 @@
-.PHONY: all clean
+.PHONY: all
 
 all: index.txt
 	asciidoc index.txt
-
-clean:
-	rm -f index.html
