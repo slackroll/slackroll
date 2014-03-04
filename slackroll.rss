@@ -5,7 +5,28 @@
     <description>slackroll is a package or update manager for Slackware systems.</description>
     <link>http://rg3.github.io/slackroll/</link>
     <language>en</language>
-    <pubDate>Sun, 12 May 2013 19:32:48 +0000</pubDate>
+
+<!-- date -uR -->
+
+<pubDate>Tue, 04 Mar 2014 12:00:16 +0000</pubDate>
+
+<item>
+<title>slackroll v46 released</title>
+<link>https://github.com/rg3/slackroll/releases/download/v46/slackroll-v46-noarch-1.tgz</link>
+<pubDate>Tue, 04 Mar 2014 12:00:16 +0000</pubDate>
+<description><![CDATA[
+	<p>This release restores duplicate package filtering for the "info" operation, which otherwise failed in some situations.</p>
+]]></description>
+</item>
+
+<item>
+<title>slackroll v45 released</title>
+<link>https://github.com/rg3/slackroll/releases/download/v45/slackroll-v45-noarch-1.tgz</link>
+<pubDate>Tue, 04 Mar 2014 12:00:16 +0000</pubDate>
+<description><![CDATA[
+	<p>This release removes an anti-feature that filtered theoretically duplicate packages during the install operation, preventing some packages in third-party mirrors from being selected and installed by the user.</p>
+]]></description>
+</item>
 
 <item>
 <title>slackroll v44 released</title>
