@@ -332,12 +332,7 @@ operation, and you can remove a repository from the list with the
 
 I'm all open for good bug reports and general feedback but I'm, as always,
 reluctant to change the main program concepts, like adding dependency support
-or probably adding more package states. I also know the program currently
-can't be used to upgrade the system in non-interactive mode (like calling it
-from a cron entry). That is very unlikely to change, because when there's an
-upgrade, there's no easy way to decide which version should be installed if a
-package has a version in the main tree, another one in `/extra/` and another
-one in `/testing/`, so it's always going to need user input.
+or probably adding more package states.
 
 If you have a question, you should first read the FAQ. For other questions,
 comments or suggestions, link:http://rg3.name/contact.html[contact me] by
