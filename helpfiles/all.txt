@@ -153,9 +153,10 @@ Other maintenance operations (usually not needed):
 
 Other operations:
 
-  help [ARGUMENT]	Access to the help system
-  version		Print the program version
-  remote-paths		Print a plain list of the remote package paths
+  help [ARGUMENT]	          Access to the help system
+  version		          Print the program version
+  remote-paths		          Print a plain list of the remote package paths
+  batch OPERATION [ARGUMENT...]   Execute an operation in batch mode.
 
 
 Visit http://rg3.github.io/slackroll/ for a tutorial and more help.
