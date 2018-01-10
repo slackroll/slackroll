@@ -1152,8 +1152,6 @@ def handle_dotnew_files_installation_batch(dotnew_files): # Handles .new files p
     # Iterate over every pair of .new files
     for newfile in dotnew_files:
         oldfile = old_file(newfile)
-        basenew = os.path.basename(newfile)
-        baseold = os.path.basename(oldfile)
 
         try:
             new_exists = os.path.exists(newfile)
