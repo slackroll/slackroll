@@ -1300,7 +1300,7 @@ def verify_local_names(names, local_list):
 
 def post_kernel_operation(): # Operations needed after kernel installation
     if slackroll_batch_mode:
-        print 'WARNING: you may need to modify your bootloader configuration and reboot.'
+        print 'WARNING: you may need to modify your bootloader configuration and reboot'
         return
 
     visual = get_visual()
