@@ -6,14 +6,15 @@ user interaction. slackroll will error out if user input would be needed to
 select a specific package version among several. In addition, all other
 interactive operations are done automatically with a predefined behavior.
 
-
 * On package removal, every .new file pair left behind will be removed.
-* On package installation, if a single file exists in a .new file pair, it will be
-  kept without the .new suffix. If both files exist, both files will be kept for
-  manual review later.
-* No interactive confirmation prompts will be present.
-* No pagination will be used.
 
+* On package installation, if a single file exists in a .new file pair, it will
+  be kept without the .new suffix. If both files exist, both files will be kept
+  for manual review later.
+
+* No interactive confirmation prompts will be present.
+
+* No pagination will be used.
 
 Examples:
 
