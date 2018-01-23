@@ -14,12 +14,6 @@ Latest release is
 link:https://github.com/rg3/slackroll/releases/download/v46/slackroll-v46-noarch-1.tgz[slackroll
 v46].
 
-Note this program is link:https://github.com/rg3/slackroll/issues/1[no longer
-maintained] as of 2015-02-19. It should still be perfectly fine to use until
-the Slackware mirrors change something in the basic structure, which is highly
-unlikely, or Python 3 becomes the default Python version. I'll try to update
-this note if someone reports the program breaking.
-
 == Target audience ==
 
 `slackroll` is a package or update manager for Slackware systems. It does not
