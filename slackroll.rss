@@ -3,12 +3,21 @@
   <channel>
     <title>slackroll package manager</title>
     <description>slackroll is a package or update manager for Slackware systems.</description>
-    <link>http://rg3.github.io/slackroll/</link>
+    <link>https://rg3.github.io/slackroll/</link>
     <language>en</language>
 
 <!-- date -uR -->
 
-<pubDate>Tue, 04 Mar 2014 12:00:16 +0000</pubDate>
+<pubDate>Tue, 23 Jan 2018 19:47:44 +0000</pubDate>
+
+<item>
+<title>slackroll v47 released</title>
+<link>https://github.com/rg3/slackroll/releases/download/v47/slackroll-v47-noarch-1.tgz</link>
+<pubDate>Tue, 23 Jan 2018 19:47:44 +0000</pubDate>
+<description><![CDATA[
+	<p>This release adds support for Slackware ARM and running slackroll non-interactively in batch mode.</p>
+]]></description>
+</item>
 
 <item>
 <title>slackroll v46 released</title>
