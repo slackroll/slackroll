@@ -13,7 +13,7 @@ slackroll OPERATION [ARGUMENTS]
 slackroll is a package or upgrade manager for Slackware Linux. The program
 tutorial can be found online at:
 
-http://rg3.github.io/slackroll/
+https://rg3.github.io/slackroll/
 
 There you will find information about the program concepts and initial setup
 process. It is the recommended starting point for every slackroll user. In

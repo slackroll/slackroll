@@ -159,5 +159,5 @@ Other operations:
   batch OPERATION [ARGUMENT...]   Execute an operation in batch mode
 
 
-Visit http://rg3.github.io/slackroll/ for a tutorial and more help.
+Visit https://rg3.github.io/slackroll/ for a tutorial and more help.
 Also, use "slackroll help OPERATION" to get help for a specific operation.

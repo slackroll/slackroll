@@ -51,7 +51,7 @@ slackroll: easing the task of upgrading or installing packages, and letting you
 slackroll: detect which packages have been added to or removed from the
 slackroll: Slackware tree.
 slackroll:
-slackroll: http://rg3.github.io/slackroll/
+slackroll: https://rg3.github.io/slackroll/
 slackroll:
 EOF
 
