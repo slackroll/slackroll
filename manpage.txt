@@ -17,7 +17,7 @@ https://rg3.github.io/slackroll/
 
 There you will find information about the program concepts and initial setup
 process. It is the recommended starting point for every slackroll user. In
-there, you will also find a link to the Frequently Asked Questions document.
+there, you will also find a Frequently Asked Questions section.
 
 For detailed documentation on program invocation and the different operations,
 use the "help" operation.
