@@ -35,6 +35,11 @@ version you want to install when there's an upgrade. For example, if you don't
 use the "nosmp" kernels, you can blacklist "/extra/linux-[^-/]+-nosmp-sdk/" to
 ignore those packages.
 
+As mentioned above, the regular expressions will be used on the whole package
+name. You can additionally have a regular expression apply only to certain
+URLs by adding '@' followed by a regular expression which will be used on the
+whole URL.
+
 As you can imagine from the previous points, usually the blacklist is short and
 very specific.
 

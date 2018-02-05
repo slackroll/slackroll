@@ -454,9 +454,18 @@ def get_blacklist(): # Get blacklist expression list
         return try_load(slackroll_blacklist_filename)
     return []
 
+def split_blacklist_re(blacklist_str):
+    if '@' not in blacklist_str:
+        return (blacklist_str, '')
+    return tuple(blacklist_str.split('@', 1))
+
 def get_blacklist_re(): # Almost the same, but already converted to regular expressions
+    regex_list = []
     try:
-        return [re.compile(x) for x in get_blacklist()]
+        for x in get_blacklist():
+            pkg_regex, url_regex = split_blacklist_re(x)
+            regex_list.append((re.compile(pkg_regex), re.compile(url_regex)))
+        return regex_list
     except re.error:
         sys.exit('ERROR: invalid regular expression found in blacklist')
 
@@ -464,7 +473,10 @@ def add_blacklist_exprs(expressions): # Add expressions to the blacklist
     valid_ones = []
     for regex_str in expressions:
         try:
-            re.compile(regex_str)
+            pkg_regex, url_regex = split_blacklist_re(regex_str)
+
+            re.compile(pkg_regex)
+            re.compile(url_regex)
             valid_ones.append(regex_str)
         except re.error:
             sys.exit('ERROR: "%s" is an invalid regular expression' % regex_str)
@@ -570,8 +582,9 @@ def extend_remote_list(local_filelist, remote_list, pkgs_url=None):
     for pkg in get_remote_pkgs(local_filelist, pkgs_url):
         # Ignore packages matching blacklist
         fullname = pkg.fullname
-        matches = [x.search(fullname) for x in bl]
-        if len([x for x in matches if x is not None]) > 0:
+        url = pkg.url(pkgs_url)
+        # If the package full name and its URL match any entry in the blacklist
+        if any((pkg_regex.search(fullname) is not None and url_regex.search(url) is not None) for (pkg_regex, url_regex) in bl):
             continue
         # Mark packages with patches
         name = pkg.name
