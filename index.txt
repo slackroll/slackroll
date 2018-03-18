@@ -11,8 +11,8 @@ slackroll
 :theme: flask
 
 Latest release is
-link:https://github.com/rg3/slackroll/releases/download/v47/slackroll-v47-noarch-1.tgz[slackroll
-v47].
+link:https://github.com/rg3/slackroll/releases/download/v48/slackroll-v48-noarch-1.tgz[slackroll
+v48].
 
 == Target audience ==
 
