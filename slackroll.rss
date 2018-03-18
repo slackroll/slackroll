@@ -8,6 +8,17 @@
 
 <!-- date -uR -->
 
+<pubDate>Sun, 18 Mar 2018 06:04:06 +0000</pubDate>
+
+<item>
+<title>slackroll v48 released</title>
+<link>https://github.com/rg3/slackroll/releases/download/v48/slackroll-v48-noarch-1.tgz</link>
+<pubDate>Sun, 18 Mar 2018 06:04:06 +0000</pubDate>
+<description><![CDATA[
+	<p>This release adds support for blacklisting packages based on URL too.</p>
+]]></description>
+</item>
+
 <pubDate>Tue, 23 Jan 2018 19:47:44 +0000</pubDate>
 
 <item>
