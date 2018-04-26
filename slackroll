@@ -503,15 +503,15 @@ def write_self_file_version(): # Write self version to disk file
 
 def long_time_warning():
     # type: () -> None
-    print 'WARNING: This operation may take a long time to complete'
+    print('WARNING: This operation may take a long time to complete')
 
 def interpret_results_warning():
     # type: () -> None
-    print 'WARNING: Results should be interpreted carefully'
+    print('WARNING: Results should be interpreted carefully')
 
 def low_fs_resources_warning():
     # type: () -> None
-    print 'WARNING: Available disk space may not be enough'
+    print('WARNING: Available disk space may not be enough')
 
 def get_mtime(path):
     # type: (str) -> float
@@ -663,7 +663,7 @@ def get_local_pkgs(): # Return a list of packages from slackroll_local_pkgs_dir
 def get_local_list(forced_rebuild): # Return list of local packages from cached list, updating it if needed
     # type: (bool) -> Dict[str, List[SlackwarePackage]]
     if newer_than(slackroll_local_pkgs_dir, slackroll_locallist_filename) or forced_rebuild:
-        print 'Rebuilding local package list...'
+        print('Rebuilding local package list...')
         dupes = set() # type: Set[str]
         local_list = dict() # type: Dict[str, List[SlackwarePackage]]
         for pkg in get_local_pkgs():
@@ -674,7 +674,7 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
             value.append(pkg)
             local_list[name] = value
         if len(dupes) > 0:
-            print 'WARNING: packages with two or more local versions should be frozen or foreign'
+            print('WARNING: packages with two or more local versions should be frozen or foreign')
             print_seq(dupes, 'WARNING: list of packages with two or more local versions:')
         try_dump(local_list, slackroll_locallist_filename)
     return try_load(slackroll_locallist_filename) # type: ignore
@@ -928,7 +928,7 @@ def download_file(mirror, filepath, local_temp, local_final, displayed_name=None
         full_url = urlparse.urljoin(mirror, filepath)
         hook = None if slackroll_batch_mode else functools.partial(download_report_hook, displayed_name)
         urllib.urlretrieve(full_url, local_temp, hook) # type: ignore
-        print
+        print('')
         if not try_to_rename(local_temp, local_final, fatal=False):
             raise SlackrollError('rename error: %s => %s' % (local_temp, local_final))
     except (OSError, IOError, socket.error, urllib.ContentTooShortError), err:
@@ -979,7 +979,7 @@ gnupg_exec_name = yield_gnupg_exec_name().next
 def import_key(filename):
     # type: (str) -> None
     try:
-        print 'Importing keys from %s ...' % filename
+        print('Importing keys from %s ...' % filename)
         retcode = subprocess.call([gnupg_exec_name(), '--import', filename], stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
         if retcode != 0:
             raise SlackrollError('GnuPG exited with error when importing key')
@@ -989,7 +989,7 @@ def import_key(filename):
 def verify_signature(filename):    # Does not exit on errors
     # type: (str) -> None
     try:
-        print 'Verifying signature %s ... ' % os.path.basename(filename)
+        print('Verifying signature %s ... ' % os.path.basename(filename))
         retcode = subprocess.call([gnupg_exec_name(), '--verify', filename], stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
         if retcode != 0:
             sys.stderr.write('ERROR: signature verification failed: %s\n' % filename)
@@ -1001,7 +1001,7 @@ def verify_signature(filename):    # Does not exit on errors
 def upgrade_or_install(filename, reinstall): # upgradepkg
     # type: (str, bool) -> None
     try:
-        print 'Installing %s ...' % os.path.basename(filename)
+        print('Installing %s ...' % os.path.basename(filename))
         reinstall_args = [] # type: List[str]
         if reinstall:
             reinstall_args.append('--reinstall')
@@ -1014,7 +1014,7 @@ def upgrade_or_install(filename, reinstall): # upgradepkg
 def install_with_installpkg(filename): # installpkg
     # type: (str) -> None
     try:
-        print 'Installing %s ...' % os.path.basename(filename)
+        print('Installing %s ...' % os.path.basename(filename))
         retcode = subprocess.call(['/sbin/installpkg', filename])
         if retcode != 0:
             sys.exit('ERROR: installation failed: %s' % filename)
@@ -1024,7 +1024,7 @@ def install_with_installpkg(filename): # installpkg
 def replace_pkg(installed_filename, new_filename): # upgradepkg using '%' notation
     # type: (str, str) -> None
     try:
-        print 'Installing %s ...' % os.path.basename(new_filename)
+        print('Installing %s ...' % os.path.basename(new_filename))
         retcode = subprocess.call(['/sbin/upgradepkg', '%s%%%s' % (installed_filename, new_filename)])
         if retcode != 0:
             sys.exit('ERROR: installation failed: %s' % new_filename)
@@ -1034,7 +1034,7 @@ def replace_pkg(installed_filename, new_filename): # upgradepkg using '%' notati
 def remove_pkg(removepkg_arg): # removepkg
     # type: (str) -> None
     try:
-        print 'Removing %s ...' % removepkg_arg
+        print('Removing %s ...' % removepkg_arg)
         retcode = subprocess.call(['/sbin/removepkg', removepkg_arg])
         if retcode != 0:
             sys.exit('ERROR: removal failed: %s' % removepkg_arg)
@@ -1126,9 +1126,9 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
         sys.exit('\nERROR: %s' % err)
 
     if len(lines) == 0:
-        print 'no new entries.'
+        print('no new entries.')
         return False
-    print 'new entries found.'
+    print('new entries found.')
     cl.start_new_batch()
     cl.add_entries(clentrylist_from_text(''.join(lines)))
     try_dump(cl, slackroll_local_changelog)
@@ -1139,14 +1139,14 @@ def print_urls(mirror, package):
     sigmirror = get_primary_mirror()
     pkgurl = package.url(mirror)
     sigurl = package.sig_url(sigmirror)
-    print sigurl
-    print pkgurl
+    print(sigurl)
+    print(pkgurl)
 
 def choose_option(option_list): # Prompt user and return option index
     # type: (List[Tuple[str, str]]) -> int
-    print 'Choose option:'
+    print('Choose option:')
     for (code, text) in option_list:
-        print '    (%s) %s' % (code, text)
+        print('    (%s) %s' % (code, text))
     codes = [x[0].lower() for x in option_list]
     while True:
         print_flush('You choose option... ')
@@ -1204,36 +1204,36 @@ def key_pkg_activity_pending(persistent_list): # True if any new, outdated or un
 def maybe_print_key_pkg_watchout(persistent_list):
     # type: (Dict[str, int]) -> bool
     if key_pkg_activity_pending(persistent_list):
-        print '\nWATCH OUT: ACTIVITY IN KEY SYSTEM PACKAGES'
-        print 'You can upgrade them using "upgrade-key-packages"\n'
+        print('\nWATCH OUT: ACTIVITY IN KEY SYSTEM PACKAGES')
+        print('You can upgrade them using "upgrade-key-packages"\n')
         return True
     return False
 
 def maybe_print_key_pkg_warning(persistent_list):
     # type: (Dict[str, int]) -> bool
     if key_pkg_activity_pending(persistent_list):
-        print 'WARNING: It seems there is activity in key system packages'
-        print 'WARNING: You should probably use "upgrade-key-packages" first'
+        print('WARNING: It seems there is activity in key system packages')
+        print('WARNING: You should probably use "upgrade-key-packages" first')
         return True
     return False
 
 def maybe_print_new_warning(persistent_list):
     # type: (Dict[str, int]) -> bool
     if len(pkgs_in_state(persistent_list, [slackroll_state_new])) > 0:
-        print 'WARNING: There are new packages'
+        print('WARNING: There are new packages')
         return True
     return False
 
 def maybe_print_outdated_warning(persistent_list):
     # type: (Dict[str, int]) -> bool
     if len(pkgs_in_state(persistent_list, [slackroll_state_outdated])) > 0:
-        print 'WARNING: There are outdated packages'
+        print('WARNING: There are outdated packages')
         return True
     return False
 
 def print_repo_mod_advice():
     # type: () -> None
-    print 'Repository list modified. Remember to run "update" and "list-transient".'
+    print('Repository list modified. Remember to run "update" and "list-transient".')
 
 def maybe_confirm_continue():
     # type: () -> None
@@ -1246,7 +1246,7 @@ def print_in_states(states, persistent_list, header, print_state): # Print packa
     keys = pkgs_in_state(persistent_list, states)
     if len(keys) == 0:
         return
-    print header
+    print(header)
     keys.sort(cmp=pkg_name_cmp)
     items = None # type: Union[None, List[Tuple[str, str]], List[str]]
     if print_state:
@@ -1255,14 +1255,14 @@ def print_in_states(states, persistent_list, header, print_state): # Print packa
     else:
         fmt = '    %s'
         items = keys
-    print '\n'.join(fmt % x for x in items)
-    print 'End of list'
+    print('\n'.join(fmt % x for x in items))
+    print('End of list')
 
 def print_in_states_or(states, persistent_list, header, message_on_empty, print_state): # Idem using interceptor and a message if no matches
     # type: (List[int], Dict[str, int], str, str, bool) -> None
     keys = pkgs_in_state(persistent_list, states)
     if len(keys) == 0:
-        print message_on_empty
+        print(message_on_empty)
         return
     interceptor = SlackrollOutputInterceptor()
     print_in_states(states, persistent_list, header, print_state)
@@ -1272,17 +1272,17 @@ def print_seq(seq, header): # Print every item in sequence, sorted with pkg_name
     # type: (Union[Dict[str, Any], Set[str], List[str]], str) -> None
     if len(seq) == 0:
         return
-    print header
+    print(header)
     items = [x for x in seq]
     items.sort(cmp=pkg_name_cmp)
     for item in items:
-        print '    %s' % item
-    print 'End of list'
+        print('    %s' % item)
+    print('End of list')
 
 def print_seq_or(seq, header, message_on_empty): # Idem using interceptor and a message if no items
     # type: (Union[Dict[str, Any], Set[str], List[str]], str, str) -> None
     if len(seq) == 0:
-        print message_on_empty
+        print(message_on_empty)
         return
     interceptor = SlackrollOutputInterceptor()
     print_seq(seq, header)
@@ -1292,16 +1292,16 @@ def print_list(the_list, header): # Print every list entry, sorted
     # type: (List[str], str) -> None
     if len(the_list) == 0:
         return
-    print header
+    print(header)
     the_list.sort()
     for entry in the_list:
-        print '    %s' % entry
-    print 'End of list'
+        print('    %s' % entry)
+    print('End of list')
 
 def print_list_or(the_list, header, message_on_emtpy): # Idem using interceptor and a message if empty list
     # type: (List[str], str, str) -> None
     if len(the_list) == 0:
-        print message_on_emtpy
+        print(message_on_emtpy)
         return
     interceptor = SlackrollOutputInterceptor()
     print_list(the_list, header)
@@ -1330,11 +1330,11 @@ def from_states_to_state(orig_states, dest_state, persistent_list, pkg_names): #
     # type: (List[int], int, Dict[str, int], List[str]) -> None
     maybe_error_unknown_packages(pkg_names, persistent_list)
     dest_st_name = slackroll_state_strings[dest_state]
-    print 'Marking packages as %s...' % dest_st_name
+    print('Marking packages as %s...' % dest_st_name)
     for name in pkg_names:
         cur_st = persistent_list[name]
         if cur_st not in orig_states:
-            print '%s: cannot change state from %s to %s' % (name, slackroll_state_strings[cur_st], dest_st_name)
+            print('%s: cannot change state from %s to %s' % (name, slackroll_state_strings[cur_st], dest_st_name))
             continue
         persistent_list[name] = dest_state
     persistent_list.sync() # type: ignore
@@ -1376,13 +1376,13 @@ def handle_dotnew_files_installation_batch(dotnew_files): # Handles .new files p
             break
 
         if new_exists and old_exists: # Both
-            print 'Keeping both %s and %s for manual review' % (newfile, oldfile)
+            print('Keeping both %s and %s for manual review' % (newfile, oldfile))
         elif new_exists and not old_exists: # New only
-            print 'Renaming %s to %s because %s does not exist' % (newfile, oldfile, oldfile)
+            print('Renaming %s to %s because %s does not exist' % (newfile, oldfile, oldfile))
         elif not new_exists and old_exists: # Old only
-            print 'Ignoring nonexistent %s and keeping %s' % (newfile, oldfile)
+            print('Ignoring nonexistent %s and keeping %s' % (newfile, oldfile))
         else: # None
-            print 'WARNING: neither %s nor %s exist' % (newfile, oldfile)
+            print('WARNING: neither %s nor %s exist' % (newfile, oldfile))
 
 def handle_dotnew_files_installation_interactive(dotnew_files): # Handles .new files present in packages for interactive usage
     # type: (Sequence[str]) -> None
@@ -1415,9 +1415,9 @@ def handle_dotnew_files_installation_interactive(dotnew_files): # Handles .new f
                 sys.stderr.write('ERROR: %s\n' % err)
                 break
 
-            print '\n%s %s' % (['Reviewing', 'Still reviewing'][pair_iterations > 1], newfile)
-            print '    %s  %s' % (existence_text[old_exists], baseold)
-            print '    %s  %s' % (existence_text[new_exists], basenew)
+            print('\n%s %s' % (['Reviewing', 'Still reviewing'][pair_iterations > 1], newfile))
+            print('    %s  %s' % (existence_text[old_exists], baseold))
+            print('    %s  %s' % (existence_text[new_exists], basenew))
 
             # Different options depending on which files exist
             if new_exists and old_exists: # Both
@@ -1426,10 +1426,10 @@ def handle_dotnew_files_installation_interactive(dotnew_files): # Handles .new f
                 if chosen == 0:
                     break
                 elif chosen == 1:
-                    print 'Removing %s ...' % newfile
+                    print('Removing %s ...' % newfile)
                     try_to_remove(newfile, fatal=False)
                 elif chosen == 2:
-                    print 'Renaming %s ...' % newfile
+                    print('Renaming %s ...' % newfile)
                     try_to_rename(newfile, oldfile, fatal=False)
                 else:
                     run_difftool_on(oldfile, newfile)
@@ -1440,7 +1440,7 @@ def handle_dotnew_files_installation_interactive(dotnew_files): # Handles .new f
                 if chosen == 0:
                     break
                 if chosen == 1:
-                    print 'Renaming %s ...' % newfile
+                    print('Renaming %s ...' % newfile)
                     try_to_rename(newfile, oldfile, fatal=False)
                 else:
                     run_visual_on(newfile)
@@ -1461,14 +1461,14 @@ def handle_dotnew_files_removal(dotnew_files): # Handle .new files left behind b
     if len(existing) == 0:
         return
 
-    print '\nSome previous .new files have been found.'
-    print 'Examining list in detail (this may take some seconds) ...'
+    print('\nSome previous .new files have been found.')
+    print('Examining list in detail (this may take some seconds) ...')
     knownfiles = concat(get_pkg_filelists().values())
     knownfiles.extend(old_file(x) for x in knownfiles if x.endswith(slackroll_new_suffix))
     existing = list(frozenset(existing) - frozenset(knownfiles))
 
     if len(existing) == 0:
-        print 'All of them were present in other packages.'
+        print('All of them were present in other packages.')
         return
 
     if slackroll_batch_mode:
@@ -1479,13 +1479,13 @@ def handle_dotnew_files_removal(dotnew_files): # Handle .new files left behind b
 def handle_dotnew_files_removal_batch(existing): # Remove .new files left behind by removepkg in batch mode
     # type: (Sequence[str]) -> None
     for path in existing:
-        print 'Removing %s left over after package removal' % path
+        print('Removing %s left over after package removal' % path)
         try_to_remove(path, fatal=False)
 
 def handle_dotnew_files_removal_interactive(existing): # Prompt the user about .new files left behind by removepkg in interactive mode
     # type: (Sequence[str]) -> None
     for path in existing:
-        print '\nFound %s' % path
+        print('\nFound %s' % path)
         options = [ ('K', 'Keep it'), ('R', 'Remove it') ]
         chosen = choose_option(options)
         if chosen == 1:
@@ -1510,13 +1510,13 @@ def verify_local_names(names, local_list):
     for name in names:
         if name not in local_list:
             if may_be_full_version(name):
-                print 'WARNING: %s looks like an unexpected full version' % name
+                print('WARNING: %s looks like an unexpected full version' % name)
             sys.exit('ERROR: %s is not a local package name' % name)
 
 def post_kernel_operation(): # Operations needed after kernel installation
     # type: () -> None
     if slackroll_batch_mode:
-        print 'WARNING: you may need to modify your bootloader configuration and reboot'
+        print('WARNING: you may need to modify your bootloader configuration and reboot')
         return
 
     visual = get_visual()
@@ -1549,7 +1549,7 @@ def post_kernel_operation(): # Operations needed after kernel installation
         if chosen == len(options) - 1: # Exit option
             break
         actions[chosen]() # Run selected action
-        print
+        print('')
 
 def update_manifest_database():
     # type: () -> None
@@ -1591,13 +1591,13 @@ def update_manifest_database():
                 values.append(database_value)
                 manifestdb[filename] = values
                 file_counter += 1
-        print '%d files' % file_counter
+        print('%d files' % file_counter)
 
         # Delete local file
         try_to_remove(output_name)
 
     # Dump database to disk
-    print 'Dumping database to disk...'
+    print('Dumping database to disk...')
     try_dump(manifestdb, slackroll_manifest_filename)
 
 def search_manifest_database(regexp):
@@ -1617,15 +1617,15 @@ def search_manifest_database(regexp):
             reversed[pkg] = values
 
     if len(reversed) == 0:
-        print 'No matching files'
+        print('No matching files')
     else:
         interceptor = SlackrollOutputInterceptor()
-        print 'Matching files:'
+        print('Matching files:')
         for pkg in reversed:
-            print '    %s:' % pkg
-            print '\n'.join('\t%s' % x for x in reversed[pkg])
-            print
-        print 'End of list'
+            print('    %s:' % pkg)
+            print('\n'.join('\t%s' % x for x in reversed[pkg]))
+            print('')
+        print('End of list')
         interceptor.stop()
 
 def parse_pkg_arg(arg): # Returns tuple (Is full name?, Name, SlackwarePackage or None) -- auxiliar of parse_install_args()
@@ -1661,7 +1661,7 @@ def parse_install_args(args, local_list, remote_list, use_local_version, use_pas
         # Only generic name given
         if name not in remote_list and ((not use_local_version) or (use_local_version and name not in local_list)):
             if may_be_full_version(name):
-                print 'WARNING: file extension may be missing on "%s"' % name
+                print('WARNING: file extension may be missing on "%s"' % name)
             sys.exit('ERROR: no package named %s' % name)
 
         # Create candidate list
@@ -1675,13 +1675,13 @@ def parse_install_args(args, local_list, remote_list, use_local_version, use_pas
 
         # Choose among the candidates
         if len(candidates) == 0:
-            print 'WARNING: %s only present in /pasture/' % name
+            print('WARNING: %s only present in /pasture/' % name)
         elif len(candidates) == 1:
             chosen_pkgs.append(candidates[0])
         else:
             if not use_local_version:
                 for pkg in local_list.get(name, []):
-                    print 'Local: %s' % pkg.archivename
+                    print('Local: %s' % pkg.archivename)
             chosen = choose_pkg(candidates)
             if chosen is not None:
                 chosen_pkgs.append(chosen)
@@ -1707,13 +1707,13 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
     # After selecting the packages, run the requested operation on them
     if operation != 'info':
-        print 'Total size: %s' % optimum_size_conversion(sum(x.size for x in chosen_pkgs if x.size is not None))
+        print('Total size: %s' % optimum_size_conversion(sum(x.size for x in chosen_pkgs if x.size is not None)))
         if operation != 'urls':
             to_be_downloaded = [x for x in chosen_pkgs if not package_in_cache(x)]
             cached_ones = [x for x in chosen_pkgs if x not in to_be_downloaded]
 
             for pkg in cached_ones:
-                print 'Package %s found in cache' % pkg.archivename
+                print('Package %s found in cache' % pkg.archivename)
 
             if not enough_fs_resources(len(to_be_downloaded), sum(x.size for x in to_be_downloaded if x.size is not None)):
                 low_fs_resources_warning()
@@ -1752,7 +1752,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
                 sys.exit('ERROR: %s' % err)
         interceptor = SlackrollOutputInterceptor()
         for pkg in chosen_pkgs:
-            print info_map[pkg.fullname]
+            print(info_map[pkg.fullname])
         interceptor.stop()
 
     # Review installed .new files
@@ -1834,7 +1834,7 @@ def outdated_or_installed(local_versions, remote_versions): # Returns outdated o
 
 def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTION IS A CENTRAL PIECE OF CODE
     # type: (Dict[str, List[SlackwarePackage]], Dict[str, List[SlackwarePackage]], Dict[str, int]) -> None
-    print 'Updating persistent database...'
+    print('Updating persistent database...')
     already_analyzed = set()
 
     # Go over packages present in local system and update their state or introduce them
@@ -2123,12 +2123,12 @@ if __name__ == "__main__":
             if not is_readable_file(helpfile):
                 sys.exit('ERROR: no help found for "%s"' % helpname)
             interceptor = SlackrollOutputInterceptor()
-            print file(helpfile, 'r').read()
+            print(file(helpfile, 'r').read())
             interceptor.stop()
             sys.exit()
 
         if operation == 'version':
-            print 'slackroll v%s' % slackroll_version
+            print('slackroll v%s' % slackroll_version)
             sys.exit()
 
         if operation == 'print-blacklist':
@@ -2144,11 +2144,11 @@ if __name__ == "__main__":
             sys.exit()
 
         if operation == 'print-mirror':
-            print get_mirror()
+            print(get_mirror())
             sys.exit()
 
         if operation == 'print-primary-mirror':
-            print get_primary_mirror()
+            print(get_primary_mirror())
             sys.exit()
 
         if operation == 'set-mirror':
@@ -2207,7 +2207,7 @@ if __name__ == "__main__":
                 directories.append(get_temp_dir())
             files = concat([glob.glob(os.path.join(directory, '*')) for directory in directories])
             if len(files) == 0:
-                print 'No files to remove'
+                print('No files to remove')
             else:
                 files.sort() # type: ignore
                 for filename in files:
@@ -2217,19 +2217,19 @@ if __name__ == "__main__":
         if operation == 'changelog':
             interceptor = SlackrollOutputInterceptor()
             cl = try_load(slackroll_local_changelog)
-            print slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch())
+            print(slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch()))
             interceptor.stop()
             sys.exit()
 
         if operation == 'list-changelog':
             interceptor = SlackrollOutputInterceptor()
             cl = try_load(slackroll_local_changelog)
-            print 'ChangeLog.txt entries:'
+            print('ChangeLog.txt entries:')
             for idb in xrange(cl.num_batches() - 1, -1, -1):
                 batch = cl.get_batch(idb)
                 for ide in xrange(len(batch)):
-                    print '    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp)
-            print 'End of list'
+                    print('    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp))
+            print('End of list')
             interceptor.stop()
             sys.exit()
 
@@ -2244,7 +2244,7 @@ if __name__ == "__main__":
                 except (IndexError, ValueError):
                     sys.exit('ERROR: invalid entry: %s' % code)
             interceptor = SlackrollOutputInterceptor()
-            print slackroll_changelog_entry_separator.join('%s' % x for x in entries)
+            print(slackroll_changelog_entry_separator.join('%s' % x for x in entries))
             interceptor.stop()
             sys.exit()
 
@@ -2252,7 +2252,7 @@ if __name__ == "__main__":
             cl = try_load(slackroll_local_changelog)
             entries = concat([[x for x in cl.get_batch(y)] for y in xrange(cl.num_batches() - 1, -1, -1)]) # type: ignore
             interceptor = SlackrollOutputInterceptor()
-            print slackroll_changelog_entry_separator.join('%s' % x for x in entries)
+            print(slackroll_changelog_entry_separator.join('%s' % x for x in entries))
             interceptor.stop()
             sys.exit()
 
@@ -2271,28 +2271,28 @@ if __name__ == "__main__":
                 long_time_warning()
                 interpret_results_warning()
                 maybe_confirm_continue()
-                print
+                print('')
                 test = lambda x: slackroll_never_missing_re.search(x) is None and not os.path.exists(x) and not os.path.exists(old_file(x))
                 header = 'Missing files:'
                 empty = 'No missing files'
 
 
-            print 'Reading contents of %s ...' % slackroll_local_pkgs_dir
+            print('Reading contents of %s ...' % slackroll_local_pkgs_dir)
             pkg_files_map = get_pkg_filelists()
 
             matches = [(x, [y for y in pkg_files_map[x] if test(y)]) for x in sorted(pkg_files_map.keys())]
             matches = [(name, files) for (name, files) in matches if len(files) > 0]
             if len(matches) == 0:
-                print empty
+                print(empty)
                 sys.exit()
 
             matches.sort()
             interceptor = SlackrollOutputInterceptor()
-            print header
+            print(header)
             for (name, files) in matches:
-                print '    %s' % os.path.basename(name)
-                print ''.join('\t%s\n' % x for x in files)
-            print 'End of list'
+                print('    %s' % os.path.basename(name))
+                print(''.join('\t%s\n' % x for x in files))
+            print('End of list')
             interceptor.stop()
             sys.exit()
 
@@ -2301,16 +2301,16 @@ if __name__ == "__main__":
             interpret_results_warning()
             maybe_confirm_continue()
 
-            print '\nReading normalized contents of %s ...' % slackroll_local_pkgs_dir
+            print('\nReading normalized contents of %s ...' % slackroll_local_pkgs_dir)
             known_files = get_normalized_known_files()
 
-            print 'Examining specified paths...'
+            print('Examining specified paths...')
             tree = [] # type: List[str]
             for path in args: # Iterate over specified paths
                 walk_append_if(path, is_not_link, tree)
 
             # Detect orphans
-            print 'Finding orphan files...'
+            print('Finding orphan files...')
             orphans = []
             for name in tree:
                 alternative = '%s%s' % (name, slackroll_new_suffix)
@@ -2325,7 +2325,7 @@ if __name__ == "__main__":
             interpret_results_warning()
             maybe_confirm_continue()
 
-            print '\nExamining specified paths...'
+            print('\nExamining specified paths...')
             broken_symlinks = []  # type: List[str]
             for path in args:
                 walk_append_if(path, is_broken_link, broken_symlinks)
@@ -2385,15 +2385,15 @@ if __name__ == "__main__":
 
         if operation == 'update':
             mirror = get_mirror()
-            print 'Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size())
+            print('Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size()))
             updated = update_changelog(mirror)
             transient_packages_present = any(persistent_list[x] in slackroll_transient_states for x in persistent_list)
             if updated or transient_packages_present:
-                print
+                print('')
                 if updated:
-                    print 'New change log entries found. Use "changelog" to read them.'
+                    print('New change log entries found. Use "changelog" to read them.')
                 if transient_packages_present:
-                    print 'Found packages in transient states. Use "list-transient" to list them.'
+                    print('Found packages in transient states. Use "list-transient" to list them.')
             sys.exit()
 
         if operation == 'touch':
@@ -2404,7 +2404,7 @@ if __name__ == "__main__":
             every_remote_path.sort() # type: ignore
             interceptor = SlackrollOutputInterceptor()
             for path in every_remote_path:
-                print path
+                print(path)
             interceptor.stop()
             sys.exit()
 
@@ -2422,7 +2422,7 @@ if __name__ == "__main__":
             names.sort(cmp=pkg_name_cmp)
 
             if len(names) == 0:
-                print 'No outdated packages'
+                print('No outdated packages')
                 sys.exit()
 
             opmap = { 'upgrade': 'install', 'download-upgrades': 'download', 'urls-upgrades': 'urls' }
@@ -2432,7 +2432,7 @@ if __name__ == "__main__":
         if operation in ['upgrade-key-packages', 'download-key-packages', 'urls-key-packages']:
             names = [x for x in slackroll_prioritized_pkgs if x in persistent_list and persistent_list[x] == slackroll_state_outdated]
             if len(names) == 0:
-                print 'No outdated key system packages'
+                print('No outdated key system packages')
                 sys.exit()
             opmap = { 'upgrade-key-packages': 'install', 'download-key-packages': 'download', 'urls-key-packages': 'urls' }
             install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, use_pasture=False)
@@ -2441,7 +2441,7 @@ if __name__ == "__main__":
         if operation == 'kernel-upgrade':
             names = [x for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[x] == slackroll_state_outdated]
             if len(names) == 0:
-                print 'No outdated kernel packages'
+                print('No outdated kernel packages')
             install_operations_family('installpkg', names, local_list, remote_list, persistent_list, use_pasture=False)
             post_kernel_operation()
             sys.exit()
@@ -2460,15 +2460,15 @@ if __name__ == "__main__":
 
             to_be_removed = [pkg for pkg in cache_pkgs if not pkg_in_map(pkg, local_list) and not pkg_in_map(pkg, remote_list)]
             if len(to_be_removed) == 0:
-                print 'No package files to remove'
+                print('No package files to remove')
             else:
                 for pkg in to_be_removed:
-                    print 'Removing %s ...' % pkg.fullname
+                    print('Removing %s ...' % pkg.fullname)
                     try_to_remove(pkg.fullname)
 
             if len(extraneous_files) > 0:
                 extraneous_files.sort()
-                print '\n'.join('WARNING: extraneous file %s' % x for x in extraneous_files)
+                print('\n'.join('WARNING: extraneous file %s' % x for x in extraneous_files))
             sys.exit()
 
         if operation in ['list-upgrades', 'list-outdated-frozen']:
@@ -2480,28 +2480,28 @@ if __name__ == "__main__":
 
             if len(names) == 0:
                 if operation == 'list-upgrades':
-                    print 'No outdated packages'
+                    print('No outdated packages')
                 else: # list-outdated-frozen
-                    print 'No frozen packages would be outdated'
+                    print('No frozen packages would be outdated')
                 sys.exit()
 
             interceptor = SlackrollOutputInterceptor()
             if operation == 'list-upgrades':
-                print 'Available upgrades:'
+                print('Available upgrades:')
             else: # list-outdated-frozen
-                print 'Would be outdated:'
+                print('Would be outdated:')
 
             names.sort(cmp=pkg_name_cmp)
             for name in names:
                 candidates = not_pasture(remote_list[name])
                 if len(candidates) == 0:
-                    print '    %s: WARNING: only present in /pasture/\n' % name
+                    print('    %s: WARNING: only present in /pasture/\n' % name)
                     continue
-                print '    %s:' % name
-                print '\n'.join('\tLocal:\t%s' % pkg.archivename for pkg in local_list[name])
-                print '\n'.join('\tRemote:\t%s' % pkg.fullname for pkg in candidates)
-                print
-            print 'End of list'
+                print('    %s:' % name)
+                print('\n'.join('\tLocal:\t%s' % pkg.archivename for pkg in local_list[name]))
+                print('\n'.join('\tRemote:\t%s' % pkg.fullname for pkg in candidates))
+                print('')
+            print('End of list')
 
             if operation == 'list-upgrades':
                 maybe_print_key_pkg_watchout(persistent_list)
@@ -2511,7 +2511,7 @@ if __name__ == "__main__":
         if operation == 'list-transient':
             pkgs_and_states = [(pkg, persistent_list[pkg]) for pkg in persistent_list if persistent_list[pkg] in slackroll_transient_states]
             if len(pkgs_and_states) == 0:
-                print 'No transient packages found'
+                print('No transient packages found')
                 sys.exit()
             pkgs_and_states.sort(cmp=transient_cmp)
 
@@ -2523,9 +2523,9 @@ if __name__ == "__main__":
 
             # Print the transient list
             interceptor = SlackrollOutputInterceptor()
-            print 'Transient packages:'
-            print '\n'.join(format % (state, name, tr_pkg_detail(local_list, remote_list, persistent_list, name)) for (name, state) in pkgs_and_str_states)
-            print 'End of list'
+            print('Transient packages:')
+            print('\n'.join(format % (state, name, tr_pkg_detail(local_list, remote_list, persistent_list, name)) for (name, state) in pkgs_and_str_states))
+            print('End of list')
             maybe_print_key_pkg_watchout(persistent_list)
             interceptor.stop()
             sys.exit()
@@ -2552,19 +2552,19 @@ if __name__ == "__main__":
                     alternatives[name] = versions
 
             if len(alternatives) == 0:
-                print 'No packages with alternative versions'
+                print('No packages with alternative versions')
                 sys.exit()
 
             names = alternatives.keys()
             names.sort(cmp=pkg_name_cmp)
             interceptor = SlackrollOutputInterceptor()
-            print 'Packages with alternatives:'
+            print('Packages with alternatives:')
             for name in names:
-                print '    %s:' % name
+                print('    %s:' % name)
                 for ver in alternatives[name]:
-                    print '\t%s' % ver.fullname
-                print
-            print 'End of list'
+                    print('\t%s' % ver.fullname)
+                print('')
+            print('End of list')
             interceptor.stop()
             sys.exit()
 
@@ -2633,15 +2633,15 @@ if __name__ == "__main__":
         if operation == 'list-versions':
             maybe_error_unknown_packages(args, persistent_list)
             interceptor = SlackrollOutputInterceptor()
-            print 'Available versions:'
+            print('Available versions:')
             for name in args:
-                print '    %s:' % name
+                print('    %s:' % name)
                 if name in local_list:
-                    print '\n'.join('\tLocal:\t%s' % ver.archivename for ver in local_list[name])
+                    print('\n'.join('\tLocal:\t%s' % ver.archivename for ver in local_list[name]))
                 if name in remote_list:
-                    print '\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name])
-                print
-            print 'End of list'
+                    print('\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name]))
+                print('')
+            print('End of list')
             interceptor.stop()
             sys.exit()
 
@@ -2653,7 +2653,7 @@ if __name__ == "__main__":
             names = pkgs_in_state(persistent_list, [slackroll_state_new])
             names.sort(cmp=pkg_name_cmp)
             if len(names) == 0:
-                print 'No new packages'
+                print('No new packages')
                 sys.exit()
             opname = operation.replace('-new', '')
             install_operations_family(opname, names, local_list, remote_list, persistent_list)
@@ -2672,7 +2672,7 @@ if __name__ == "__main__":
                 matching_pkgs = [x for x in matching_pkgs if pkg_in_map(x, local_list)]
 
             if len(matching_pkgs) == 0:
-                print 'No matching packages'
+                print('No matching packages')
                 sys.exit()
 
             matching_pkgs.sort()
@@ -2691,7 +2691,7 @@ if __name__ == "__main__":
             verify_local_names(args, local_list)
             interceptor = SlackrollOutputInterceptor()
             try:
-                print '\n'.join(file(x.fullname, 'r').read() for x in concat(local_list[pkg] for pkg in args))
+                print('\n'.join(file(x.fullname, 'r').read() for x in concat(local_list[pkg] for pkg in args)))
             except (IOError, OSError), err:
                 sys.exit('ERROR: %s' % err)
             interceptor.stop()
@@ -2787,7 +2787,7 @@ if __name__ == "__main__":
                 final_args = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
 
             if len(final_args) == 0:
-                print 'No packages to remove'
+                print('No packages to remove')
                 sys.exit()
 
             to_be_removed = []
@@ -2812,7 +2812,7 @@ if __name__ == "__main__":
                     for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[x] == slackroll_state_installed]
             outdated_kernel_pkgs = concat(outdated_kernel_pkgs_full)
             if len(outdated_kernel_pkgs) == 0:
-                print 'No obsolete kernel packages found'
+                print('No obsolete kernel packages found')
                 sys.exit()
             remove_pkgs(outdated_kernel_pkgs)
             post_kernel_operation()
