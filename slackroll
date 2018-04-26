@@ -42,6 +42,11 @@ import cPickle
 import cStringIO
 import urlparse
 
+PY2 = sys.version_info[0] == 2
+
+if not PY2:
+    from functools import reduce
+
 try:
     from typing import TYPE_CHECKING
 except ImportError:
