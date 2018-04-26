@@ -491,14 +491,16 @@ def get_self_file_version(): # Get self version from disk file
     try:
         data = file(slackroll_self_filename, 'r').read()
         return long(data)
-    except (OSError, IOError, ValueError), err:
+    except (OSError, IOError, ValueError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def write_self_file_version(): # Write self version to disk file
     # type: () -> None
     try:
         file(slackroll_self_filename, 'w').write('%s\n' % slackroll_version)
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def long_time_warning():
@@ -517,7 +519,8 @@ def get_mtime(path):
     # type: (str) -> float
     try:
         return os.path.getmtime(path)
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def newer_than(path1, path2): # path1 modification time more recent than path2 modification time?
@@ -540,14 +543,16 @@ def try_dump(object, filepath): # cPickle.dump()
     # type: (Any, str) -> None
     try:
         cPickle.dump(object, file(filepath, 'wb'), pickle_protocol)
-    except (OSError, IOError, cPickle.PickleError), err:
+    except (OSError, IOError, cPickle.PickleError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def try_load(filepath): # cPickle.load()
     # type: (str) -> Any
     try:
         return cPickle.load(file(filepath, 'rb'))
-    except (OSError, IOError, cPickle.PickleError), err:
+    except (OSError, IOError, cPickle.PickleError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def get_blacklist(): # Get blacklist expression list
@@ -619,7 +624,8 @@ def extract_file_list(filename): # Extracts the file list from a local info file
         return paths # type: ignore
     except ValueError:
         sys.exit('ERROR: unable to find file list marker in %s' % filename)
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def get_pkg_filelists(): # Return a dictionary of filename->filelist from slackroll_local_pkgs_dir
@@ -627,7 +633,8 @@ def get_pkg_filelists(): # Return a dictionary of filename->filelist from slackr
     if newer_than(slackroll_local_pkgs_dir, slackroll_pkg_files_filename):
         try:
             filenames = glob.glob(slackroll_local_pkgs_glob)
-        except (OSError, IOError), err:
+        except (OSError, IOError):
+            err = sys.exc_info()[1]
             sys.exit('ERROR: %s' % err)
         contents = dict()
         for filename in filenames:
@@ -640,7 +647,8 @@ def get_normalized_known_files(): # Return a set of known files for orphan-searc
     if newer_than(slackroll_local_pkgs_dir, slackroll_known_files):
         try:
             filenames = glob.glob(slackroll_local_pkgs_glob)
-        except (OSError, IOError), err:
+        except (OSError, IOError):
+            err = sys.exc_info()[1]
             sys.exit('ERROR: %s' % err)
         known_files = set()
         for pkg in filenames:
@@ -656,7 +664,8 @@ def get_local_pkgs(): # Return a list of packages from slackroll_local_pkgs_dir
         sys.exit('ERROR: could not read list of local packages')
     try:
         local_pkgs = [pkg_from_str(x) for x in local_pkg_names]
-    except SlackrollError, err:
+    except SlackrollError:
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
     return local_pkgs
 
@@ -690,7 +699,8 @@ def get_remote_pkgs(local_filelist, url): # Return a list of packages from FILEL
         matches = [slackroll_filelist_pkg_re.match(x) for x in lines]
         nm_sz = [(x.group(slackroll_filelist_pkg_str), x.group(slackroll_filelist_pkg_size)) for x in matches if x is not None]
         return [pkg_from_name_size_url(nm, sz, url) for (nm, sz) in nm_sz if not ignore_package_path(nm)]
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def extend_remote_list(local_filelist, remote_list, pkgs_url=None):
@@ -735,7 +745,8 @@ def get_mirror_from_file(filepath):
         if not mirror.endswith('/'):
             mirror = mirror + '/'
         return mirror
-    except (OSError, IOError, ValueError), err:
+    except (OSError, IOError, ValueError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def get_mirror(): # From the 'mirror' file
@@ -763,7 +774,8 @@ def set_mirror(mirror): # Writes the mirror name to the 'mirror' file
         mirror = mirror + '/'
     try:
         file(slackroll_mirror_filename, 'w').write('%s\n' % mirror)
-    except (OSError, IOError, ValueError), err:
+    except (OSError, IOError, ValueError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def set_primary_mirror(mirror): # Writes the mirror name to the 'pmirror' file
@@ -772,7 +784,8 @@ def set_primary_mirror(mirror): # Writes the mirror name to the 'pmirror' file
         mirror = mirror + '/'
     try:
         file(slackroll_primary_mirror_filename, 'w').write('%s\n' % mirror)
-    except (OSError, IOError, ValueError), err:
+    except (OSError, IOError, ValueError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def get_mirror_version_components(mirror): # Extract Slackware version components from mirror URL
@@ -797,7 +810,8 @@ def get_pkg_cache_size(): # Return total bytes for files in cache
     # type: () -> int
     try:
         return sum(os.path.getsize(x) for x in glob.glob(slackroll_pkgs_dir_glob))
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def call_pager(): # Call pager and return handler
@@ -807,7 +821,8 @@ def call_pager(): # Call pager and return handler
         pager_list = pager.split()
         proc = subprocess.Popen(pager_list, stdin=subprocess.PIPE)
         return proc
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def getwinsize(): # Returns terminal (rows, columns)
@@ -874,7 +889,8 @@ def run_program(arg_list, env=None): # Does not exit on errors
     # type: (List[str], Optional[Dict[str, str]]) -> None
     try:
         subprocess.call(arg_list, env=env)
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.stderr.write('ERROR: %s\n' % err)
 
 def run_visual_on(file_path): # Does not exit on errors
@@ -892,7 +908,8 @@ def try_to_remove(file_path, fatal=True): # When it returns, it is True if file 
     try:
         os.remove(file_path)
         return True
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.stderr.write('ERROR: %s\n' % err)
         if fatal:
             sys.exit(slackroll_exit_failure)
@@ -903,7 +920,8 @@ def try_to_rename(src, dest, fatal=True): # When it returns, it is True if file 
     try:
         shutil.move(src, dest)
         return True
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.stderr.write('ERROR: %s\n' % err)
         if fatal:
             sys.exit(slackroll_exit_failure)
@@ -931,7 +949,8 @@ def download_file(mirror, filepath, local_temp, local_final, displayed_name=None
         print('')
         if not try_to_rename(local_temp, local_final, fatal=False):
             raise SlackrollError('rename error: %s => %s' % (local_temp, local_final))
-    except (OSError, IOError, socket.error, urllib.ContentTooShortError), err:
+    except (OSError, IOError, socket.error, urllib.ContentTooShortError):
+        err = sys.exc_info()[1]
         sys.stderr.write('\nERROR: %s\n' % err)
         raise SlackrollError(str(err))
 
@@ -954,7 +973,8 @@ def handle_writable_dir(dirname): # Make sure dirname is available and writable
     if not os.path.exists(dirname):
         try:
             os.mkdir(dirname)
-        except (OSError, IOError), err:
+        except (OSError, IOError):
+            err = sys.exc_info()[1]
             sys.exit('ERROR: %s' % err)
     if not os.path.isdir(dirname):
         sys.exit('ERROR: %s exists but is not a directory' % dirname)
@@ -983,7 +1003,8 @@ def import_key(filename):
         retcode = subprocess.call([gnupg_exec_name(), '--import', filename], stdout=file(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
         if retcode != 0:
             raise SlackrollError('GnuPG exited with error when importing key')
-    except (OSError, IOError, SlackrollError), err:
+    except (OSError, IOError, SlackrollError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def verify_signature(filename):    # Does not exit on errors
@@ -994,7 +1015,8 @@ def verify_signature(filename):    # Does not exit on errors
         if retcode != 0:
             sys.stderr.write('ERROR: signature verification failed: %s\n' % filename)
             raise SlackrollError('GnuPG exited with status code %s' % retcode)
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.stderr.write('ERROR: %s\n' % err)
         raise SlackrollError(str(err))
 
@@ -1008,7 +1030,8 @@ def upgrade_or_install(filename, reinstall): # upgradepkg
         retcode = subprocess.call(['/sbin/upgradepkg', '--install-new'] + reinstall_args + [filename])
         if retcode != 0:
             sys.exit('ERROR: installation failed: %s' % filename)
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def install_with_installpkg(filename): # installpkg
@@ -1018,7 +1041,8 @@ def install_with_installpkg(filename): # installpkg
         retcode = subprocess.call(['/sbin/installpkg', filename])
         if retcode != 0:
             sys.exit('ERROR: installation failed: %s' % filename)
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def replace_pkg(installed_filename, new_filename): # upgradepkg using '%' notation
@@ -1028,7 +1052,8 @@ def replace_pkg(installed_filename, new_filename): # upgradepkg using '%' notati
         retcode = subprocess.call(['/sbin/upgradepkg', '%s%%%s' % (installed_filename, new_filename)])
         if retcode != 0:
             sys.exit('ERROR: installation failed: %s' % new_filename)
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR %s' % err)
 
 def remove_pkg(removepkg_arg): # removepkg
@@ -1038,7 +1063,8 @@ def remove_pkg(removepkg_arg): # removepkg
         retcode = subprocess.call(['/sbin/removepkg', removepkg_arg])
         if retcode != 0:
             sys.exit('ERROR: removal failed: %s' % removepkg_arg)
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
 def remove_pkgs(pkg_list):
@@ -1109,7 +1135,8 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
     try: # Only read until last known entry
         cl = try_load(slackroll_local_changelog) # type: ChangeLog
         limits = set(concat([[x.timestamp for x in cl.get_batch(y)] for y in xrange(cl.num_batches())]))
-    except (OSError, IOError), err:
+    except (OSError, IOError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
     changelog_url = urlparse.urljoin(mirror, slackroll_changelog_filename)
@@ -1122,7 +1149,8 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
                 break
             lines.append(new_line)
         conn.close()
-    except (OSError, IOError, socket.error, urllib.ContentTooShortError), err:
+    except (OSError, IOError, socket.error, urllib.ContentTooShortError):
+        err = sys.exc_info()[1]
         sys.exit('\nERROR: %s' % err)
 
     if len(lines) == 0:
@@ -1371,7 +1399,8 @@ def handle_dotnew_files_installation_batch(dotnew_files): # Handles .new files p
         try:
             new_exists = os.path.exists(newfile)
             old_exists = os.path.exists(oldfile)
-        except (OSError, IOError), err:
+        except (OSError, IOError):
+            err = sys.exc_info()[1]
             sys.stderr.write('ERROR: %s\n' % err)
             break
 
@@ -1411,7 +1440,8 @@ def handle_dotnew_files_installation_interactive(dotnew_files): # Handles .new f
             try:
                 new_exists = os.path.exists(newfile)
                 old_exists = os.path.exists(oldfile)
-            except (OSError, IOError), err:
+            except (OSError, IOError):
+                err = sys.exc_info()[1]
                 sys.stderr.write('ERROR: %s\n' % err)
                 break
 
@@ -1748,7 +1778,8 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
                     info_map[pkg.fullname] = ''.join(header)
                 else:
                     info_map[pkg.fullname] = get_remote_info(mirror, pkg)
-            except (OSError, IOError), err:
+            except (OSError, IOError):
+                err = sys.exc_info()[1]
                 sys.exit('ERROR: %s' % err)
         interceptor = SlackrollOutputInterceptor()
         for pkg in chosen_pkgs:
@@ -1768,7 +1799,8 @@ def extend_manifest_list(manifest_list, index, mirror, local_filelist):
     # Build the list of MANIFEST.bz2 files
     try:
         lines = open(local_filelist, 'r').readlines()
-    except (IOError, OSError), err:
+    except (IOError, OSError):
+        err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
     all_matches = [slackroll_manifest_re.search(x) for x in lines]
     filtered_matches = [y.group(1) for y in all_matches if y is not None]
@@ -2692,7 +2724,8 @@ if __name__ == "__main__":
             interceptor = SlackrollOutputInterceptor()
             try:
                 print('\n'.join(file(x.fullname, 'r').read() for x in concat(local_list[pkg] for pkg in args)))
-            except (IOError, OSError), err:
+            except (IOError, OSError):
+                err = sys.exc_info()[1]
                 sys.exit('ERROR: %s' % err)
             interceptor.stop()
             sys.exit()
@@ -2708,7 +2741,8 @@ if __name__ == "__main__":
             # Verify and get package names
             try:
                 pkgs = [pkg_from_str(x) for x in args]
-            except SlackrollError, err:
+            except SlackrollError:
+                err = sys.exc_info()[1]
                 sys.exit('ERROR: %s' % err)
 
             # The packages must not be present in persistent list or be foreign already
@@ -2840,8 +2874,9 @@ if __name__ == "__main__":
             print_list_or(matching_fullnames, 'Matching packages:', 'No matching packages found')
             sys.exit()
 
-    except (KeyboardInterrupt, IOError, EOFError), error:
-        if isinstance(error, KeyboardInterrupt):
+    except (KeyboardInterrupt, IOError, EOFError):
+        err = sys.exc_info()[1]
+        if isinstance(err, KeyboardInterrupt):
             sys.stderr.write('\nProgram aborted by user\n')
         if persistent_list is not None:
             persistent_list.close() # type: ignore
