@@ -47,6 +47,16 @@ PY2 = sys.version_info[0] == 2
 if not PY2:
     from functools import reduce
 
+if PY2:
+    try:
+        next
+    except NameError:
+        def next_from_iterator(it):
+            # type: (Iterable[T]) -> T
+            return it.next() # type: ignore
+
+        next = next_from_iterator
+
 try:
     from typing import TYPE_CHECKING
 except ImportError:
@@ -73,6 +83,7 @@ if TYPE_CHECKING:
     )
 
     T = TypeVar("T")
+
 
 
 # BCS: Pickle protocols > 2 will not be backward-compatible with Python 2
@@ -181,7 +192,7 @@ def yield_slackroll_local_pkgs_dir():
     sys.exit('ERROR: unable to find local packages directgory')
 
 if __name__ == "__main__":
-    slackroll_local_pkgs_glob = os.path.join(yield_slackroll_local_pkgs_dir().next(), '*')
+    slackroll_local_pkgs_glob = os.path.join(next(yield_slackroll_local_pkgs_dir()), '*')
     slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 
 def standarize_locales():
@@ -999,7 +1010,16 @@ def yield_gnupg_exec_name():
             pass
     sys.exit('ERROR: unable to run GnuPG')
 
-gnupg_exec_name = yield_gnupg_exec_name().next
+gnupg_exec_name_cached = None # type: Optional[str]
+
+def gnupg_exec_name():
+    # type: () -> str
+    global gnupg_exec_name_cached
+
+    if gnupg_exec_name_cached is None:
+        gnupg_exec_name_cached = next(yield_gnupg_exec_name())
+
+    return gnupg_exec_name_cached
 
 def import_key(filename):
     # type: (str) -> None
