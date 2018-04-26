@@ -300,7 +300,7 @@ def pkg_from_name_size_url(path_or_name, size_str=None, url=None): # Create a Sl
     build = matchobj.group(slackroll_pkg_re_build)
     suffix = matchobj.group(slackroll_pkg_re_suffix)
     try:
-        size = (size_str is not None and long(size_str) or None)
+        size = (size_str is not None and int(size_str) or None)
     except ValueError:
         raise SlackrollError('invalid file size: %s' % size_str)
     return SlackwarePackage(name, version, arch, build, path, suffix, size, url)
@@ -413,7 +413,7 @@ def enough_fs_resources(numpkgs, bytes): # Check if there are enough filesystem 
 def get_self_file_version(): # Get self version from disk file
     try:
         data = file(slackroll_self_filename, 'r').read()
-        return long(data)
+        return int(data)
     except (OSError, IOError, ValueError) as err:
         sys.exit('ERROR: %s' % err)
 
@@ -504,7 +504,7 @@ def del_blacklist_exprs(indexes): # Remove expressions from the blacklist
     idnums = []
     for idx in indexes:
         try:
-            num = long(idx)
+            num = int(idx)
             if num < 0 or num >= len(bl):
                 raise ValueError()
             idnums.append(num)
@@ -1937,7 +1937,7 @@ if __name__ == "__main__":
             invalid = []
             for x in args:
                 try:
-                    num = long(x)
+                    num = int(x)
                     if num in repo_dict:
                         valid.append(num)
                     else:
@@ -1993,7 +1993,7 @@ if __name__ == "__main__":
             for code in args:
                 try:
                     (idb, ide) = code.split('.')
-                    (idb, ide) = (long(idb), long(ide))
+                    (idb, ide) = (int(idb), int(ide))
                     entries.append(cl.get_batch(idb)[ide])
                 except (IndexError, ValueError):
                     sys.exit('ERROR: invalid entry: %s' % code)
