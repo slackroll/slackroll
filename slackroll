@@ -52,6 +52,8 @@ if PY2:
     # which is actually the behaviour on python3.
     input = raw_input
 
+    # not strictly necessary, but to preserve previous py2 behaviour, make int be long on python 2
+    int = long
 
     try:
         next
@@ -382,7 +384,7 @@ def pkg_from_name_size_url(path_or_name, size_str=None, url=None): # Create a Sl
     build = matchobj.group(slackroll_pkg_re_build)
     suffix = matchobj.group(slackroll_pkg_re_suffix)
     try:
-        size = (size_str is not None and long(size_str) or None)
+        size = (size_str is not None and int(size_str) or None)
     except ValueError:
         raise SlackrollError('invalid file size: %s' % size_str)
     return SlackwarePackage(name, version, arch, build, path, suffix, size, url)
@@ -517,7 +519,7 @@ def get_self_file_version(): # Get self version from disk file
     # type: () -> int
     try:
         data = file(slackroll_self_filename, 'r').read()
-        return long(data)
+        return int(data)
     except (OSError, IOError, ValueError):
         err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
@@ -627,7 +629,7 @@ def del_blacklist_exprs(indexes): # Remove expressions from the blacklist
     idnums = []
     for idx in indexes:
         try:
-            num = long(idx)
+            num = int(idx)
             if num < 0 or num >= len(bl):
                 raise ValueError()
             idnums.append(num)
@@ -2251,7 +2253,7 @@ if __name__ == "__main__":
             invalid = [] # type: List[Union[str, int]]
             for x in args:
                 try:
-                    num = long(x)
+                    num = int(x)
                     if num in repo_dict:
                         valid.append(num)
                     else:
@@ -2307,7 +2309,7 @@ if __name__ == "__main__":
             for code in args:
                 try:
                     (idbs, ides) = code.split('.')
-                    (idb, ide) = (long(idbs), long(ides))
+                    (idb, ide) = (int(idbs), int(ides))
                     entries.append(cl.get_batch(idb)[ide])
                 except (IndexError, ValueError):
                     sys.exit('ERROR: invalid entry: %s' % code)
