@@ -69,6 +69,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "future"
+version = "0.18.2"
+description = "Clean single-source support for Python 3 and 2"
+category = "main"
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+
+[[package]]
 name = "importlib-metadata"
 version = "2.1.3"
 description = "Read metadata from Python packages"
@@ -328,7 +336,7 @@ docs = ["rst.linker (>=1.9)", "jaraco.packaging (>=3.2)", "sphinx"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^2.7 || ^3.9"
-content-hash = "92e1f298f3403cfbfcd040d70deb8863273324a8416e0dea29fd32fe1b5aa006"
+content-hash = "d29ea6a0c3c5f78da3f5fbde866b3e417e0c864c791c833e2bb7317b0cef0e63"
 
 [metadata.files]
 atomicwrites = [
@@ -357,6 +365,9 @@ contextlib2 = [
 funcsigs = [
     {file = "funcsigs-1.0.2-py2.py3-none-any.whl", hash = "sha256:330cc27ccbf7f1e992e69fef78261dc7c6569012cf397db8d3de0234e6c937ca"},
     {file = "funcsigs-1.0.2.tar.gz", hash = "sha256:a7bb0f2cf3a3fd1ab2732cb49eba4252c2af4240442415b4abce3b87022a8f50"},
+]
+future = [
+    {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
 ]
 importlib-metadata = [
     {file = "importlib_metadata-2.1.3-py2.py3-none-any.whl", hash = "sha256:52e65a0856f9ba7ea8f2c4ced253fb6c88d1a8c352cb1e916cff4eb17d5a693d"},
