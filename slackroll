@@ -33,7 +33,6 @@ import sys
 import termios
 import urllib
 
-import cPickle
 import cStringIO
 import urlparse
 
@@ -54,6 +53,8 @@ if not PY2:
         # type: (Any, Any) -> int
         return (x > y) - (x < y)
 
+    import pickle
+
 
 if PY2:
     import anydbm
@@ -66,6 +67,8 @@ if PY2:
     def needs_db_upgrade(db):
         # type: (Any) -> bool
         return isinstance(db, bsddb._DBWithCursor)
+
+    import cPickle as pickle
 
     # we don't use input anywhere in slackroll, so make `input` behave like raw_input,
     # which is actually the behaviour on python3.
@@ -587,19 +590,19 @@ def is_readable_file(filepath):
     # type: (str) -> bool
     return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
 
-def try_dump(object, filepath): # cPickle.dump()
+def try_dump(object, filepath): # pickle.dump()
     # type: (Any, str) -> None
     try:
-        cPickle.dump(object, file(filepath, 'wb'), pickle_protocol)
-    except (OSError, IOError, cPickle.PickleError):
+        pickle.dump(object, file(filepath, 'wb'), pickle_protocol)
+    except (OSError, IOError, pickle.PickleError):
         err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
-def try_load(filepath): # cPickle.load()
+def try_load(filepath): # pickle.load()
     # type: (str) -> Any
     try:
-        return cPickle.load(file(filepath, 'rb'))
-    except (OSError, IOError, cPickle.PickleError):
+        return pickle.load(file(filepath, 'rb'))
+    except (OSError, IOError, pickle.PickleError):
         err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
