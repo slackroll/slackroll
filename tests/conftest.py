@@ -11,5 +11,5 @@ else:
     from importlib.machinery import SourceFileLoader
 
     spec = spec_from_loader("slackroll", SourceFileLoader("slackroll", slackroll_file))
-    module_from_spec(spec)
+    slackroll = module_from_spec(spec)
     spec.loader.exec_module(slackroll)
