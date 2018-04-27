@@ -33,9 +33,6 @@ import sys
 import termios
 import urllib
 
-import cStringIO
-import urlparse
-
 PY2 = sys.version_info[0] == 2
 
 if not PY2:
@@ -54,6 +51,11 @@ if not PY2:
         return (x > y) - (x < y)
 
     import pickle
+    import urllib
+    from io import StringIO
+    from urllib.request import urljoin, urlopen, urlretrieve
+
+    URLOpenerTarget = urllib.request
 
 
 if PY2:
@@ -69,6 +71,7 @@ if PY2:
         return isinstance(db, bsddb._DBWithCursor)
 
     import cPickle as pickle
+    from cStringIO import StringIO
 
     # we don't use input anywhere in slackroll, so make `input` behave like raw_input,
     # which is actually the behaviour on python3.
@@ -86,10 +89,26 @@ if PY2:
 
         next = next_from_iterator
 
-
     # we don't use range anywhere in slackroll, so make `range` behave like xrange,
     # which is actually the behaviour on python3.
     range = xrange
+
+    from types import ModuleType
+    from urllib import urlretrieve
+
+    from urllib2 import urlopen
+    from urlparse import urljoin
+
+    request_module = ModuleType("request", 'for holding python3 urllib definitions')
+    request_module.__dict__.update({"FancyURLopener": urllib.FancyURLopener})
+    urllib.request = request_module # type: ignore
+
+    error_module = ModuleType("error", 'for holding python3 urllib definitions')
+    error_module.__dict__.update({"ContentTooShortError": urllib.ContentTooShortError})
+    urllib.error = error_module # type: ignore
+
+
+    URLOpenerTarget = urllib
 
 
 try:
@@ -378,13 +397,13 @@ class SlackwarePackage(object):
 
     def url(self, mirror):
         # type: (Optional[str]) -> str
-        return urlparse.urljoin(self.base_url(mirror), self.fullname) # type: ignore
+        return urljoin(self.base_url(mirror), self.fullname) # type: ignore
 
     def sig_url(self, mirror):
         # type: (str) -> str
-        return urlparse.urljoin(self.base_url(mirror), self.fullsigname) # type: ignore
+        return urljoin(self.base_url(mirror), self.fullsigname) # type: ignore
 
-class SlackrollURLopener(urllib.FancyURLopener):
+class SlackrollURLopener(urllib.request.FancyURLopener): # type: ignore
     def http_error_default(self, url, fp, errcode, errmsg, headers): # type: ignore
         raise IOError('%s: %s' % (errcode, errmsg))
 
@@ -911,7 +930,7 @@ class SlackrollOutputInterceptor(object): # Intercepts stdout and uses a pager i
         if not sys.stdout.isatty():
             self.__was_not_tty = True
         else:
-            self.__buffer = cStringIO.StringIO()
+            self.__buffer = StringIO()
             self.__old_stdout = sys.stdout
             sys.stdout = self.__buffer
 
@@ -994,13 +1013,13 @@ def download_file(mirror, filepath, local_temp, local_final, displayed_name=None
         if displayed_name is None:
             displayed_name = os.path.basename(filepath)
         print_flush('Downloading %s ... ' % displayed_name)
-        full_url = urlparse.urljoin(mirror, filepath)
+        full_url = urljoin(mirror, filepath)
         hook = None if slackroll_batch_mode else functools.partial(download_report_hook, displayed_name)
-        urllib.urlretrieve(full_url, local_temp, hook) # type: ignore
+        urlretrieve(full_url, local_temp, hook) # type: ignore
         print('')
         if not try_to_rename(local_temp, local_final, fatal=False):
             raise SlackrollError('rename error: %s => %s' % (local_temp, local_final))
-    except (OSError, IOError, socket.error, urllib.ContentTooShortError):
+    except (OSError, IOError, socket.error, urllib.error.ContentTooShortError): # type: ignore
         err = sys.exc_info()[1]
         sys.stderr.write('\nERROR: %s\n' % err)
         raise SlackrollError(str(err))
@@ -1199,17 +1218,17 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
         err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
-    changelog_url = urlparse.urljoin(mirror, slackroll_changelog_filename)
+    changelog_url = urljoin(mirror, slackroll_changelog_filename)
     lines = []
     try:
-        conn = urllib.urlopen(changelog_url)
+        conn = urlopen(changelog_url)
         while True:
             new_line = conn.readline()
             if len(new_line) == 0 or new_line.strip() in limits:
                 break
             lines.append(new_line)
         conn.close()
-    except (OSError, IOError, socket.error, urllib.ContentTooShortError):
+    except (OSError, IOError, socket.error, urllib.error.ContentTooShortError): # type: ignore
         err = sys.exc_info()[1]
         sys.exit('\nERROR: %s' % err)
 
@@ -1882,7 +1901,7 @@ def update_operation(mirror):
 
     for (x, repo) in enumerate(get_repo_list()):
         displayed_name = '%s from repository %s' % (slackroll_filelist_filename, x)
-        full_url = urlparse.urljoin(repo, slackroll_filelist_filename)
+        full_url = urljoin(repo, slackroll_filelist_filename)
         download_or_exit(repo, slackroll_filelist_filename, get_temp_dir(), displayed_name)
         extend_remote_list(local_filelist, remote_list, repo)
         extend_manifest_list(manifest_list, x, repo, local_filelist)
@@ -2099,7 +2118,7 @@ if __name__ == "__main__":
         local_list = None
         remote_list = None
         persistent_list = None
-        urllib._urlopener = SlackrollURLopener() # type: ignore
+        URLOpenerTarget._urlopener = SlackrollURLopener() # type: ignore
         socket.setdefaulttimeout(slackroll_socket_timeout)
         standarize_locales()
 
