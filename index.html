@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
-<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="generator" content="AsciiDoc 8.6.10" />
 <meta name="description" content="Package or update manager for Slackware systems" />
 <meta name="keywords" content="slackroll,slackware,package manager,update manager" />
 <title>slackroll: package or update manager for Slackware systems</title>
@@ -1242,6 +1243,26 @@ endif</code></pre>
 </div></div>
 </div>
 <div class="sect2">
+<h3 id="_packages_with_two_or_more_local_versions">Packages with two or more local versions</h3>
+<div class="paragraph"><p><strong>Question</strong>: <code>slackroll</code> sometimes warns me about having multiple versions of
+the same package installed in my system. Is that a problem? When does the
+warning appear exactly?</p></div>
+<div class="paragraph"><p><strong>Answer</strong>: Having multiple versions of the same package installed may or may not
+be a problem, depending on the package. For example, when installing a new
+kernel many people prefer to keep the old one around in case the new one turns
+out to have critical issues, like inability to boot the computer. This means
+the system may have several kernel packages installed at the same time. The old
+kernel packages could be removed after the new kernel is proved to work. See
+the <code>kernel-upgrade</code> and <code>kernel-clean</code> operations.</p></div>
+<div class="paragraph"><p>However, some other packages may not be prepared to have multiple local
+versions installed and this may be a problem, so <code>slackroll</code> warns about the
+situation. The warning can also serve as a reminder to delete old kernel
+packages after a kernel upgrade. It will be printed any time the program
+rebuilds the local package list, so you will only see it after having
+installed, removed or upgraded packages, right after the &#8220;Rebuilding local
+package list&#8221; message.</p></div>
+</div>
+<div class="sect2">
 <h3 id="_most_frequently_used_operations">Most frequently used operations</h3>
 <div class="paragraph"><p><strong>Question</strong>: <code>slackroll</code> has a lot of operations available. Some of them are
 mentioned in the tutorial but, in a few words, which operations do you use
@@ -1338,7 +1359,8 @@ while upgrading too), etc.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-03-18 19:00:17 NZDT
+Last updated
+ 2020-02-09 12:32:11 CET
 </div>
 </div>
 </body>

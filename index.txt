@@ -420,6 +420,28 @@ if &diff
 endif
 ------------------------
 
+=== Packages with two or more local versions ===
+
+*Question*: `slackroll` sometimes warns me about having multiple versions of
+the same package installed in my system. Is that a problem? When does the
+warning appear exactly?
+
+*Answer*: Having multiple versions of the same package installed may or may not
+be a problem, depending on the package. For example, when installing a new
+kernel many people prefer to keep the old one around in case the new one turns
+out to have critical issues, like inability to boot the computer. This means
+the system may have several kernel packages installed at the same time. The old
+kernel packages could be removed after the new kernel is proved to work. See
+the `kernel-upgrade` and `kernel-clean` operations.
+
+However, some other packages may not be prepared to have multiple local
+versions installed and this may be a problem, so `slackroll` warns about the
+situation. The warning can also serve as a reminder to delete old kernel
+packages after a kernel upgrade. It will be printed any time the program
+rebuilds the local package list, so you will only see it after having
+installed, removed or upgraded packages, right after the ``Rebuilding local
+package list'' message.
+
 === Most frequently used operations ===
 
 *Question*: `slackroll` has a lot of operations available. Some of them are
