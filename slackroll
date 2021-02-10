@@ -4,7 +4,7 @@
 # slackroll - A package or upgrade manager for Slackware Linux.
 #
 # Written in 2007,2009-2014,2017 by Ricardo Garcia <r@rg3.name>.
-# Contributions in 2017-2018 by Andrew Clemons <andrew.clemons@gmail.com>.
+# Contributions in 2017-2018,2021 by Andrew Clemons <andrew.clemons@gmail.com>.
 #
 # To the extent possible under law, the author(s) have dedicated all copyright
 # and related and neighboring rights to this software to the public domain
@@ -69,7 +69,7 @@ slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
 slackroll_main_indicator = re.compile(r'/slackware(?:64|arm)?/')
 slackroll_extra_indicator = '/extra/'
-slackroll_prioritized_pkgs = ['glibc-solibs', 'sed', 'pkgtools']
+slackroll_prioritized_pkgs = ['aaa_glibc-solibs', 'glibc-solibs', 'sed', 'pkgtools']
 slackroll_kernel_pkg_indicator = 'kernel'
 
 slackroll_self_filename = os.path.join(slackroll_base_dir, 'self')
@@ -1023,7 +1023,7 @@ def key_pkg_in(name_list): # Does any name match with a prioritized package?
     return (len(set(slackroll_prioritized_pkgs).intersection(set(name_list))) > 0)
 
 def key_transient_pkgs(persistent_list):
-    return [x for x in slackroll_prioritized_pkgs if persistent_list[x] in slackroll_transient_states]
+    return [x for x in slackroll_prioritized_pkgs if x in persistent_list and persistent_list[x] in slackroll_transient_states]
 
 def key_pkg_activity_pending(persistent_list): # True if any new, outdated or unavailable package is prioritized
     return (len(key_transient_pkgs(persistent_list)) > 0)
@@ -2174,7 +2174,7 @@ try:
         sys.exit()
 
     if operation in ['upgrade-key-packages', 'download-key-packages', 'urls-key-packages']:
-        names = [x for x in slackroll_prioritized_pkgs if persistent_list[x] == slackroll_state_outdated]
+        names = [x for x in slackroll_prioritized_pkgs if x in persistent_list and persistent_list[x] == slackroll_state_outdated]
         if len(names) == 0:
             print 'No outdated key system packages'
             sys.exit()

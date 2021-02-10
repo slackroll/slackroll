@@ -2,11 +2,11 @@
 upgrade-key-packages
 
 This operation expects no arguments. It's essentially an operation similar to
-"upgrade", but it only affects the key system packages (glibc-solibs, sed and
-pkgtools), which usually should be upgraded before any other outdated or new
-package, unless there's a specific reason (probably mentioned in the change
-log) to install or upgrade other packages first. It's normally only run after
-"list-transient" when you detect they are outdated.
+"upgrade", but it only affects the key system packages (aaa_glibc-solibs,
+glibc-solibs, sed and pkgtools), which usually should be upgraded before any
+other outdated or new package, unless there's a specific reason (probably
+mentioned in the change log) to install or upgrade other packages first. It's
+normally only run after "list-transient" when you detect they are outdated.
 
 Two important notes: list-transient will notice there are outdated system
 packages and emit a big and noticeable warning at the end of the package list
