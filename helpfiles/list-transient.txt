@@ -20,11 +20,11 @@ occasionally represent foreign packages that have not been marked as foreign
 yet.
 
 It's important to note that usually, you want to upgrade the key system
-packages first. Key system packages are glibc-solibs, sed and pkgtools, so they
-are listed first by list-transient if they are outdated. Usually, the next sane
-step to take is to handle new packages, then outdated packages and finally
-unavailable packages. Hence, this is the order in which list-transient lists
-the packages.
+packages first. Key system packages are aaa_glibc-solibs, glibc-solibs, sed
+and pkgtools, so they are listed first by list-transient if they are outdated.
+Usually, the next sane step to take is to handle new packages, then outdated
+packages and finally unavailable packages. Hence, this is the order in which
+list-transient lists the packages.
 
 However, you need to understand that this may not always be the correct order.
 The order in which to proceed is completely up to you and should be based on
