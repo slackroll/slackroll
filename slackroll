@@ -36,7 +36,7 @@ import termios
 import urllib
 import urlparse
 
-slackroll_version = 48
+slackroll_version = 49
 
 slackroll_exit_failure = 1
 slackroll_exit_success = 0
@@ -69,7 +69,7 @@ slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
 slackroll_main_indicator = re.compile(r'/slackware(?:64|arm)?/')
 slackroll_extra_indicator = '/extra/'
-slackroll_prioritized_pkgs = ['glibc-solibs', 'sed', 'pkgtools']
+slackroll_prioritized_pkgs = ['glibc-solibs', 'sed', 'pkgtools', 'aaa_glibc-solibs']
 slackroll_kernel_pkg_indicator = 'kernel'
 
 slackroll_self_filename = os.path.join(slackroll_base_dir, 'self')
