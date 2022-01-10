@@ -2693,14 +2693,15 @@ if __name__ == "__main__":
             latest_kernel_pkgs = concat([remote_list[x] for x in remote_list if x.startswith(slackroll_kernel_pkg_indicator) and not (persistent_list[x] == slackroll_state_frozen or persistent_list[x] == slackroll_state_foreign)])
             new_kernel_pkgs = concat([remote_list[x] for x in remote_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[x] == slackroll_state_new])
 
-            current_list = [(x.name, x.version) for x in [y for y in auto_kernel_pkgs if not superseded_in(y, latest_kernel_pkgs)]]
-            superseded_list = [(x.name, x.version) for x in [y for y in auto_kernel_pkgs if superseded_in(y, auto_kernel_pkgs)]]
-            upgradable_list = [(x.name, x.version) for x in [y for y in auto_kernel_pkgs if not superseded_in(y, auto_kernel_pkgs) and superseded_in(y, latest_kernel_pkgs)]]
+            auto_kernel_pkg_names = [x.name for x in auto_kernel_pkgs]
+            current_list = [(x.name, x.version) for x in auto_kernel_pkgs if not superseded_in(x, latest_kernel_pkgs)]
+            superseded_list = [(x.name, x.version) for x in auto_kernel_pkgs if superseded_in(x, auto_kernel_pkgs)]
+            upgradable_list = [(x.name, x.version) for x in latest_kernel_pkgs if x.name in auto_kernel_pkg_names and x not in auto_kernel_pkgs]
             manual_list = [(x.name, x.version) for x in manual_kernel_pkgs]
             available_list = [(x.name, x.version) for x in new_kernel_pkgs]
 
             print_pairs_or(current_list, 'Up-to-date kernel packages:', 'No up-to-date kernel packages')
-            print_pairs_or(upgradable_list, 'Upgradable kernel packages (would be updated by kernel-upgrade):', 'No upgradable kernel packages')
+            print_pairs_or(upgradable_list, 'Upgradable kernel packages (would be installed by kernel-upgrade):', 'No upgradable kernel packages')
             print_pairs_or(superseded_list, 'Superseded kernel packages (would be removed by kernel-clean):', 'No superseded kernel packages')
             print_pairs_or(manual_list, 'Manually managed kernel packages (frozen or foreign):', 'No manually managed kernel packages')
             print_pairs_or(available_list, 'Other available kernel packages:', 'No other kernel packages available for installation or upgrade')
