@@ -29,6 +29,7 @@ Common operations:
 
 Kernel upgrades:
 
+  list-kernels      Show all installed and available kernel packages
   kernel-upgrade	Install updated kernel packages with installpkg
   kernel-clean		Remove obsolete kernel packages
 
@@ -93,6 +94,9 @@ Other package listing operations:
   list-outdated-frozen	List frozen packages that would be outdated otherwise
   list-versions PKG...	List all known versions of the given packages
 
+  foreign-upgradable    List foreign packages that are now available in repo
+  frozen-upgradable     List frozen packages that could be upgraded if unfrozen
+
 
 Other change log operations:
 
@@ -114,7 +118,14 @@ Displaying package URLs (e.g. for feeding them to a downloader program):
 Package information (i.e. related to .txt, slack-desc or installation files):
 
   info PKG...		Show info about packages or specific package versions
+  info-foreign   Show info about all foreign packages
+  info-frozen   Show info about all frozen packages
+  info-installed    Show info about all installed packages
   info-new		Show info about all new packages
+  info-not-installed  Show info about all packages in repo but not installed
+  info-transient    Show info about all packages in a transient state
+  info-outdated  Show info about all packages with upgrades available in repo
+  info-unavailable  Show info about all installed packages not in repo or marked as foreign
   info-path REGEXP...	Show info about all packages with matching path
   local-info PKG...	Show full package information from /var/log/packages
 
