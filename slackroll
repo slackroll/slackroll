@@ -1172,7 +1172,7 @@ def print_pairs_or(the_list, header, message_on_empty):
 def superseded_in(pkg, the_list):
     name = pkg.name
     old_version = version.parse(pkg.version)
-    newer_pkgs = [x for x in the_list if x.name == name and version.parse(x.version) > old_version]
+    newer_pkgs = [x for x in the_list if x.name == name and (version.parse(x.version) > old_version or version.parse(x.version) == old_version and x.build > pkg.build)]
     return len(newer_pkgs) > 0
 
 def tr_pkg_detail(local_list, remote_list, persistent_list, pkg_name): # Returns a string with package details for a transient package
@@ -2406,7 +2406,6 @@ if __name__ == "__main__":
                 print('No packages with alternative versions')
                 sys.exit()
 
-<<<<<<< HEAD
             names = list(alternatives.keys())
             names.sort(key=functools.cmp_to_key(pkg_name_cmp))
             interceptor = SlackrollOutputInterceptor()
@@ -2418,130 +2417,6 @@ if __name__ == "__main__":
                 print()
             print('End of list')
             interceptor.stop()
-=======
-    if operation in ['list-outdated', 'list-unavailable', 'list-installed', 'list-not-installed', 'list-frozen', 'list-foreign']:
-        state_str = operation.replace('list-', '')
-        header = '%s packages:' % state_str.capitalize()
-        empty_message = 'No %s packages found' % state_str
-        state = slackroll_state_strings.index(state_str)
-
-        interceptor = SlackrollOutputInterceptor()
-        print_in_states_or([state], persistent_list, header, empty_message, False)
-        if state in slackroll_transient_states:
-            maybe_print_key_pkg_watchout(persistent_list)
-        interceptor.stop()
-        sys.exit()
-
-    # BCS: see packages that might have been previously marked as foreign, but are now available in the repo,
-    #      or that were manually frozen, but could be upgraded if unfrozen
-    if operation in ['foreign-upgradable', 'foreign-upgradeable', 'frozen-upgradable', 'frozen-upgradeable']:
-        state_str = operation.replace('-upgradable', '').replace('-upgradeable', '')
-        state = slackroll_state_strings.index(state_str)
-        header = 'Upgradable %s packages:' % state_str
-        empty_message = 'No upgradable %s packages found' % state_str
-
-        local_pkgs = concat([local_list[x] for x in local_list if persistent_list[x] == state])
-        repo_pkgs = concat([remote_list[x] for x in remote_list if persistent_list[x] == state])
-        newer_available_pkgs = [x for x in local_pkgs if superseded_in(x, repo_pkgs)]
-
-        interceptor = SlackrollOutputInterceptor()
-        print_pairs_or([(x.name, x.version + ' installed, ' + ', '.join([y.version for y in repo_pkgs if y.name == x.name]) + ' available') for x in newer_available_pkgs], header, empty_message)
-        interceptor.stop()
-        sys.exit()
-
-    if operation == 'list-local':
-        print_seq_or(local_list, 'Local packages:', 'No local packages found')
-        sys.exit()
-
-    if operation == 'list-remote':
-        print_seq_or(remote_list, 'Remote packages:', 'No remote packages found')
-        sys.exit()
-
-    if operation == 'list-all':
-        print_seq_or(persistent_list, 'All packages:', 'No packages found')
-        sys.exit()
-
-    if operation == 'new-not-installed':
-        new_packages = pkgs_in_state(persistent_list, [slackroll_state_new])
-        from_states_to_state([slackroll_state_new], slackroll_state_notinstalled, persistent_list, new_packages)
-        sys.exit()
-
-    if operation == 'unavailable-foreign':
-        unavailable_packages = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
-        from_states_to_state([slackroll_state_unavailable], slackroll_state_foreign, persistent_list, unavailable_packages)
-        sys.exit()
-
-    if operation in ['frozen', 'freeze']:
-        valid_origins = [slackroll_state_frozen, slackroll_state_installed, slackroll_state_outdated]
-        from_states_to_state(valid_origins, slackroll_state_frozen, persistent_list, args)
-        sys.exit()
-
-    if operation == 'foreign':
-        from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_foreign, persistent_list, args)
-        sys.exit()
-
-    if operation == 'not-installed':
-        from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_notinstalled, persistent_list, args)
-        sys.exit()
-
-    if operation == 'unavailable':
-        from_states_to_state([slackroll_state_unavailable, slackroll_state_foreign], slackroll_state_unavailable, persistent_list, args)
-        sys.exit()
-
-    if operation == 'new':
-        from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_new, persistent_list, args)
-        sys.exit()
-
-    if operation in ['installed', 'unfreeze']:
-        from_states_to_state([slackroll_state_installed, slackroll_state_frozen], slackroll_state_installed, persistent_list, args)
-        analyze_changes(local_list, remote_list, persistent_list) # Forced because it may need to be marked as outdated
-        os.utime(slackroll_persistentlist_filename, None)
-        sys.exit()
-
-    if operation == 'list-versions':
-        maybe_error_unknown_packages(args, persistent_list)
-        interceptor = SlackrollOutputInterceptor()
-        print 'Available versions:'
-        for name in args:
-            print '    %s:' % name
-            if name in local_list:
-                print '\n'.join('\tLocal:\t%s' % ver.archivename for ver in local_list[name])
-            if name in remote_list:
-                print '\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name])
-            print
-        print 'End of list'
-        interceptor.stop()
-        sys.exit()
-
-    if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
-        install_operations_family(operation, args, local_list, remote_list, persistent_list)
-        sys.exit()
-
-    if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
-        names = pkgs_in_state(persistent_list, [slackroll_state_new])
-        names.sort(cmp=pkg_name_cmp)
-        if len(names) == 0:
-            print 'No new packages'
-            sys.exit()
-        opname = operation.replace('-new', '')
-        install_operations_family(opname, names, local_list, remote_list, persistent_list)
-        sys.exit()
-
-    if operation in ['install-path', 'download-path', 'info-path', 'urls-path', 'remove-path']:
-        all_regexes = '|'.join('(?:%s)' % x for x in args)
-        try:
-            regexp = re.compile(all_regexes)
-        except re.error:
-            sys.exit('ERROR: invalid regular expression')
-
-        matching_pkgs = [x for x in concat([remote_list[x] for x in remote_list]) if regexp.search(x.path) is not None]
-
-        if operation == 'remove-path': # Filter out packages not present in local system
-            matching_pkgs = [x for x in matching_pkgs if pkg_in_map(x, local_list)]
-
-        if len(matching_pkgs) == 0:
-            print 'No matching packages'
->>>>>>> f7fbc84 (Improved foreign-upgradable/frozen-upgradable to show installed and available versions.)
             sys.exit()
 
         # BCS: easier access to info files for interesting package categories
@@ -2819,12 +2694,12 @@ if __name__ == "__main__":
             new_kernel_pkgs = concat([remote_list[x] for x in remote_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[x] == slackroll_state_new])
 
             auto_kernel_pkg_names = [x.name for x in auto_kernel_pkgs]
-            current_list = [(x.name, x.version) for x in auto_kernel_pkgs if not superseded_in(x, latest_kernel_pkgs)]
-            superseded_list = [(x.name, x.version) for x in auto_kernel_pkgs if superseded_in(x, auto_kernel_pkgs)]
-            upgradable_list = [(x.name, x.version) for x in latest_kernel_pkgs if x.name in auto_kernel_pkg_names and x not in auto_kernel_pkgs]
-            keeper_list = [(x.name, x.version) for x in auto_kernel_pkgs if not superseded_in(x, auto_kernel_pkgs) and (x.name, x.version) not in current_list]
-            manual_list = [(x.name, x.version) for x in manual_kernel_pkgs]
-            available_list = [(x.name, x.version) for x in new_kernel_pkgs]
+            current_list = [(x.name, x.version + '-' + x.build) for x in auto_kernel_pkgs if not superseded_in(x, latest_kernel_pkgs)]
+            superseded_list = [(x.name, x.version + '-' + x.build) for x in auto_kernel_pkgs if superseded_in(x, auto_kernel_pkgs)]
+            upgradable_list = [(x.name, x.version + '-' + x.build) for x in latest_kernel_pkgs if x.name in auto_kernel_pkg_names and x not in auto_kernel_pkgs]
+            keeper_list = [(x.name, x.version + '-' + x.build) for x in auto_kernel_pkgs if not superseded_in(x, auto_kernel_pkgs) and (x.name, x.version) not in current_list]
+            manual_list = [(x.name, x.version + '-' + x.build) for x in manual_kernel_pkgs]
+            available_list = [(x.name, x.version + '-' + x.build) for x in new_kernel_pkgs]
 
             print_pairs_or(current_list, 'Up-to-date kernel packages:', 'No up-to-date kernel packages')
             print_pairs_or(upgradable_list, 'Newly available versions of kernel packages (would be installed by kernel-upgrade):', 'No upgradable kernel packages')
@@ -2847,7 +2722,7 @@ if __name__ == "__main__":
             if len(outdated_kernel_pkgs) == 0:
                 print 'No obsolete kernel packages found'
                 sys.exit()
-            print_pairs_or([(x.name, x.version) for x in outdated_kernel_pkgs], 'Superseded kernel packages to be removed:', 'No superseded kernel packages to remove')
+            print_pairs_or([(x.name, x.version + '-' + x.build) for x in outdated_kernel_pkgs], 'Superseded kernel packages to be removed:', 'No superseded kernel packages to remove')
             if "kernel-source" in [x.name for x in outdated_kernel_pkgs]:
                 print "You may wish to run a 'make clean' or 'make distclean' in kernel source directories before removing the package"
             maybe_confirm_continue()
