@@ -2697,7 +2697,7 @@ if __name__ == "__main__":
             current_list = [(x.name, x.version + '-' + x.build) for x in auto_kernel_pkgs if not superseded_in(x, latest_kernel_pkgs)]
             superseded_list = [(x.name, x.version + '-' + x.build) for x in auto_kernel_pkgs if superseded_in(x, auto_kernel_pkgs)]
             upgradable_list = [(x.name, x.version + '-' + x.build) for x in latest_kernel_pkgs if x.name in auto_kernel_pkg_names and x not in auto_kernel_pkgs]
-            keeper_list = [(x.name, x.version + '-' + x.build) for x in auto_kernel_pkgs if not superseded_in(x, auto_kernel_pkgs) and (x.name, x.version) not in current_list]
+            keeper_list = [(x.name, x.version + '-' + x.build) for x in auto_kernel_pkgs if not superseded_in(x, auto_kernel_pkgs) and (x.name, x.version + '-' + x.build) not in current_list]
             manual_list = [(x.name, x.version + '-' + x.build) for x in manual_kernel_pkgs]
             available_list = [(x.name, x.version + '-' + x.build) for x in new_kernel_pkgs]
 
