@@ -36,7 +36,7 @@ import termios
 import urllib
 import urlparse
 
-slackroll_version = 48
+slackroll_version = 49
 
 slackroll_exit_failure = 1
 slackroll_exit_success = 0
