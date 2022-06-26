@@ -1102,7 +1102,7 @@ def print_in_states(states, persistent_list, header, print_state): # Print packa
     if len(keys) == 0:
         return
     print(header)
-    keys.sort(cmp=pkg_name_cmp)
+    keys.sort(key=functools.cmp_to_key(pkg_name_cmp))
     if print_state:
         fmt = '    %%-%ss  %%s' % max(len(slackroll_state_strings[x]) for x in slackroll_all_states)
         items = [(slackroll_state_strings[persistent_list[x]], x) for x in keys]
@@ -1126,7 +1126,7 @@ def print_seq(seq, header): # Print every item in sequence, sorted with pkg_name
         return
     print(header)
     items = [x for x in seq]
-    items.sort(cmp=pkg_name_cmp)
+    items.sort(key=functools.cmp_to_key(pkg_name_cmp))
     for item in items:
         print('    %s' % item)
     print('End of list')
@@ -2245,7 +2245,7 @@ if __name__ == "__main__":
                 maybe_confirm_continue()
 
             names = pkgs_in_state(persistent_list, [slackroll_state_outdated])
-            names.sort(cmp=pkg_name_cmp)
+            names.sort(key=functools.cmp_to_key(pkg_name_cmp))
 
             if len(names) == 0:
                 print('No outdated packages')
@@ -2317,7 +2317,7 @@ if __name__ == "__main__":
             else: # list-outdated-frozen
                 print('Would be outdated:')
 
-            names.sort(cmp=pkg_name_cmp)
+            names.sort(key=functools.cmp_to_key(pkg_name_cmp))
             for name in names:
                 candidates = not_pasture(remote_list[name])
                 if len(candidates) == 0:
@@ -2339,7 +2339,7 @@ if __name__ == "__main__":
             if len(pkgs_and_states) == 0:
                 print('No transient packages found')
                 sys.exit()
-            pkgs_and_states.sort(cmp=transient_cmp)
+            pkgs_and_states.sort(key=functools.cmp_to_key(transient_cmp))
 
             # Translate states to strings and precalculate constants
             pkgs_and_states = [(name, slackroll_state_strings[state]) for (name, state) in pkgs_and_states]
@@ -2382,7 +2382,7 @@ if __name__ == "__main__":
                 sys.exit()
 
             names = list(alternatives.keys())
-            names.sort(cmp=pkg_name_cmp)
+            names.sort(key=functools.cmp_to_key(pkg_name_cmp))
             interceptor = SlackrollOutputInterceptor()
             print('Packages with alternatives:')
             for name in names:
@@ -2477,7 +2477,7 @@ if __name__ == "__main__":
 
         if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
             names = pkgs_in_state(persistent_list, [slackroll_state_new])
-            names.sort(cmp=pkg_name_cmp)
+            names.sort(key=functools.cmp_to_key(pkg_name_cmp))
             if len(names) == 0:
                 print('No new packages')
                 sys.exit()
