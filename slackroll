@@ -70,6 +70,9 @@ if TYPE_CHECKING:
     T = TypeVar("T")
 
 
+# BCS: Pickle protocols > 2 will not be backward-compatible with Python 2
+pickle_protocol = 2
+
 slackroll_version = 55
 
 slackroll_exit_failure = 1
@@ -536,7 +539,7 @@ def is_readable_file(filepath):
 def try_dump(object, filepath): # cPickle.dump()
     # type: (Any, str) -> None
     try:
-        cPickle.dump(object, file(filepath, 'wb'), -1)
+        cPickle.dump(object, file(filepath, 'wb'), pickle_protocol)
     except (OSError, IOError, cPickle.PickleError), err:
         sys.exit('ERROR: %s' % err)
 
@@ -1976,7 +1979,7 @@ def load_persistent_db(filename):
     # to have used this version and have the existing files upgraded. New
     # installations will immediately default to the new format. We can then
     # ship the python3 version safely.
-    data = shelve.open(filename, 'c')
+    data = shelve.open(filename, 'c', pickle_protocol)
 
     if not isinstance(data.dict, bsddb._DBWithCursor): # type: ignore
         return data # type: ignore
@@ -1985,7 +1988,7 @@ def load_persistent_db(filename):
     output_name = os.path.join(tmpdir, "persistence.db")
 
     try:
-        new_data = shelve.open(output_name, 'c')
+        new_data = shelve.open(output_name, 'c', pickle_protocol)
         new_data.update(data)
 
         data.close()
@@ -1995,7 +1998,7 @@ def load_persistent_db(filename):
     finally:
         try_to_remove(output_name)
 
-    return shelve.open(filename, 'c') # type: ignore
+    return shelve.open(filename, 'c', pickle_protocol) # type: ignore
 
 
 if __name__ == "__main__":
