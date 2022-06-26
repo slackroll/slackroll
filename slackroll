@@ -64,6 +64,9 @@ from functools import reduce
 
 from tempfile import mkdtemp
 
+# BCS: Pickle protocols > 2 will not be backward-compatible with Python 2
+pickle_protocol = 2
+
 slackroll_version = 51
 
 slackroll_exit_failure = 1
@@ -477,13 +480,13 @@ def newer_than(path1, path2): # path1 modification time more recent than path2 m
 def is_readable_file(filepath):
     return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
 
-def try_dump(object, filepath): # cPickle.dump()
+def try_dump(object, filepath): # pickle.dump()
     try:
-        pickle.dump(object, open(filepath, 'wb'), -1)
+        pickle.dump(object, open(filepath, 'wb'), pickle_protocol)
     except (OSError, IOError, pickle.PickleError) as err:
         sys.exit('ERROR: %s' % err)
 
-def try_load(filepath): # cPickle.load()
+def try_load(filepath): # pickle.load()
     try:
         return pickle.load(open(filepath, 'rb'))
     except (OSError, IOError, pickle.PickleError) as err:
@@ -1793,7 +1796,7 @@ def load_persistent_db(filename):
     # to have used this version and have the existing files upgraded. New
     # installations will immediately default to the new format. We can then
     # ship the python3 version safely.
-    data = shelve.open(filename, 'c')
+    data = shelve.open(filename, 'c', pickle_protocol)
 
     if not PY2:
         return data
@@ -1806,7 +1809,7 @@ def load_persistent_db(filename):
     try:
         temp_file = os.path.join(temp_dir, "persistence.db")
 
-        new_data = shelve.open(temp_file, 'c')
+        new_data = shelve.open(temp_file, 'c', pickle_protocol)
         new_data.update(data)
 
         data.close()
@@ -1816,7 +1819,7 @@ def load_persistent_db(filename):
     finally:
         shutil.rmtree(temp_dir)
 
-    return shelve.open(filename, 'c')
+    return shelve.open(filename, 'c', pickle_protocol)
 
 
 if __name__ == "__main__":
