@@ -14,10 +14,14 @@
 # this software. If not, see
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
+
+# Significant changes in DB backends and string/bytearray standards compel us to
+# maintain a few dual Python 2 / Python 3 code paths
 import sys
+using_python2 = sys.version_info[0] <= 2
 
 # BCS: Python 3 'dbm' == Python 2 'anydbm', both differ from Python 2's 'dbm'
-if sys.version_info[0] <= 2:
+if using_python2:
     import anydbm
     DatabaseException = anydbm.error
     import shelve
@@ -64,7 +68,7 @@ import os
 import os.path
 import pwd
 import re
-if sys.version_info[0] <= 2 or not bdb_is_berkeleydb:
+if using_python2 or not bdb_is_berkeleydb:
     import shelve
 import socket
 import struct
@@ -192,19 +196,19 @@ slackroll_batch_mode = False
 
 # In Python 3, pickle stores (and urllib returns) bytestrings, not strings
 def db_to_str(x):
-    if sys.version_info[0] <= 2:
+    if using_python2:
         return x
     else:
         return x.decode('utf8')
 
 def str_to_db(x):
-    if sys.version_info[0] <= 2:
+    if using_python2:
         return x
     else:
         return x.encode('utf8')
 
 def unescape_string(s):
-    if sys.version_info[0] <= 2:
+    if using_python2:
         return s.decode('string_escape')
     else:
         return s.encode('utf8').decode('unicode_escape')
@@ -528,7 +532,7 @@ def is_readable_file(filepath):
 
 def try_dump(object, filepath): # pickle.dump()
     try:
-        if sys.version_info[0] <= 2:
+        if using_python2:
             pickle.dump(object, open(filepath, 'wb'))
         else:
             # BCS: Pickle protocols > 2 will not be backward-compatible with Python 2
@@ -538,7 +542,7 @@ def try_dump(object, filepath): # pickle.dump()
 
 def try_load(filepath): # pickle.load()
     try:
-        if sys.version_info[0] <= 2:
+        if using_python2:
             return pickle.load(open(filepath, 'rb'))
         else:
             return pickle.load(open(filepath, 'rb'), encoding='utf8')
@@ -1844,7 +1848,7 @@ def cleanup_databases():
     # will get an exception in shelve.__del__ unless it runs before the underlying
     # db.close()
     persistent_list.close();
-    if sys.version_info[0] > 2 and persistent_db is not None:
+    if not using_python2 and persistent_db is not None:
         persistent_db.close();
 
 ### Main program ###
@@ -2218,7 +2222,7 @@ try:
 
     try:
         # Python 3 shelve does not support Berkeley hash DB by default, Python 2 did
-        if sys.version_info[0] <= 2:
+        if using_python2:
             persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
         elif bdb_is_berkeleydb:
             # Provides a hash-compatible shelve clone
