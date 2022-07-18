@@ -130,14 +130,16 @@ slackroll_manifest_filename = os.path.join(slackroll_base_dir, 'manifest.db')
 slackroll_manifest_list_filename = os.path.join(slackroll_base_dir, 'manifestlist.db')
 slackroll_batch_mode = False
 
-def yield_slackroll_local_pkgs_dir():
+def yield_slackroll_local_pkgs_dir(fail_on_missing):
     for opt in slackroll_local_pkgs_dir_names:
         while os.path.isdir(opt):
             yield opt
+
     sys.exit('ERROR: unable to find local packages directgory')
 
-slackroll_local_pkgs_glob = os.path.join(yield_slackroll_local_pkgs_dir().next(), '*')
-slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
+if __name__ == "__main__":
+    slackroll_local_pkgs_glob = os.path.join(yield_slackroll_local_pkgs_dir().next(), '*')
+    slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 
 def standarize_locales():
     for varname in slackroll_locale_envvars:
