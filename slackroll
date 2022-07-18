@@ -130,7 +130,7 @@ slackroll_manifest_filename = os.path.join(slackroll_base_dir, 'manifest.db')
 slackroll_manifest_list_filename = os.path.join(slackroll_base_dir, 'manifestlist.db')
 slackroll_batch_mode = False
 
-def yield_slackroll_local_pkgs_dir(fail_on_missing):
+def yield_slackroll_local_pkgs_dir():
     for opt in slackroll_local_pkgs_dir_names:
         while os.path.isdir(opt):
             yield opt
