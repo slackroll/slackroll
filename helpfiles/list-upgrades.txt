@@ -13,4 +13,3 @@ favour of "list-transient" because of the additional information it provides
 about upgrades, which is not provided easily by other operations.
 
 Also see: list-versions, list-new, list-transient, list-unavailable.
-

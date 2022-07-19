@@ -3,4 +3,3 @@ state PKG...
 
 This operation expects one or more package names. It's not a frequently used
 operation, but it lets you see the state of any given package.
-

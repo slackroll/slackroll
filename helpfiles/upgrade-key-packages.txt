@@ -20,4 +20,3 @@ list-transient always lists packages in the common preferred order, and you
 will notice it always puts key system packages first when they are outdated.
 
 Also see: list-transient.
-

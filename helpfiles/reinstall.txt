@@ -7,4 +7,3 @@ typical extras slackroll provides, like automatically downloading the package
 if needed, or the process of reviewing .new files.
 
 Also see: install, dotnew.
-

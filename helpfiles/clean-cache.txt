@@ -17,4 +17,3 @@ relevant package archive stored in the package cache. Note that this operation
 will not completely empty the package cache at all.
 
 Also see: erase-cache.
-

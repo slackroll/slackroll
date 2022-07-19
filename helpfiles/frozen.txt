@@ -8,4 +8,3 @@ Also, as the tutorial mentions, there are a few packages that are required to
 be in the "frozen" state by definition. For example, "aaa-elflibs", if present.
 
 Also see: freeze, unfreeze, installed.
-

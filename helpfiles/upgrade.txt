@@ -20,4 +20,3 @@ For a description on how reviewing .new files works, read the help on the
 "dotnew" topic.
 
 Also see: list-transient.
-

@@ -111,5 +111,3 @@ can be terribly confusing and even render some text invisible. Also, this
 document will not provide a guide to vimdiff. It's pretty straightforward
 provided you know vim, but, if you can't handle it, there are plenty of
 tutorials online and you can always choose to use another diff tool.
-
-

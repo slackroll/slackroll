@@ -8,4 +8,3 @@ package archives, its signatures and verify the signatures. It will not proceed
 with the installation steps, as the install operation would.
 
 Also see: install.
-

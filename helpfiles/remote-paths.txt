@@ -10,4 +10,3 @@ to a local mirror of the Slackware tree, which some people have and like to
 keep up-to-date with rsync.
 
 Also see: path-search.
-

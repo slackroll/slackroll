@@ -9,4 +9,3 @@ multiple "grep" commands on /var/log/packages/*, except that it will skip
 header lines in those files, hence not providing false positives.
 
 Also see: manifest-search.
-

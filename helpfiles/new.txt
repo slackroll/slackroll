@@ -16,4 +16,3 @@ package explicitly or by marking it as "new", to get it back to the "new"
 state, prior to running "install-new".
 
 Also see: not-installed.
-

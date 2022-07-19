@@ -9,4 +9,3 @@ package is installed, it is obtained from the package file present in
 /var/log/packages.
 
 Also see: local-info, info-new, info-path.
-

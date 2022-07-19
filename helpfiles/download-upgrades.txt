@@ -5,4 +5,3 @@ This operation expects no arguments. It is equivalent to the download
 operation, applied to every package in the "outdated" state.
 
 Also see: download.
-

@@ -8,4 +8,3 @@ cases automatically. It could be used, however, to correct small user mistakes.
 Only "foreign" packages can be marked as "unavailable".
 
 Also see: new, for an example of the type of user mistakes in question.
-

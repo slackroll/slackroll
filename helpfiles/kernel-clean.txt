@@ -7,4 +7,3 @@ up-to-date. It's usually run after booting to a new kernel you have installed
 with kernel-upgrade and verifying there are no problems with it.
 
 Also see: kernel-upgrade.
-

@@ -45,4 +45,3 @@ those files every time you run the update operation, and only update the
 manifest database on request.
 
 Also see: local-search, update-manifest.
-

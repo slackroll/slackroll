@@ -1,7 +1,9 @@
 import os
+
 import toml
 
 from slackroll import slackroll_version
+
 
 def test_versions_match():
     """Checks if the version in pyproject.toml and slackroll_version in `slackroll` match."""

@@ -19,4 +19,3 @@ Later, you will need to edit the text file and remove the extra lines at the
 beginning.
 
 Also see: upgrade, install, urls.
-

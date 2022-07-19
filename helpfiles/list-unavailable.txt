@@ -6,4 +6,3 @@ list packages names according to their state. In this case, the list of
 packages in the state "unavailable" is printed.
 
 Also see: list-new, list-installed, etc.
-
