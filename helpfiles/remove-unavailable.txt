@@ -6,4 +6,3 @@ in case you were to run it with the list of packages in the "unavailable" state
 as its arguments.
 
 Also see: remove.
-

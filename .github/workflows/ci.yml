@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   test:
@@ -45,3 +45,6 @@ jobs:
         run: |
           source .venv/bin/activate
           pytest tests/
+
+      - name: Lint with pre-commit
+        uses: pre-commit/action@v3.0.0

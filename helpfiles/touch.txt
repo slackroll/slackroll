@@ -8,4 +8,3 @@ updating to a new program version, so it was kept for this reason.
 
 Its purpose is to simply force an update in the package database that contains
 the package states, as done after an update operation.
-

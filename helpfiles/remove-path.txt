@@ -8,4 +8,3 @@ matches any of the provided regular expressions.
 For more details about remote paths, see the help text for install-path.
 
 Also see: remove, install-path.
-

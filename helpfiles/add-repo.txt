@@ -22,4 +22,3 @@ Also, if repositories provide a .txt file for each package, like an official
 mirror, it's possible to use info-related operations with their packages too.
 
 Also see: list-repos, remove-repo.
-
