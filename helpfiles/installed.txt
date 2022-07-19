@@ -8,4 +8,3 @@ usually not found by intuition, the "unfreeze" operation was created as an
 alias for this one.
 
 Also see: freeze, frozen, unfreeze.
-

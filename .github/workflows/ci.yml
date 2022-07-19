@@ -7,11 +7,48 @@ on:
 jobs:
   test:
     runs-on: ubuntu-22.04
+    env:
+      # renovate: datasource=pypi depName=pre-commit
+      PRE_COMMIT_VERSION: "3.8.0"
     steps:
       - name: Check out repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           show-progress: false
+
+      - uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5.1.1
+        with:
+          python-version: "3.9"
+
+      - name: Configure pre-commit repo cache
+        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        with:
+          path: ~/.cache/pre-commit
+          key: ${{ runner.os }}-pre-commit-repo-${{ env.pythonLocation }}-${{
+            hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Configure pre-commit install cache
+        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        id: pre_commit_install_cache
+        with:
+          path: ~/.pre-commit-venv
+          key:
+            ${{ runner.os }}-pre-commit-venv-${{ env.PRE_COMMIT_VERSION }}-${{
+            env.pythonLocation }}
+
+      - name: Install pre-commit
+        if: steps.pre_commit_install_cache.outputs.cache-hit != 'true'
+        run: |
+          python3 -m venv ~/.pre-commit-venv
+          # shellcheck source=/dev/null
+          . ~/.pre-commit-venv/bin/activate
+          pip3 install pre-commit=='${{ env.PRE_COMMIT_VERSION }}'
+
+      - name: Lint with pre-commit
+        run: |
+          # shellcheck source=/dev/null
+          . ~/.pre-commit-venv/bin/activate
+          pre-commit run --show-diff-on-failure --color=always --all-files
 
       - name: Run tests
         run: |

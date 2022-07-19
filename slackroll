@@ -15,13 +15,10 @@
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
 import anydbm
+
 anydbm._defaultmod = __import__('gdbm')
 
-import bsddb
-
 import bz2
-import cPickle
-import cStringIO
 import fcntl
 import functools
 import glob
@@ -39,6 +36,10 @@ import subprocess
 import sys
 import termios
 import urllib
+
+import bsddb
+import cPickle
+import cStringIO
 import urlparse
 
 try:

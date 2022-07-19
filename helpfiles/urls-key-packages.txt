@@ -6,4 +6,3 @@ This operation expects no arguments. It's similar to the
 not be downloaded. Instead, the program will simply print their URLs.
 
 Also see: upgrade-key-packages, download-key-packages.
-

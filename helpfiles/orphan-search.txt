@@ -17,4 +17,3 @@ file reported by the program, and should instead check and double-check each
 file to detect if it could be removed or not.
 
 Also see: missing-search, broken-symlinks.
-

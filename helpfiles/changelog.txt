@@ -33,4 +33,3 @@ displays them on screen. Usually, these entries correspond to the pending
 upgrades.
 
 Also see: update, list-changelog, changelog-entries, download-changelog.
-
