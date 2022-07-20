@@ -1852,868 +1852,869 @@ def cleanup_databases():
         persistent_db.close();
 
 ### Main program ###
-try:
-    local_list = None
-    remote_list = None
-    persistent_list = None
-    urllib.urlopener = SlackrollURLopener()
-    socket.setdefaulttimeout(slackroll_socket_timeout)
-    standarize_locales()
+if __name__ == "__main__":
+    try:
+        local_list = None
+        remote_list = None
+        persistent_list = None
+        urllib.urlopener = SlackrollURLopener()
+        socket.setdefaulttimeout(slackroll_socket_timeout)
+        standarize_locales()
 
-    op_num_args = {    # Map of operations and their appropriate number of arguments.
-        'add-repo':                 -1,
-        'batch':                    -1,
-        'blacklist-add':            -1,
-        'blacklist-del':            -1,
-        'broken-symlinks':          -1,
-        'changelog':                0,
-        'changelog-entries':        -1,
-        'clean-cache':              0,
-        'download':                 -1,
-        'download-changelog':       0,
-        'download-key-packages':    0,
-        'download-new':             0,
-        'download-path':            -1,
-        'download-upgrades':        0,
-        'erase-cache':              0,
-        'erase-tmp':                0,
-        'erase-all':                0,
-        'foreign':                  -1,
-        'frozen':                   -1,
-        'freeze':                   -1,
-        'full-changelog':           0,
-        'help':                     -2,
-        'import-key':               0,
-        'info':                     -1,
-        'info-new':                 0,
-        'info-path':                -1,
-        'install':                  -1,
-        'install-foreign':          -1,
-        'install-new':              0,
-        'install-path':             -1,
-        'installed':                -1,
-        'kernel-upgrade':           0,
-        'kernel-clean':             0,
-        'list-all':                 0,
-        'list-alternatives':        0,
-        'list-changelog':           0,
-        'list-foreign':             0,
-        'list-frozen':              0,
-        'list-installed':           0,
-        'list-local':               0,
-        'list-new':                 0,
-        'list-not-installed':       0,
-        'list-outdated':            0,
-        'list-outdated-frozen':     0,
-        'list-remote':              0,
-        'list-repos':               0,
-        'list-transient':           0,
-        'list-unavailable':         0,
-        'list-upgrades':            0,
-        'list-versions':            -1,
-        'local-info':               -1,
-        'local-search':             -1,
-        'manifest-search':          -1,
-        'missing-search':           0,
-        'name-search':              -1,
-        'new':                      -1,
-        'new-not-installed':        0,
-        'not-installed':            -1,
-        'orphan-search':            -1,
-        'path-search':              -1,
-        'print-blacklist':          0,
-        'print-mirror':             0,
-        'print-primary-mirror':     0,
-        'reinstall':                -1,
-        'remote-paths':             0,
-        'remove':                   -1,
-        'remove-path':              -1,
-        'remove-repo':              -1,
-        'remove-unavailable':       0,
-        'replace':                  2,
-        'set-mirror':               1,
-        'set-primary-mirror':       1,
-        'state':                    -1,
-        'touch':                    0,
-        'unavailable':              -1,
-        'unavailable-foreign':      0,
-        'unfreeze':                 -1,
-        'update':                   0,
-        'update-manifest':          0,
-        'upgrade':                  0,
-        'upgrade-key-packages':     0,
-        'urls':                     -1,
-        'urls-key-packages':        0,
-        'urls-new':                 0,
-        'urls-path':                -1,
-        'urls-upgrades':            0,
-        'version':                  0,
-    }
+        op_num_args = {    # Map of operations and their appropriate number of arguments.
+            'add-repo':                 -1,
+            'batch':                    -1,
+            'blacklist-add':            -1,
+            'blacklist-del':            -1,
+            'broken-symlinks':          -1,
+            'changelog':                0,
+            'changelog-entries':        -1,
+            'clean-cache':              0,
+            'download':                 -1,
+            'download-changelog':       0,
+            'download-key-packages':    0,
+            'download-new':             0,
+            'download-path':            -1,
+            'download-upgrades':        0,
+            'erase-cache':              0,
+            'erase-tmp':                0,
+            'erase-all':                0,
+            'foreign':                  -1,
+            'frozen':                   -1,
+            'freeze':                   -1,
+            'full-changelog':           0,
+            'help':                     -2,
+            'import-key':               0,
+            'info':                     -1,
+            'info-new':                 0,
+            'info-path':                -1,
+            'install':                  -1,
+            'install-foreign':          -1,
+            'install-new':              0,
+            'install-path':             -1,
+            'installed':                -1,
+            'kernel-upgrade':           0,
+            'kernel-clean':             0,
+            'list-all':                 0,
+            'list-alternatives':        0,
+            'list-changelog':           0,
+            'list-foreign':             0,
+            'list-frozen':              0,
+            'list-installed':           0,
+            'list-local':               0,
+            'list-new':                 0,
+            'list-not-installed':       0,
+            'list-outdated':            0,
+            'list-outdated-frozen':     0,
+            'list-remote':              0,
+            'list-repos':               0,
+            'list-transient':           0,
+            'list-unavailable':         0,
+            'list-upgrades':            0,
+            'list-versions':            -1,
+            'local-info':               -1,
+            'local-search':             -1,
+            'manifest-search':          -1,
+            'missing-search':           0,
+            'name-search':              -1,
+            'new':                      -1,
+            'new-not-installed':        0,
+            'not-installed':            -1,
+            'orphan-search':            -1,
+            'path-search':              -1,
+            'print-blacklist':          0,
+            'print-mirror':             0,
+            'print-primary-mirror':     0,
+            'reinstall':                -1,
+            'remote-paths':             0,
+            'remove':                   -1,
+            'remove-path':              -1,
+            'remove-repo':              -1,
+            'remove-unavailable':       0,
+            'replace':                  2,
+            'set-mirror':               1,
+            'set-primary-mirror':       1,
+            'state':                    -1,
+            'touch':                    0,
+            'unavailable':              -1,
+            'unavailable-foreign':      0,
+            'unfreeze':                 -1,
+            'update':                   0,
+            'update-manifest':          0,
+            'upgrade':                  0,
+            'upgrade-key-packages':     0,
+            'urls':                     -1,
+            'urls-key-packages':        0,
+            'urls-new':                 0,
+            'urls-path':                -1,
+            'urls-upgrades':            0,
+            'version':                  0,
+        }
 
-    operation = sys.argv[1]
-    args = sys.argv[2:]
-    verify_operation_and_args(op_num_args, operation, args)
-
-    if operation == 'batch':
-        del op_num_args['batch']
-        operation = args[0]
-        slackroll_batch_mode = True
-        args = args[1:]
+        operation = sys.argv[1]
+        args = sys.argv[2:]
         verify_operation_and_args(op_num_args, operation, args)
 
-    handle_writable_dir(slackroll_base_dir)
+        if operation == 'batch':
+            del op_num_args['batch']
+            operation = args[0]
+            slackroll_batch_mode = True
+            args = args[1:]
+            verify_operation_and_args(op_num_args, operation, args)
 
-    if operation == 'help':
-        if len(args) == 0:
-            helpname = '00-default'
-        else:
-            helpname = args[0]
-        helpfile = slackroll_help_file_template % helpname
-        if not is_readable_file(helpfile):
-            sys.exit('ERROR: no help found for "%s"' % helpname)
-        interceptor = SlackrollOutputInterceptor()
-        print((open(helpfile, 'r').read()))
-        interceptor.stop()
-        sys.exit()
+        handle_writable_dir(slackroll_base_dir)
 
-    if operation == 'version':
-        print(('slackroll v%s' % slackroll_version))
-        sys.exit()
+        if operation == 'help':
+            if len(args) == 0:
+                helpname = '00-default'
+            else:
+                helpname = args[0]
+            helpfile = slackroll_help_file_template % helpname
+            if not is_readable_file(helpfile):
+                sys.exit('ERROR: no help found for "%s"' % helpname)
+            interceptor = SlackrollOutputInterceptor()
+            print((open(helpfile, 'r').read()))
+            interceptor.stop()
+            sys.exit()
 
-    if operation == 'print-blacklist':
-        print_blacklist()
-        sys.exit()
+        if operation == 'version':
+            print(('slackroll v%s' % slackroll_version))
+            sys.exit()
 
-    if operation == 'blacklist-add':
-        add_blacklist_exprs(args)
-        sys.exit()
+        if operation == 'print-blacklist':
+            print_blacklist()
+            sys.exit()
 
-    if operation == 'blacklist-del':
-        del_blacklist_exprs(args)
-        sys.exit()
+        if operation == 'blacklist-add':
+            add_blacklist_exprs(args)
+            sys.exit()
 
-    if operation == 'print-mirror':
-        print((get_mirror()))
-        sys.exit()
+        if operation == 'blacklist-del':
+            del_blacklist_exprs(args)
+            sys.exit()
 
-    if operation == 'print-primary-mirror':
-        print((get_primary_mirror()))
-        sys.exit()
+        if operation == 'print-mirror':
+            print((get_mirror()))
+            sys.exit()
 
-    if operation == 'set-mirror':
-        set_mirror(args[0])
-        sys.exit()
+        if operation == 'print-primary-mirror':
+            print((get_primary_mirror()))
+            sys.exit()
 
-    if operation == 'set-primary-mirror':
-        set_primary_mirror(args[0])
-        sys.exit()
+        if operation == 'set-mirror':
+            set_mirror(args[0])
+            sys.exit()
 
-    if operation == 'add-repo':
-        repo_list = get_repo_list()
-        for r in args:
-            if not r.endswith('/'):
-                r = r + '/'
-            if r not in repo_list:
-                repo_list.append(r)
-        dump_repo_list(repo_list)
-        print_repo_mod_advice()
-        sys.exit()
+        if operation == 'set-primary-mirror':
+            set_primary_mirror(args[0])
+            sys.exit()
 
-    if operation == 'list-repos':
-        repo_list = get_repo_list()
-        formatted_list = ['Number %s: %s' % (i, r) for (i, r) in enumerate(repo_list)]
-        print_list_or(formatted_list, 'List of repositories:', 'No third-party repositories found')
-        sys.exit()
+        if operation == 'add-repo':
+            repo_list = get_repo_list()
+            for r in args:
+                if not r.endswith('/'):
+                    r = r + '/'
+                if r not in repo_list:
+                    repo_list.append(r)
+            dump_repo_list(repo_list)
+            print_repo_mod_advice()
+            sys.exit()
 
-    if operation == 'remove-repo':
-        repo_list = get_repo_list()
-        repo_dict = dict(enumerate(repo_list))
-        valid = []
-        invalid = []
-        for x in args:
-            try:
-                num = int(x)
-                if num in repo_dict:
-                    valid.append(num)
-                else:
-                    invalid.append(num)
-            except:
-                invalid.append(x)
-        if len(invalid) > 0:
-            sys.exit('ERROR: invalid repository numbers: %s' % ', '.join(str(x) for x in invalid))
-        for x in valid:
-            del repo_dict[x]
-        repo_list = [repo_dict[x] for x in sorted(repo_dict.keys())]
-        dump_repo_list(repo_list)
-        print_repo_mod_advice()
-        sys.exit()
+        if operation == 'list-repos':
+            repo_list = get_repo_list()
+            formatted_list = ['Number %s: %s' % (i, r) for (i, r) in enumerate(repo_list)]
+            print_list_or(formatted_list, 'List of repositories:', 'No third-party repositories found')
+            sys.exit()
 
-    if operation in ['erase-cache', 'erase-tmp', 'erase-all']:
-        directories = []
-        if operation in ['erase-cache', 'erase-all']:
-            directories.append(slackroll_pkgs_dir)
-        if operation in ['erase-tmp', 'erase-all']:
-            directories.append(get_temp_dir())
-        files = concat([glob.glob(os.path.join(directory, '*')) for directory in directories])
-        if len(files) == 0:
-            print('No files to remove')
-        else:
-            files.sort()
-            for filename in files:
-                try_to_remove(filename)
-        sys.exit()
+        if operation == 'remove-repo':
+            repo_list = get_repo_list()
+            repo_dict = dict(enumerate(repo_list))
+            valid = []
+            invalid = []
+            for x in args:
+                try:
+                    num = int(x)
+                    if num in repo_dict:
+                        valid.append(num)
+                    else:
+                        invalid.append(num)
+                except:
+                    invalid.append(x)
+            if len(invalid) > 0:
+                sys.exit('ERROR: invalid repository numbers: %s' % ', '.join(str(x) for x in invalid))
+            for x in valid:
+                del repo_dict[x]
+            repo_list = [repo_dict[x] for x in sorted(repo_dict.keys())]
+            dump_repo_list(repo_list)
+            print_repo_mod_advice()
+            sys.exit()
 
-    if operation == 'changelog':
-        interceptor = SlackrollOutputInterceptor()
-        cl = try_load(slackroll_local_changelog)
-        print((slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch())))
-        interceptor.stop()
-        sys.exit()
+        if operation in ['erase-cache', 'erase-tmp', 'erase-all']:
+            directories = []
+            if operation in ['erase-cache', 'erase-all']:
+                directories.append(slackroll_pkgs_dir)
+            if operation in ['erase-tmp', 'erase-all']:
+                directories.append(get_temp_dir())
+            files = concat([glob.glob(os.path.join(directory, '*')) for directory in directories])
+            if len(files) == 0:
+                print('No files to remove')
+            else:
+                files.sort()
+                for filename in files:
+                    try_to_remove(filename)
+            sys.exit()
 
-    if operation == 'list-changelog':
-        interceptor = SlackrollOutputInterceptor()
-        cl = try_load(slackroll_local_changelog)
-        print('ChangeLog.txt entries:')
-        for idb in xrange(cl.num_batches() - 1, -1, -1):
-            batch = cl.get_batch(idb)
-            for ide in xrange(len(batch)):
-                print(('    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp)))
-        print('End of list')
-        interceptor.stop()
-        sys.exit()
+        if operation == 'changelog':
+            interceptor = SlackrollOutputInterceptor()
+            cl = try_load(slackroll_local_changelog)
+            print((slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch())))
+            interceptor.stop()
+            sys.exit()
 
-    if operation == 'changelog-entries':
-        cl = try_load(slackroll_local_changelog)
-        entries = []
-        for code in args:
-            try:
-                (idb, ide) = code.split('.')
-                (idb, ide) = (int(idb), int(ide))
-                entries.append(cl.get_batch(idb)[ide])
-            except (IndexError, ValueError):
-                sys.exit('ERROR: invalid entry: %s' % code)
-        interceptor = SlackrollOutputInterceptor()
-        print((slackroll_changelog_entry_separator.join('%s' % x for x in entries)))
-        interceptor.stop()
-        sys.exit()
+        if operation == 'list-changelog':
+            interceptor = SlackrollOutputInterceptor()
+            cl = try_load(slackroll_local_changelog)
+            print('ChangeLog.txt entries:')
+            for idb in xrange(cl.num_batches() - 1, -1, -1):
+                batch = cl.get_batch(idb)
+                for ide in xrange(len(batch)):
+                    print(('    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp)))
+            print('End of list')
+            interceptor.stop()
+            sys.exit()
 
-    if operation == 'full-changelog':
-        cl = try_load(slackroll_local_changelog)
-        entries = concat([[x for x in cl.get_batch(y)] for y in xrange(cl.num_batches() - 1, -1, -1)])
-        interceptor = SlackrollOutputInterceptor()
-        print((slackroll_changelog_entry_separator.join('%s' % x for x in entries)))
-        interceptor.stop()
-        sys.exit()
+        if operation == 'changelog-entries':
+            cl = try_load(slackroll_local_changelog)
+            entries = []
+            for code in args:
+                try:
+                    (idb, ide) = code.split('.')
+                    (idb, ide) = (int(idb), int(ide))
+                    entries.append(cl.get_batch(idb)[ide])
+                except (IndexError, ValueError):
+                    sys.exit('ERROR: invalid entry: %s' % code)
+            interceptor = SlackrollOutputInterceptor()
+            print((slackroll_changelog_entry_separator.join('%s' % x for x in entries)))
+            interceptor.stop()
+            sys.exit()
 
-    if operation in ['local-search', 'missing-search']:
-        if operation == 'local-search':
+        if operation == 'full-changelog':
+            cl = try_load(slackroll_local_changelog)
+            entries = concat([[x for x in cl.get_batch(y)] for y in xrange(cl.num_batches() - 1, -1, -1)])
+            interceptor = SlackrollOutputInterceptor()
+            print((slackroll_changelog_entry_separator.join('%s' % x for x in entries)))
+            interceptor.stop()
+            sys.exit()
+
+        if operation in ['local-search', 'missing-search']:
+            if operation == 'local-search':
+                all_regexes = '|'.join('(?:%s)' % x for x in args)
+                try:
+                    regexp = re.compile(all_regexes)
+                except re.error:
+                    sys.exit('ERROR: invalid regular expression')
+                test = lambda x: regexp.search(x) is not None
+                header = 'Matching files:'
+                empty = 'No matching files found'
+            else: # missing-search
+                long_time_warning()
+                interpret_results_warning()
+                maybe_confirm_continue()
+                print()
+                test = lambda x: slackroll_never_missing_re.search(x) is None and not os.path.exists(x) and not os.path.exists(old_file(x))
+                header = 'Missing files:'
+                empty = 'No missing files'
+
+
+            print(('Reading contents of %s ...' % slackroll_local_pkgs_dir))
+            pkg_files_map = get_pkg_filelists()
+
+            matches = [(x, [y for y in pkg_files_map[x] if test(y)]) for x in sorted(pkg_files_map.keys())]
+            matches = [(name, files) for (name, files) in matches if len(files) > 0]
+            if len(matches) == 0:
+                print(empty)
+                sys.exit()
+
+            matches.sort()
+            interceptor = SlackrollOutputInterceptor()
+            print(header)
+            for (name, files) in matches:
+                print(('    %s' % os.path.basename(name)))
+                print((''.join('\t%s\n' % x for x in files)))
+            print('End of list')
+            interceptor.stop()
+            sys.exit()
+
+        if operation == 'orphan-search':
+            long_time_warning()
+            interpret_results_warning()
+            maybe_confirm_continue()
+
+            print(('\nReading normalized contents of %s ...' % slackroll_local_pkgs_dir))
+            known_files = get_normalized_known_files()
+
+            print('Examining specified paths...')
+            tree = []
+            for path in args: # Iterate over specified paths
+                walk_append_if(path, is_not_link, tree)
+
+            # Detect orphans
+            print('Finding orphan files...')
+            orphans = []
+            for name in tree:
+                alternative = '%s%s' % (name, slackroll_new_suffix)
+                if name not in known_files and alternative not in known_files:
+                    orphans.append(name)
+
+            # Print results
+            print_list_or(orphans, 'Orphan files:', 'No orphan files found')
+            sys.exit()
+
+        if operation == 'broken-symlinks':
+            interpret_results_warning()
+            maybe_confirm_continue()
+
+            print('\nExamining specified paths...')
+            broken_symlinks = []
+            for path in args:
+                walk_append_if(path, is_broken_link, broken_symlinks)
+
+            print_list_or(broken_symlinks, 'Broken symlinks:', 'No broken symlinks found')
+            sys.exit()
+
+        if operation == 'manifest-search':
             all_regexes = '|'.join('(?:%s)' % x for x in args)
             try:
                 regexp = re.compile(all_regexes)
             except re.error:
                 sys.exit('ERROR: invalid regular expression')
-            test = lambda x: regexp.search(x) is not None
-            header = 'Matching files:'
-            empty = 'No matching files found'
-        else: # missing-search
-            long_time_warning()
-            interpret_results_warning()
-            maybe_confirm_continue()
-            print()
-            test = lambda x: slackroll_never_missing_re.search(x) is None and not os.path.exists(x) and not os.path.exists(old_file(x))
-            header = 'Missing files:'
-            empty = 'No missing files'
-
-
-        print(('Reading contents of %s ...' % slackroll_local_pkgs_dir))
-        pkg_files_map = get_pkg_filelists()
-
-        matches = [(x, [y for y in pkg_files_map[x] if test(y)]) for x in sorted(pkg_files_map.keys())]
-        matches = [(name, files) for (name, files) in matches if len(files) > 0]
-        if len(matches) == 0:
-            print(empty)
+            search_manifest_database(regexp)
             sys.exit()
 
-        matches.sort()
-        interceptor = SlackrollOutputInterceptor()
-        print(header)
-        for (name, files) in matches:
-            print(('    %s' % os.path.basename(name)))
-            print((''.join('\t%s\n' % x for x in files)))
-        print('End of list')
-        interceptor.stop()
-        sys.exit()
+        # Some operations below need to have the temporary directory available to download stuff
+        handle_writable_dir(get_temp_dir())
 
-    if operation == 'orphan-search':
-        long_time_warning()
-        interpret_results_warning()
-        maybe_confirm_continue()
+        if operation == 'import-key':
+            download_or_exit(get_primary_mirror(), slackroll_gpgkey_filename, slackroll_base_dir)
+            import_key(slackroll_local_gpgkey)
+            try_to_remove(slackroll_local_gpgkey)
+            sys.exit()
 
-        print(('\nReading normalized contents of %s ...' % slackroll_local_pkgs_dir))
-        known_files = get_normalized_known_files()
+        if operation == 'download-changelog':
+            update_changelog(get_mirror(), full=True)
+            sys.exit()
 
-        print('Examining specified paths...')
-        tree = []
-        for path in args: # Iterate over specified paths
-            walk_append_if(path, is_not_link, tree)
+        if operation == 'update-manifest':
+            update_manifest_database()
+            sys.exit()
 
-        # Detect orphans
-        print('Finding orphan files...')
-        orphans = []
-        for name in tree:
-            alternative = '%s%s' % (name, slackroll_new_suffix)
-            if name not in known_files and alternative not in known_files:
-                orphans.append(name)
+        # Every operation below needs an updated persistent database
+        handle_writable_dir(slackroll_pkgs_dir)
 
-        # Print results
-        print_list_or(orphans, 'Orphan files:', 'No orphan files found')
-        sys.exit()
+        needs_rebuild = (not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
+        if needs_rebuild or operation == 'update':
+            update_operation(get_mirror())
+        local_list = get_local_list(needs_rebuild)
+        remote_list = get_remote_list()
 
-    if operation == 'broken-symlinks':
-        interpret_results_warning()
-        maybe_confirm_continue()
+        needs_analyze = (newer_than(slackroll_remotelist_filename, slackroll_persistentlist_filename)
+                or newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename)
+                or operation == 'touch' or needs_rebuild)
 
-        print('\nExamining specified paths...')
-        broken_symlinks = []
-        for path in args:
-            walk_append_if(path, is_broken_link, broken_symlinks)
-
-        print_list_or(broken_symlinks, 'Broken symlinks:', 'No broken symlinks found')
-        sys.exit()
-
-    if operation == 'manifest-search':
-        all_regexes = '|'.join('(?:%s)' % x for x in args)
         try:
-            regexp = re.compile(all_regexes)
-        except re.error:
-            sys.exit('ERROR: invalid regular expression')
-        search_manifest_database(regexp)
-        sys.exit()
+            # Python 3 shelve does not support Berkeley hash DB by default, Python 2 did
+            if using_python2:
+                persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
+            elif bdb_is_berkeleydb:
+                # Provides a hash-compatible shelve clone
+                # Pickle protocols > 2 will not be backward-compatible with Python 2
+                shelve.HIGHEST_PROTOCOL = 2
+                persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
+            else:
+                # If on Python 3 without berkeleydb, piggyback shelve on lower-level DB
+                persistent_db = bdb.hashopen(slackroll_persistentlist_filename, 'c')
+                persistent_list = shelve.BsdDbShelf(persistent_db, protocol=2)
 
-    # Some operations below need to have the temporary directory available to download stuff
-    handle_writable_dir(get_temp_dir())
+        except DatabaseException as err:
+            print(('Database exception was %s' % err))
+            sys.exit('ERROR: unable to properly open %s' % slackroll_persistentlist_filename)
 
-    if operation == 'import-key':
-        download_or_exit(get_primary_mirror(), slackroll_gpgkey_filename, slackroll_base_dir)
-        import_key(slackroll_local_gpgkey)
-        try_to_remove(slackroll_local_gpgkey)
-        sys.exit()
+        # Ensure that we explicitly call shelve.close for cleanup before exiting
+        atexit.register(cleanup_databases)
 
-    if operation == 'download-changelog':
-        update_changelog(get_mirror(), full=True)
-        sys.exit()
+        if needs_analyze:
+            analyze_changes(local_list, remote_list, persistent_list)
+            os.utime(slackroll_persistentlist_filename, None)
 
-    if operation == 'update-manifest':
-        update_manifest_database()
-        sys.exit()
+        write_self_file_version()
 
-    # Every operation below needs an updated persistent database
-    handle_writable_dir(slackroll_pkgs_dir)
-
-    needs_rebuild = (not os.path.exists(slackroll_self_filename) or get_self_file_version() != slackroll_version)
-    if needs_rebuild or operation == 'update':
-        update_operation(get_mirror())
-    local_list = get_local_list(needs_rebuild)
-    remote_list = get_remote_list()
-
-    needs_analyze = (newer_than(slackroll_remotelist_filename, slackroll_persistentlist_filename)
-            or newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename)
-            or operation == 'touch' or needs_rebuild)
-
-    try:
-        # Python 3 shelve does not support Berkeley hash DB by default, Python 2 did
-        if using_python2:
-            persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
-        elif bdb_is_berkeleydb:
-            # Provides a hash-compatible shelve clone
-            # Pickle protocols > 2 will not be backward-compatible with Python 2
-            shelve.HIGHEST_PROTOCOL = 2
-            persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
-        else:
-            # If on Python 3 without berkeleydb, piggyback shelve on lower-level DB
-            persistent_db = bdb.hashopen(slackroll_persistentlist_filename, 'c')
-            persistent_list = shelve.BsdDbShelf(persistent_db, protocol=2)
-
-    except DatabaseException as err:
-        print(('Database exception was %s' % err))
-        sys.exit('ERROR: unable to properly open %s' % slackroll_persistentlist_filename)
-
-    # Ensure that we explicitly call shelve.close for cleanup before exiting
-    atexit.register(cleanup_databases)
-
-    if needs_analyze:
-        analyze_changes(local_list, remote_list, persistent_list)
-        os.utime(slackroll_persistentlist_filename, None)
-
-    write_self_file_version()
-
-    if operation == 'update':
-        mirror = get_mirror()
-        print(('Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size())))
-        updated = update_changelog(mirror)
-        transient_packages_present = any(persistent_list[x] in slackroll_transient_states for x in persistent_list)
-        if updated or transient_packages_present:
-            print()
-            if updated:
-                print('New change log entries found. Use "changelog" to read them.')
-            if transient_packages_present:
-                print('Found packages in transient states. Use "list-transient" to list them.')
-        sys.exit()
-
-    if operation == 'touch':
-        sys.exit()
-
-    if operation == 'remote-paths':
-        every_remote_path = concat([[y.fullname for y in remote_list[x]] for x in remote_list])
-        every_remote_path.sort()
-        interceptor = SlackrollOutputInterceptor()
-        for path in every_remote_path:
-            print(path)
-        interceptor.stop()
-        sys.exit()
-
-    if operation == 'state':
-        maybe_error_unknown_packages(args, persistent_list)
-        plist_subset = dict([(x, persistent_list[str_to_db(x)]) for x in args])
-        print_in_states_or(slackroll_all_states, plist_subset, 'Package states:', 'INTERNAL ERROR: no packages specified', True)
-        sys.exit()
-
-    if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
-        if operation == 'upgrade' and maybe_print_new_warning(persistent_list):
-            maybe_confirm_continue()
-
-        names = pkgs_in_state(persistent_list, [slackroll_state_outdated])
-        names.sort(key=functools.cmp_to_key(pkg_name_cmp))
-
-        if len(names) == 0:
-            print('No outdated packages')
+        if operation == 'update':
+            mirror = get_mirror()
+            print(('Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size())))
+            updated = update_changelog(mirror)
+            transient_packages_present = any(persistent_list[x] in slackroll_transient_states for x in persistent_list)
+            if updated or transient_packages_present:
+                print()
+                if updated:
+                    print('New change log entries found. Use "changelog" to read them.')
+                if transient_packages_present:
+                    print('Found packages in transient states. Use "list-transient" to list them.')
             sys.exit()
 
-        opmap = { 'upgrade': 'install', 'download-upgrades': 'download', 'urls-upgrades': 'urls' }
-        install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, use_pasture=False)
-        sys.exit()
-
-    if operation in ['upgrade-key-packages', 'download-key-packages', 'urls-key-packages']:
-        names = [x for x in slackroll_prioritized_pkgs if str_to_db(x) in persistent_list and persistent_list[str_to_db(x)] == slackroll_state_outdated]
-        if len(names) == 0:
-            print('No outdated key system packages')
+        if operation == 'touch':
             sys.exit()
-        opmap = { 'upgrade-key-packages': 'install', 'download-key-packages': 'download', 'urls-key-packages': 'urls' }
-        install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, use_pasture=False)
-        sys.exit()
 
-    if operation == 'kernel-upgrade':
-        names = [x for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[str_to_db(x)] == slackroll_state_outdated]
-        if len(names) == 0:
-            print('No outdated kernel packages')
-        install_operations_family('installpkg', names, local_list, remote_list, persistent_list, use_pasture=False)
-        post_kernel_operation()
-        sys.exit()
+        if operation == 'remote-paths':
+            every_remote_path = concat([[y.fullname for y in remote_list[x]] for x in remote_list])
+            every_remote_path.sort()
+            interceptor = SlackrollOutputInterceptor()
+            for path in every_remote_path:
+                print(path)
+            interceptor.stop()
+            sys.exit()
 
-    if operation == 'clean-cache':
-        cache_files = glob.glob(slackroll_pkgs_dir_glob)
-        cache_pkgs = []
-        extraneous_files = []
+        if operation == 'state':
+            maybe_error_unknown_packages(args, persistent_list)
+            plist_subset = dict([(x, persistent_list[str_to_db(x)]) for x in args])
+            print_in_states_or(slackroll_all_states, plist_subset, 'Package states:', 'INTERNAL ERROR: no packages specified', True)
+            sys.exit()
 
-        cache_files.sort()
-        for elem in cache_files:
-            try:
-                cache_pkgs.append(pkg_from_str(elem))
-            except SlackrollError:
-                extraneous_files.append(elem)
+        if operation in ['upgrade', 'download-upgrades', 'urls-upgrades']:
+            if operation == 'upgrade' and maybe_print_new_warning(persistent_list):
+                maybe_confirm_continue()
 
-        to_be_removed = [pkg for pkg in cache_pkgs if not pkg_in_map(pkg, local_list) and not pkg_in_map(pkg, remote_list)]
-        if len(to_be_removed) == 0:
-            print('No package files to remove')
-        else:
-            for pkg in to_be_removed:
-                print(('Removing %s ...' % pkg.fullname))
-                try_to_remove(pkg.fullname)
-
-        if len(extraneous_files) > 0:
-            extraneous_files.sort()
-            print(('\n'.join('WARNING: extraneous file %s' % x for x in extraneous_files)))
-        sys.exit()
-
-    if operation in ['list-upgrades', 'list-outdated-frozen']:
-        if operation == 'list-upgrades':
             names = pkgs_in_state(persistent_list, [slackroll_state_outdated])
-        else: # list-outdated-frozen
-            names = pkgs_in_state(persistent_list, [slackroll_state_frozen])
-            names = [x for x in names if not up_to_date(local_list[x], not_pasture(remote_list[x]))]
+            names.sort(key=functools.cmp_to_key(pkg_name_cmp))
 
-        if len(names) == 0:
-            if operation == 'list-upgrades':
+            if len(names) == 0:
                 print('No outdated packages')
+                sys.exit()
+
+            opmap = { 'upgrade': 'install', 'download-upgrades': 'download', 'urls-upgrades': 'urls' }
+            install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, use_pasture=False)
+            sys.exit()
+
+        if operation in ['upgrade-key-packages', 'download-key-packages', 'urls-key-packages']:
+            names = [x for x in slackroll_prioritized_pkgs if str_to_db(x) in persistent_list and persistent_list[str_to_db(x)] == slackroll_state_outdated]
+            if len(names) == 0:
+                print('No outdated key system packages')
+                sys.exit()
+            opmap = { 'upgrade-key-packages': 'install', 'download-key-packages': 'download', 'urls-key-packages': 'urls' }
+            install_operations_family(opmap[operation], names, local_list, remote_list, persistent_list, use_pasture=False)
+            sys.exit()
+
+        if operation == 'kernel-upgrade':
+            names = [x for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[str_to_db(x)] == slackroll_state_outdated]
+            if len(names) == 0:
+                print('No outdated kernel packages')
+            install_operations_family('installpkg', names, local_list, remote_list, persistent_list, use_pasture=False)
+            post_kernel_operation()
+            sys.exit()
+
+        if operation == 'clean-cache':
+            cache_files = glob.glob(slackroll_pkgs_dir_glob)
+            cache_pkgs = []
+            extraneous_files = []
+
+            cache_files.sort()
+            for elem in cache_files:
+                try:
+                    cache_pkgs.append(pkg_from_str(elem))
+                except SlackrollError:
+                    extraneous_files.append(elem)
+
+            to_be_removed = [pkg for pkg in cache_pkgs if not pkg_in_map(pkg, local_list) and not pkg_in_map(pkg, remote_list)]
+            if len(to_be_removed) == 0:
+                print('No package files to remove')
+            else:
+                for pkg in to_be_removed:
+                    print(('Removing %s ...' % pkg.fullname))
+                    try_to_remove(pkg.fullname)
+
+            if len(extraneous_files) > 0:
+                extraneous_files.sort()
+                print(('\n'.join('WARNING: extraneous file %s' % x for x in extraneous_files)))
+            sys.exit()
+
+        if operation in ['list-upgrades', 'list-outdated-frozen']:
+            if operation == 'list-upgrades':
+                names = pkgs_in_state(persistent_list, [slackroll_state_outdated])
             else: # list-outdated-frozen
-                print('No frozen packages would be outdated')
+                names = pkgs_in_state(persistent_list, [slackroll_state_frozen])
+                names = [x for x in names if not up_to_date(local_list[x], not_pasture(remote_list[x]))]
+
+            if len(names) == 0:
+                if operation == 'list-upgrades':
+                    print('No outdated packages')
+                else: # list-outdated-frozen
+                    print('No frozen packages would be outdated')
+                sys.exit()
+
+            interceptor = SlackrollOutputInterceptor()
+            if operation == 'list-upgrades':
+                print('Available upgrades:')
+            else: # list-outdated-frozen
+                print('Would be outdated:')
+
+            names.sort(key=functools.cmp_to_key(pkg_name_cmp))
+            for name in names:
+                candidates = not_pasture(remote_list[name])
+                if len(candidates) == 0:
+                    print(('    %s: WARNING: only present in /pasture/\n' % name))
+                    continue
+                print(('    %s:' % name))
+                print(('\n'.join('\tLocal:\t%s' % pkg.archivename for pkg in local_list[name])))
+                print(('\n'.join('\tRemote:\t%s' % pkg.fullname for pkg in candidates)))
+                print()
+            print('End of list')
+
+            if operation == 'list-upgrades':
+                maybe_print_key_pkg_watchout(persistent_list)
+            interceptor.stop()
             sys.exit()
 
-        interceptor = SlackrollOutputInterceptor()
-        if operation == 'list-upgrades':
-            print('Available upgrades:')
-        else: # list-outdated-frozen
-            print('Would be outdated:')
+        if operation == 'list-transient':
+            pkgs_and_states = [(db_to_str(pkg), persistent_list[pkg]) for pkg in persistent_list if persistent_list[pkg] in slackroll_transient_states]
+            if len(pkgs_and_states) == 0:
+                print('No transient packages found')
+                sys.exit()
+            pkgs_and_states.sort(key=functools.cmp_to_key(transient_cmp))
 
-        names.sort(key=functools.cmp_to_key(pkg_name_cmp))
-        for name in names:
-            candidates = not_pasture(remote_list[name])
-            if len(candidates) == 0:
-                print(('    %s: WARNING: only present in /pasture/\n' % name))
-                continue
-            print(('    %s:' % name))
-            print(('\n'.join('\tLocal:\t%s' % pkg.archivename for pkg in local_list[name])))
-            print(('\n'.join('\tRemote:\t%s' % pkg.fullname for pkg in candidates)))
-            print()
-        print('End of list')
+            # Translate states to strings and precalculate constants
+            pkgs_and_states = [(name, slackroll_state_strings[state]) for (name, state) in pkgs_and_states]
+            max_state_len = max(len(slackroll_state_strings[x]) for x in slackroll_transient_states)
+            max_name_len = max(len(a) for (a, b) in pkgs_and_states)
+            format = '    %%-%ss  %%-%ss  %%s' % (max_state_len, max_name_len)
 
-        if operation == 'list-upgrades':
+            # Print the transient list
+            interceptor = SlackrollOutputInterceptor()
+            print('Transient packages:')
+            print(('\n'.join(format % (state, name, tr_pkg_detail(local_list, remote_list, persistent_list, name)) for (name, state) in pkgs_and_states)))
+            print('End of list')
             maybe_print_key_pkg_watchout(persistent_list)
-        interceptor.stop()
-        sys.exit()
-
-    if operation == 'list-transient':
-        pkgs_and_states = [(db_to_str(pkg), persistent_list[pkg]) for pkg in persistent_list if persistent_list[pkg] in slackroll_transient_states]
-        if len(pkgs_and_states) == 0:
-            print('No transient packages found')
-            sys.exit()
-        pkgs_and_states.sort(key=functools.cmp_to_key(transient_cmp))
-
-        # Translate states to strings and precalculate constants
-        pkgs_and_states = [(name, slackroll_state_strings[state]) for (name, state) in pkgs_and_states]
-        max_state_len = max(len(slackroll_state_strings[x]) for x in slackroll_transient_states)
-        max_name_len = max(len(a) for (a, b) in pkgs_and_states)
-        format = '    %%-%ss  %%-%ss  %%s' % (max_state_len, max_name_len)
-
-        # Print the transient list
-        interceptor = SlackrollOutputInterceptor()
-        print('Transient packages:')
-        print(('\n'.join(format % (state, name, tr_pkg_detail(local_list, remote_list, persistent_list, name)) for (name, state) in pkgs_and_states)))
-        print('End of list')
-        maybe_print_key_pkg_watchout(persistent_list)
-        interceptor.stop()
-        sys.exit()
-
-    if operation == 'list-new':
-        # Very similar to list-transient
-        new_pkgs = pkgs_in_state(persistent_list, [slackroll_state_new])
-        if len(new_pkgs) > 0:
-            max_name_len = max(len(x) for x in new_pkgs)
-        else:
-            max_name_len = 0
-        format = '%%-%ss  %%s' % max_name_len
-        pkg_and_details = [format % (x, tr_pkg_detail(local_list, remote_list, persistent_list, x)) for x in new_pkgs]
-        print_seq_or(pkg_and_details, 'New packages:', 'No new packages found')
-        sys.exit()
-
-    if operation == 'list-alternatives':
-        alternatives = dict()
-        for search_key in persistent_list:
-            name = db_to_str(search_key)
-            versions = []
-            versions.extend(remote_list.get(name, []))
-            versions.extend(x for x in local_list.get(name, []) if x not in versions)
-            if len(versions) > 1:
-                alternatives[name] = versions
-
-        if len(alternatives) == 0:
-            print('No packages with alternative versions')
+            interceptor.stop()
             sys.exit()
 
-        names = list(alternatives.keys())
-        names.sort(key=functools.cmp_to_key(pkg_name_cmp))
-        interceptor = SlackrollOutputInterceptor()
-        print('Packages with alternatives:')
-        for name in names:
-            print(('    %s:' % name))
-            for ver in alternatives[name]:
-                print(('\t%s' % ver.fullname))
-            print()
-        print('End of list')
-        interceptor.stop()
-        sys.exit()
-
-    if operation in ['list-outdated', 'list-unavailable', 'list-installed', 'list-not-installed', 'list-frozen', 'list-foreign']:
-        state_str = operation.replace('list-', '')
-        header = '%s packages:' % state_str.capitalize()
-        empty_message = 'No %s packages found' % state_str
-        state = slackroll_state_strings.index(state_str)
-
-        interceptor = SlackrollOutputInterceptor()
-        print_in_states_or([state], persistent_list, header, empty_message, False)
-        if state in slackroll_transient_states:
-            maybe_print_key_pkg_watchout(persistent_list)
-        interceptor.stop()
-        sys.exit()
-
-    if operation == 'list-local':
-        print_seq_or(local_list, 'Local packages:', 'No local packages found')
-        sys.exit()
-
-    if operation == 'list-remote':
-        print_seq_or(remote_list, 'Remote packages:', 'No remote packages found')
-        sys.exit()
-
-    if operation == 'list-all':
-        print_seq_or(persistent_list, 'All packages:', 'No packages found')
-        sys.exit()
-
-    if operation == 'new-not-installed':
-        new_packages = pkgs_in_state(persistent_list, [slackroll_state_new])
-        from_states_to_state([slackroll_state_new], slackroll_state_notinstalled, persistent_list, new_packages)
-        sys.exit()
-
-    if operation == 'unavailable-foreign':
-        unavailable_packages = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
-        from_states_to_state([slackroll_state_unavailable], slackroll_state_foreign, persistent_list, unavailable_packages)
-        sys.exit()
-
-    if operation in ['frozen', 'freeze']:
-        valid_origins = [slackroll_state_frozen, slackroll_state_installed, slackroll_state_outdated]
-        from_states_to_state(valid_origins, slackroll_state_frozen, persistent_list, args)
-        sys.exit()
-
-    if operation == 'foreign':
-        from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_foreign, persistent_list, args)
-        sys.exit()
-
-    if operation == 'not-installed':
-        from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_notinstalled, persistent_list, args)
-        sys.exit()
-
-    if operation == 'unavailable':
-        from_states_to_state([slackroll_state_unavailable, slackroll_state_foreign], slackroll_state_unavailable, persistent_list, args)
-        sys.exit()
-
-    if operation == 'new':
-        from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_new, persistent_list, args)
-        sys.exit()
-
-    if operation in ['installed', 'unfreeze']:
-        from_states_to_state([slackroll_state_installed, slackroll_state_frozen], slackroll_state_installed, persistent_list, args)
-        analyze_changes(local_list, remote_list, persistent_list) # Forced because it may need to be marked as outdated
-        os.utime(slackroll_persistentlist_filename, None)
-        sys.exit()
-
-    if operation == 'list-versions':
-        maybe_error_unknown_packages(args, persistent_list)
-        interceptor = SlackrollOutputInterceptor()
-        print('Available versions:')
-        for name in args:
-            print(('    %s:' % name))
-            if name in local_list:
-                print(('\n'.join('\tLocal:\t%s' % ver.archivename for ver in local_list[name])))
-            if name in remote_list:
-                print(('\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name])))
-            print()
-        print('End of list')
-        interceptor.stop()
-        sys.exit()
-
-    if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
-        install_operations_family(operation, args, local_list, remote_list, persistent_list)
-        sys.exit()
-
-    if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
-        names = pkgs_in_state(persistent_list, [slackroll_state_new])
-        names.sort(key=functools.cmp_to_key(pkg_name_cmp))
-        if len(names) == 0:
-            print('No new packages')
-            sys.exit()
-        opname = operation.replace('-new', '')
-        install_operations_family(opname, names, local_list, remote_list, persistent_list)
-        sys.exit()
-
-    if operation in ['install-path', 'download-path', 'info-path', 'urls-path', 'remove-path']:
-        all_regexes = '|'.join('(?:%s)' % x for x in args)
-        try:
-            regexp = re.compile(all_regexes)
-        except re.error:
-            sys.exit('ERROR: invalid regular expression')
-
-        matching_pkgs = [x for x in concat([remote_list[x] for x in remote_list]) if regexp.search(x.path) is not None]
-
-        if operation == 'remove-path': # Filter out packages not present in local system
-            matching_pkgs = [x for x in matching_pkgs if pkg_in_map(x, local_list)]
-
-        if len(matching_pkgs) == 0:
-            print('No matching packages')
+        if operation == 'list-new':
+            # Very similar to list-transient
+            new_pkgs = pkgs_in_state(persistent_list, [slackroll_state_new])
+            if len(new_pkgs) > 0:
+                max_name_len = max(len(x) for x in new_pkgs)
+            else:
+                max_name_len = 0
+            format = '%%-%ss  %%s' % max_name_len
+            pkg_and_details = [format % (x, tr_pkg_detail(local_list, remote_list, persistent_list, x)) for x in new_pkgs]
+            print_seq_or(pkg_and_details, 'New packages:', 'No new packages found')
             sys.exit()
 
-        matching_pkgs.sort()
-        if operation == 'remove-path':
+        if operation == 'list-alternatives':
+            alternatives = dict()
+            for search_key in persistent_list:
+                name = db_to_str(search_key)
+                versions = []
+                versions.extend(remote_list.get(name, []))
+                versions.extend(x for x in local_list.get(name, []) if x not in versions)
+                if len(versions) > 1:
+                    alternatives[name] = versions
+
+            if len(alternatives) == 0:
+                print('No packages with alternative versions')
+                sys.exit()
+
+            names = list(alternatives.keys())
+            names.sort(key=functools.cmp_to_key(pkg_name_cmp))
+            interceptor = SlackrollOutputInterceptor()
+            print('Packages with alternatives:')
+            for name in names:
+                print(('    %s:' % name))
+                for ver in alternatives[name]:
+                    print(('\t%s' % ver.fullname))
+                print()
+            print('End of list')
+            interceptor.stop()
+            sys.exit()
+
+        if operation in ['list-outdated', 'list-unavailable', 'list-installed', 'list-not-installed', 'list-frozen', 'list-foreign']:
+            state_str = operation.replace('list-', '')
+            header = '%s packages:' % state_str.capitalize()
+            empty_message = 'No %s packages found' % state_str
+            state = slackroll_state_strings.index(state_str)
+
+            interceptor = SlackrollOutputInterceptor()
+            print_in_states_or([state], persistent_list, header, empty_message, False)
+            if state in slackroll_transient_states:
+                maybe_print_key_pkg_watchout(persistent_list)
+            interceptor.stop()
+            sys.exit()
+
+        if operation == 'list-local':
+            print_seq_or(local_list, 'Local packages:', 'No local packages found')
+            sys.exit()
+
+        if operation == 'list-remote':
+            print_seq_or(remote_list, 'Remote packages:', 'No remote packages found')
+            sys.exit()
+
+        if operation == 'list-all':
+            print_seq_or(persistent_list, 'All packages:', 'No packages found')
+            sys.exit()
+
+        if operation == 'new-not-installed':
+            new_packages = pkgs_in_state(persistent_list, [slackroll_state_new])
+            from_states_to_state([slackroll_state_new], slackroll_state_notinstalled, persistent_list, new_packages)
+            sys.exit()
+
+        if operation == 'unavailable-foreign':
+            unavailable_packages = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
+            from_states_to_state([slackroll_state_unavailable], slackroll_state_foreign, persistent_list, unavailable_packages)
+            sys.exit()
+
+        if operation in ['frozen', 'freeze']:
+            valid_origins = [slackroll_state_frozen, slackroll_state_installed, slackroll_state_outdated]
+            from_states_to_state(valid_origins, slackroll_state_frozen, persistent_list, args)
+            sys.exit()
+
+        if operation == 'foreign':
+            from_states_to_state([slackroll_state_foreign, slackroll_state_unavailable], slackroll_state_foreign, persistent_list, args)
+            sys.exit()
+
+        if operation == 'not-installed':
+            from_states_to_state([slackroll_state_notinstalled, slackroll_state_new], slackroll_state_notinstalled, persistent_list, args)
+            sys.exit()
+
+        if operation == 'unavailable':
+            from_states_to_state([slackroll_state_unavailable, slackroll_state_foreign], slackroll_state_unavailable, persistent_list, args)
+            sys.exit()
+
+        if operation == 'new':
+            from_states_to_state([slackroll_state_new, slackroll_state_notinstalled], slackroll_state_new, persistent_list, args)
+            sys.exit()
+
+        if operation in ['installed', 'unfreeze']:
+            from_states_to_state([slackroll_state_installed, slackroll_state_frozen], slackroll_state_installed, persistent_list, args)
+            analyze_changes(local_list, remote_list, persistent_list) # Forced because it may need to be marked as outdated
+            os.utime(slackroll_persistentlist_filename, None)
+            sys.exit()
+
+        if operation == 'list-versions':
+            maybe_error_unknown_packages(args, persistent_list)
+            interceptor = SlackrollOutputInterceptor()
+            print('Available versions:')
+            for name in args:
+                print(('    %s:' % name))
+                if name in local_list:
+                    print(('\n'.join('\tLocal:\t%s' % ver.archivename for ver in local_list[name])))
+                if name in remote_list:
+                    print(('\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name])))
+                print()
+            print('End of list')
+            interceptor.stop()
+            sys.exit()
+
+        if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
+            install_operations_family(operation, args, local_list, remote_list, persistent_list)
+            sys.exit()
+
+        if operation in ['install-new', 'download-new', 'info-new', 'urls-new']:
+            names = pkgs_in_state(persistent_list, [slackroll_state_new])
+            names.sort(key=functools.cmp_to_key(pkg_name_cmp))
+            if len(names) == 0:
+                print('No new packages')
+                sys.exit()
+            opname = operation.replace('-new', '')
+            install_operations_family(opname, names, local_list, remote_list, persistent_list)
+            sys.exit()
+
+        if operation in ['install-path', 'download-path', 'info-path', 'urls-path', 'remove-path']:
+            all_regexes = '|'.join('(?:%s)' % x for x in args)
+            try:
+                regexp = re.compile(all_regexes)
+            except re.error:
+                sys.exit('ERROR: invalid regular expression')
+
+            matching_pkgs = [x for x in concat([remote_list[x] for x in remote_list]) if regexp.search(x.path) is not None]
+
+            if operation == 'remove-path': # Filter out packages not present in local system
+                matching_pkgs = [x for x in matching_pkgs if pkg_in_map(x, local_list)]
+
+            if len(matching_pkgs) == 0:
+                print('No matching packages')
+                sys.exit()
+
+            matching_pkgs.sort()
+            if operation == 'remove-path':
+                if maybe_print_new_warning(persistent_list) or maybe_print_outdated_warning(persistent_list):
+                    maybe_confirm_continue()
+                remove_pkgs([x.local() for x in matching_pkgs])
+            else:
+                opname = operation.replace('-path', '')
+                archivenames = [x.archivename for x in matching_pkgs]
+                install_operations_family(opname, archivenames, local_list, remote_list, persistent_list)
+
+            sys.exit()
+
+        if operation == 'local-info':
+            verify_local_names(args, local_list)
+            interceptor = SlackrollOutputInterceptor()
+            try:
+                print(('\n'.join(open(x.fullname, 'r').read() for x in concat(local_list[pkg] for pkg in args))))
+            except (IOError, OSError) as err:
+                sys.exit('ERROR: %s' % err)
+            interceptor.stop()
+            sys.exit()
+
+        if operation == 'install-foreign':
+            # Verify readable files
+            bad_files = [x for x in args if not is_readable_file(x)]
+            if len(bad_files) > 0:
+                sys.stderr.write('ERROR: the following items are not readable files:\n')
+                sys.stderr.write(''.join('ERROR:    %s\n' % x for x in bad_files))
+                sys.exit(slackroll_exit_failure)
+
+            # Verify and get package names
+            try:
+                pkgs = [pkg_from_str(x) for x in args]
+            except SlackrollError as err:
+                sys.exit('ERROR: %s' % err)
+
+            # The packages must not be present in persistent list or be foreign already
+            bad_pkgs = [x for x in pkgs if str_to_db(x.name) in persistent_list and persistent_list[str_to_db(x.name)] != slackroll_state_foreign]
+            if len(bad_pkgs) > 0:
+                sys.stderr.write('ERROR: the following packages are known and not foreign\n')
+                sys.stderr.write(''.join('ERROR:    %s\n' % x.name for x in bad_pkgs))
+                sys.exit(slackroll_exit_failure)
+
+            # Get .new files from old packages
+            prev_dotnew = extract_dotnew_files(concat([local_list[x.name] for x in pkgs if x.name in local_list]))
+
+            # Install and mark
+            for arg in args:
+                upgrade_or_install(arg, False)
+            for pkg in pkgs:
+                persistent_list[str_to_db(pkg.name)] = slackroll_state_foreign
+            persistent_list.sync()
+
+            # Go over .new files
+            cur_dotnew = extract_dotnew_files([x.local() for x in pkgs], etc_too=True)
+            handle_dotnew_files_both(prev_dotnew, cur_dotnew)
+            sys.exit()
+
+        if operation == 'replace':
+            if maybe_print_key_pkg_warning(persistent_list):
+                maybe_confirm_continue()
+
+            # Verify package names
+            for name in args:
+                if str_to_db(name) not in persistent_list:
+                    if may_be_full_version(name):
+                        sys.stderr.write('WARNING: %s looks like an unexpected full version\n' % name)
+                    sys.exit('ERROR: no package named %s' % name)
+
+            unavpkg = args[0]
+            newpkg = args[1]
+
+            # Verify package conditions
+            if persistent_list[str_to_db(unavpkg)] != slackroll_state_unavailable:
+                sys.exit('ERROR: %s must be in the "unavailable" state' % unavpkg)
+            if persistent_list[str_to_db(newpkg)] != slackroll_state_new:
+                sys.exit('ERROR: %s must be in the "new" state' % newpkg)
+
+            # Choose specific package
+            if len(remote_list[newpkg]) != 1:
+                chosen_new = choose_pkg(remote_list[newpkg])
+            else:
+                chosen_new = remote_list[newpkg][0]
+
+            # Download
+            if not package_in_cache(chosen_new):
+                filename_new = download_verify(get_mirror(), chosen_new)
+            else:
+                filename_new = os.path.join(slackroll_pkgs_dir, chosen_new.archivename)
+
+            # upgradepkg
+            prev_dotnew = extract_dotnew_files(local_list[unavpkg])
+            replace_pkg(unavpkg, filename_new)
+            cur_dotnew = extract_dotnew_files([chosen_new.local()], etc_too=True)
+            handle_dotnew_files_both(prev_dotnew, cur_dotnew)
+
+            sys.exit()
+
+        if operation in ['remove', 'remove-unavailable']:
             if maybe_print_new_warning(persistent_list) or maybe_print_outdated_warning(persistent_list):
                 maybe_confirm_continue()
-            remove_pkgs([x.local() for x in matching_pkgs])
-        else:
-            opname = operation.replace('-path', '')
-            archivenames = [x.archivename for x in matching_pkgs]
-            install_operations_family(opname, archivenames, local_list, remote_list, persistent_list)
 
-        sys.exit()
+            if operation == 'remove':
+                verify_local_names(args, local_list)
+                final_args = args
+            else: # remove-unavailable
+                final_args = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
 
-    if operation == 'local-info':
-        verify_local_names(args, local_list)
-        interceptor = SlackrollOutputInterceptor()
-        try:
-            print(('\n'.join(open(x.fullname, 'r').read() for x in concat(local_list[pkg] for pkg in args))))
-        except (IOError, OSError) as err:
-            sys.exit('ERROR: %s' % err)
-        interceptor.stop()
-        sys.exit()
+            if len(final_args) == 0:
+                print('No packages to remove')
+                sys.exit()
 
-    if operation == 'install-foreign':
-        # Verify readable files
-        bad_files = [x for x in args if not is_readable_file(x)]
-        if len(bad_files) > 0:
-            sys.stderr.write('ERROR: the following items are not readable files:\n')
-            sys.stderr.write(''.join('ERROR:    %s\n' % x for x in bad_files))
-            sys.exit(slackroll_exit_failure)
+            to_be_removed = []
+            if operation == 'remove':
+                for name in final_args:
+                    candidates = local_list[name]
+                    if len(candidates) == 1:
+                        to_be_removed.append(candidates[0])
+                        continue
+                    chosen = choose_pkg(candidates)
+                    if chosen is not None:
+                        to_be_removed.append(chosen)
+            else: # remove-unavailable
+                for name in final_args:
+                    to_be_removed.extend(local_list[name])
 
-        # Verify and get package names
-        try:
-            pkgs = [pkg_from_str(x) for x in args]
-        except SlackrollError as err:
-            sys.exit('ERROR: %s' % err)
-
-        # The packages must not be present in persistent list or be foreign already
-        bad_pkgs = [x for x in pkgs if str_to_db(x.name) in persistent_list and persistent_list[str_to_db(x.name)] != slackroll_state_foreign]
-        if len(bad_pkgs) > 0:
-            sys.stderr.write('ERROR: the following packages are known and not foreign\n')
-            sys.stderr.write(''.join('ERROR:    %s\n' % x.name for x in bad_pkgs))
-            sys.exit(slackroll_exit_failure)
-
-        # Get .new files from old packages
-        prev_dotnew = extract_dotnew_files(concat([local_list[x.name] for x in pkgs if x.name in local_list]))
-
-        # Install and mark
-        for arg in args:
-            upgrade_or_install(arg, False)
-        for pkg in pkgs:
-            persistent_list[str_to_db(pkg.name)] = slackroll_state_foreign
-        persistent_list.sync()
-
-        # Go over .new files
-        cur_dotnew = extract_dotnew_files([x.local() for x in pkgs], etc_too=True)
-        handle_dotnew_files_both(prev_dotnew, cur_dotnew)
-        sys.exit()
-
-    if operation == 'replace':
-        if maybe_print_key_pkg_warning(persistent_list):
-            maybe_confirm_continue()
-
-        # Verify package names
-        for name in args:
-            if str_to_db(name) not in persistent_list:
-                if may_be_full_version(name):
-                    sys.stderr.write('WARNING: %s looks like an unexpected full version\n' % name)
-                sys.exit('ERROR: no package named %s' % name)
-
-        unavpkg = args[0]
-        newpkg = args[1]
-
-        # Verify package conditions
-        if persistent_list[str_to_db(unavpkg)] != slackroll_state_unavailable:
-            sys.exit('ERROR: %s must be in the "unavailable" state' % unavpkg)
-        if persistent_list[str_to_db(newpkg)] != slackroll_state_new:
-            sys.exit('ERROR: %s must be in the "new" state' % newpkg)
-
-        # Choose specific package
-        if len(remote_list[newpkg]) != 1:
-            chosen_new = choose_pkg(remote_list[newpkg])
-        else:
-            chosen_new = remote_list[newpkg][0]
-
-        # Download
-        if not package_in_cache(chosen_new):
-            filename_new = download_verify(get_mirror(), chosen_new)
-        else:
-            filename_new = os.path.join(slackroll_pkgs_dir, chosen_new.archivename)
-
-        # upgradepkg
-        prev_dotnew = extract_dotnew_files(local_list[unavpkg])
-        replace_pkg(unavpkg, filename_new)
-        cur_dotnew = extract_dotnew_files([chosen_new.local()], etc_too=True)
-        handle_dotnew_files_both(prev_dotnew, cur_dotnew)
-
-        sys.exit()
-
-    if operation in ['remove', 'remove-unavailable']:
-        if maybe_print_new_warning(persistent_list) or maybe_print_outdated_warning(persistent_list):
-            maybe_confirm_continue()
-
-        if operation == 'remove':
-            verify_local_names(args, local_list)
-            final_args = args
-        else: # remove-unavailable
-            final_args = pkgs_in_state(persistent_list, [slackroll_state_unavailable])
-
-        if len(final_args) == 0:
-            print('No packages to remove')
+            remove_pkgs(to_be_removed)
             sys.exit()
 
-        to_be_removed = []
-        if operation == 'remove':
-            for name in final_args:
-                candidates = local_list[name]
-                if len(candidates) == 1:
-                    to_be_removed.append(candidates[0])
-                    continue
-                chosen = choose_pkg(candidates)
-                if chosen is not None:
-                    to_be_removed.append(chosen)
-        else: # remove-unavailable
-            for name in final_args:
-                to_be_removed.extend(local_list[name])
-
-        remove_pkgs(to_be_removed)
-        sys.exit()
-
-    if operation == 'kernel-clean':
-        outdated_kernel_pkgs = [[y for y in local_list[x] if y not in remote_list[x]]
-                for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[str_to_db(x)] == slackroll_state_installed]
-        outdated_kernel_pkgs = concat(outdated_kernel_pkgs)
-        if len(outdated_kernel_pkgs) == 0:
-            print('No obsolete kernel packages found')
+        if operation == 'kernel-clean':
+            outdated_kernel_pkgs = [[y for y in local_list[x] if y not in remote_list[x]]
+                    for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[str_to_db(x)] == slackroll_state_installed]
+            outdated_kernel_pkgs = concat(outdated_kernel_pkgs)
+            if len(outdated_kernel_pkgs) == 0:
+                print('No obsolete kernel packages found')
+                sys.exit()
+            remove_pkgs(outdated_kernel_pkgs)
+            post_kernel_operation()
             sys.exit()
-        remove_pkgs(outdated_kernel_pkgs)
-        post_kernel_operation()
-        sys.exit()
 
-    if operation == 'name-search':
-        all_regexes = '|'.join('(?:%s)' % x for x in args)
-        try:
-            regexp = re.compile(all_regexes)
-        except re.error:
-            sys.exit('ERROR: invalid regular expression')
+        if operation == 'name-search':
+            all_regexes = '|'.join('(?:%s)' % x for x in args)
+            try:
+                regexp = re.compile(all_regexes)
+            except re.error:
+                sys.exit('ERROR: invalid regular expression')
 
-        plist_subset = dict([(db_to_str(x), persistent_list[x]) for x in persistent_list if regexp.search(db_to_str(x)) is not None])
-        print_in_states_or(slackroll_all_states, plist_subset, 'Matching packages:', 'No matching packages found', True)
-        sys.exit()
+            plist_subset = dict([(db_to_str(x), persistent_list[x]) for x in persistent_list if regexp.search(db_to_str(x)) is not None])
+            print_in_states_or(slackroll_all_states, plist_subset, 'Matching packages:', 'No matching packages found', True)
+            sys.exit()
 
-    if operation == 'path-search':
-        all_regexes = '|'.join('(?:%s)' % x for x in args)
-        try:
-            regexp = re.compile(all_regexes)
-        except re.error:
-            sys.exit('ERROR: invalid regular expression')
+        if operation == 'path-search':
+            all_regexes = '|'.join('(?:%s)' % x for x in args)
+            try:
+                regexp = re.compile(all_regexes)
+            except re.error:
+                sys.exit('ERROR: invalid regular expression')
 
-        matching_fullnames = [x.fullname for x in concat([remote_list[x] for x in remote_list]) if regexp.search(x.path) is not None]
-        print_list_or(matching_fullnames, 'Matching packages:', 'No matching packages found')
-        sys.exit()
+            matching_fullnames = [x.fullname for x in concat([remote_list[x] for x in remote_list]) if regexp.search(x.path) is not None]
+            print_list_or(matching_fullnames, 'Matching packages:', 'No matching packages found')
+            sys.exit()
 
-except (KeyboardInterrupt, IOError, EOFError) as error:
-    if isinstance(error, KeyboardInterrupt):
-        sys.stderr.write('\nProgram aborted by user\n')
-    if persistent_list is not None:
-        persistent_list.close()
-    sys.exit(slackroll_exit_failure)
-except SlackrollBatchModeError:
-    sys.stderr.write('\nProgram aborted because operation could not be completed in batch mode\n')
-    if persistent_list is not None:
-        persistent_list.close()
-    sys.exit(slackroll_exit_failure)
-except IndexError:
-    sys.stderr.write('ERROR: no operation given\n')
-    sys.stderr.write('Use "help" operation to get a list\n')
-    sys.exit(slackroll_exit_failure)
+    except (KeyboardInterrupt, IOError, EOFError) as error:
+        if isinstance(error, KeyboardInterrupt):
+            sys.stderr.write('\nProgram aborted by user\n')
+        if persistent_list is not None:
+            persistent_list.close()
+        sys.exit(slackroll_exit_failure)
+    except SlackrollBatchModeError:
+        sys.stderr.write('\nProgram aborted because operation could not be completed in batch mode\n')
+        if persistent_list is not None:
+            persistent_list.close()
+        sys.exit(slackroll_exit_failure)
+    except IndexError:
+        sys.stderr.write('ERROR: no operation given\n')
+        sys.stderr.write('Use "help" operation to get a list\n')
+        sys.exit(slackroll_exit_failure)
