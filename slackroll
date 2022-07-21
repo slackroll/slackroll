@@ -15,6 +15,8 @@
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
 
+from __future__ import print_function
+
 # Significant changes in DB backends and string/bytearray standards compel us to
 # maintain a few dual Python 2 / Python 3 code paths
 import sys
@@ -44,7 +46,6 @@ else:
                 import bsddb as bdb
             except:
                 sys.exit('ERROR: could not find Berkeley DB module (berkeleydb, bsddb3, bsddb) for Python 3')
-
 import bz2
 
 # BCS: in Python 3, standard pickle & StringIO are just as fast the 'C' versions in Python 2
@@ -217,10 +218,12 @@ def yield_slackroll_local_pkgs_dir():
     for opt in slackroll_local_pkgs_dir_names:
         while os.path.isdir(opt):
             yield opt
+
     sys.exit('ERROR: unable to find local packages directgory')
 
-slackroll_local_pkgs_glob = os.path.join(next(yield_slackroll_local_pkgs_dir()), '*')
-slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
+if __name__ == "__main__":
+    slackroll_local_pkgs_glob = os.path.join(next(yield_slackroll_local_pkgs_dir()), '*')
+    slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 
 def standarize_locales():
     for varname in slackroll_locale_envvars:
@@ -246,9 +249,9 @@ def pkg_name_cmp(name1, name2): # To be used for sorting functions
         return -1
     return (idx1 - idx2)
 
-def transient_cmp(tuple1, tuple2): # Special sort for transient list
-    (name1, state1) = tuple1
-    (name2, state2) = tuple2
+def transient_cmp(name_state_1, name_state2): # Special sort for transient list
+    (name1, state1) = name_state1
+    (name2, state2) = name_state2
     if name1 in slackroll_prioritized_pkgs or name2 in slackroll_prioritized_pkgs:
         return pkg_name_cmp(name1, name2)
     if state1 != state2:
@@ -589,7 +592,7 @@ def del_blacklist_exprs(indexes): # Remove expressions from the blacklist
     idnums = []
     for idx in indexes:
         try:
-            num = int(idx)
+            num = long(idx)
             if num < 0 or num >= len(bl):
                 raise ValueError()
             idnums.append(num)
@@ -1851,8 +1854,8 @@ def cleanup_databases():
     if not using_python2 and persistent_db is not None:
         persistent_db.close();
 
-### Main program ###
 if __name__ == "__main__":
+    ### Main program ###
     try:
         local_list = None
         remote_list = None
@@ -2033,7 +2036,7 @@ if __name__ == "__main__":
             invalid = []
             for x in args:
                 try:
-                    num = int(x)
+                    num = long(x)
                     if num in repo_dict:
                         valid.append(num)
                     else:
@@ -2379,7 +2382,6 @@ if __name__ == "__main__":
                 print('No transient packages found')
                 sys.exit()
             pkgs_and_states.sort(key=functools.cmp_to_key(transient_cmp))
-
             # Translate states to strings and precalculate constants
             pkgs_and_states = [(name, slackroll_state_strings[state]) for (name, state) in pkgs_and_states]
             max_state_len = max(len(slackroll_state_strings[x]) for x in slackroll_transient_states)
