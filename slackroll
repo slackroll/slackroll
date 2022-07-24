@@ -100,6 +100,12 @@ try:
 except:
     from functools import reduce
 
+# BCS: not strictly a Python3-readiness issue, but using Python 2's input() (which evaluates
+# the input buffer as a Python expression) is a poor practice and can cause instability in
+# this script, which doesn't need eval()-like functionality. Prefer raw_input() on Python 2.
+if hasattr(__builtins__, 'raw_input'):
+    input=raw_input
+
 slackroll_version = 49
 
 slackroll_exit_failure = 1
