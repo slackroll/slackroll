@@ -6,9 +6,13 @@ authors = ["Ricardo Garcia <commits@rg3.name>", "Andrew Clemons <andrew.clemons@
 license = "CC0 Public Domain Dedication"
 
 [tool.poetry.dependencies]
+future = {version = "0.18.2", python = "^2.7"}
 python = "^2.7 || ^3.9"
 
 [tool.poetry.dev-dependencies]
+mock = [
+  {version = "3.0.5", python = "^2.7"}
+]
 pytest = [
   {version = "~4.6", python = "^2.7"},
   {version = "^7.1.2", python = "^3.9"}
