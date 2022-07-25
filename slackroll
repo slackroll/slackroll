@@ -4,7 +4,7 @@
 # slackroll - A package or upgrade manager for Slackware Linux.
 #
 # Written in 2007,2009-2014,2017 by Ricardo Garcia <r@rg3.name>.
-# Contributions in 2017-2018,2021 by Andrew Clemons <andrew.clemons@gmail.com>.
+# Contributions in 2017-2018,2021-2022 by Andrew Clemons <andrew.clemons@gmail.com>.
 #
 # To the extent possible under law, the author(s) have dedicated all copyright
 # and related and neighboring rights to this software to the public domain
@@ -15,6 +15,7 @@
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
 from __future__ import print_function
+from builtins import range
 import anydbm
 import bz2
 import cPickle
@@ -112,7 +113,7 @@ slackroll_state_foreign = 5
 slackroll_state_outdated = 6
 slackroll_state_strings = ['new', 'unavailable', 'installed', 'not-installed', 'frozen', 'foreign', 'outdated']
 slackroll_transient_states = [slackroll_state_new, slackroll_state_outdated, slackroll_state_unavailable]
-slackroll_all_states = [x for x in xrange(len(slackroll_state_strings))]
+slackroll_all_states = [x for x in range(len(slackroll_state_strings))]
 
 slackroll_socket_timeout = 120
 slackroll_default_primary_site_url = 'http://ftp.slackware.com/pub/slackware/slackware%s-%s/'
@@ -509,13 +510,13 @@ def del_blacklist_exprs(indexes): # Remove expressions from the blacklist
             idnums.append(num)
         except ValueError:
             sys.exit('ERROR: invalid blacklist entry index: %s' % idx)
-    index_regex_pairs = [(x, bl[x]) for x in xrange(len(bl))]
+    index_regex_pairs = [(x, bl[x]) for x in range(len(bl))]
     newbl = [regex for (idx, regex) in index_regex_pairs if idx not in idnums]
     try_dump(newbl, slackroll_blacklist_filename)
 
 def print_blacklist():
     bl = get_blacklist()
-    numbered = ['%-4s  %s' % (x, bl[x]) for x in xrange(len(bl))]
+    numbered = ['%-4s  %s' % (x, bl[x]) for x in range(len(bl))]
     print_list_or(numbered, 'Blacklisted expressions:', 'No blacklisted expressions')
 
 def extract_file_list(filename): # Extracts the file list from a local info file
@@ -953,7 +954,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
 
     try: # Only read until last known entry
         cl = try_load(slackroll_local_changelog)
-        limits = set(concat([[x.timestamp for x in cl.get_batch(y)] for y in xrange(cl.num_batches())]))
+        limits = set(concat([[x.timestamp for x in cl.get_batch(y)] for y in range(cl.num_batches())]))
     except (OSError, IOError) as err:
         sys.exit('ERROR: %s' % err)
 
@@ -1003,7 +1004,7 @@ def choose_pkg(pkg_list): # Returns chosen package or None
     if slackroll_batch_mode:
         raise SlackrollBatchModeError('Cannot automatically choose action in batch mode')
 
-    options = [(str(x + 1), pkg_list[x].fullname) for x in xrange(len(pkg_list))]
+    options = [(str(x + 1), pkg_list[x].fullname) for x in range(len(pkg_list))]
     chosen = choose_option(options)
     return pkg_list[chosen]
 
@@ -1333,8 +1334,8 @@ def post_kernel_operation(): # Operations needed after kernel installation
     while True:
         # Add options to edit known bootloader configuration files
         existant = [x for x in slackroll_bootloader_config_files if os.path.exists(x)]
-        options = [(str(x + 1), '%s %s' % (visual, existant[x])) for x in xrange(len(existant))]
-        actions = dict([(x, functools.partial(run_visual_on, existant[x])) for x in xrange(len(existant))])
+        options = [(str(x + 1), '%s %s' % (visual, existant[x])) for x in range(len(existant))]
+        actions = dict([(x, functools.partial(run_visual_on, existant[x])) for x in range(len(existant))])
 
         # Add option to run lilo if present
         if os.path.exists(slackroll_lilo_path):
@@ -1725,17 +1726,17 @@ def levenshtein_distance(word1, word2): # Levenshtein distance between words.
     l2 = len(word2)
 
     # Distances matrix.
-    d = [[0] * (l2+1) for i in xrange(l1+1)]
+    d = [[0] * (l2+1) for i in range(l1+1)]
 
     # Base cases.
-    for i in xrange(l1+1):
+    for i in range(l1+1):
         d[i][0] = i
-    for j in xrange(l2+1):
+    for j in range(l2+1):
         d[0][j] = j
 
     # Recursive cases in order.
-    for j in xrange(1, l2+1):
-        for i in xrange(1, l1+1):
+    for j in range(1, l2+1):
+        for i in range(1, l1+1):
             if word1[i-1] == word2[j-1]:
                 d[i][j] = d[i-1][j-1]
             else:
@@ -1978,9 +1979,9 @@ if __name__ == "__main__":
             interceptor = SlackrollOutputInterceptor()
             cl = try_load(slackroll_local_changelog)
             print('ChangeLog.txt entries:')
-            for idb in xrange(cl.num_batches() - 1, -1, -1):
+            for idb in range(cl.num_batches() - 1, -1, -1):
                 batch = cl.get_batch(idb)
-                for ide in xrange(len(batch)):
+                for ide in range(len(batch)):
                     print('    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp))
             print('End of list')
             interceptor.stop()
@@ -2003,7 +2004,7 @@ if __name__ == "__main__":
 
         if operation == 'full-changelog':
             cl = try_load(slackroll_local_changelog)
-            entries = concat([[x for x in cl.get_batch(y)] for y in xrange(cl.num_batches() - 1, -1, -1)])
+            entries = concat([[x for x in cl.get_batch(y)] for y in range(cl.num_batches() - 1, -1, -1)])
             interceptor = SlackrollOutputInterceptor()
             print(slackroll_changelog_entry_separator.join('%s' % x for x in entries))
             interceptor.stop()
