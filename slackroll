@@ -39,7 +39,7 @@ import urllib
 import urlparse
 from functools import reduce
 
-slackroll_version = 49
+slackroll_version = 50
 
 slackroll_exit_failure = 1
 slackroll_exit_success = 0
@@ -70,7 +70,7 @@ slackroll_filelist_pkg_str = 2
 slackroll_source_indicator = '/source/'
 slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
-slackroll_main_indicator = re.compile(r'/slackware(?:64|arm)?/')
+slackroll_main_indicator = re.compile(r'/slackware(?:64|arm|aarch64)?/')
 slackroll_extra_indicator = '/extra/'
 slackroll_prioritized_pkgs = ['aaa_glibc-solibs', 'glibc-solibs', 'sed', 'pkgtools']
 slackroll_kernel_pkg_indicator = 'kernel'
@@ -118,7 +118,7 @@ slackroll_all_states = [x for x in range(len(slackroll_state_strings))]
 slackroll_socket_timeout = 120
 slackroll_default_primary_site_url = 'http://ftp.slackware.com/pub/slackware/slackware%s-%s/'
 slackroll_arm_primary_site_url = 'http://ftp.arm.slackware.com/slackwarearm/slackware%s-%s/'
-slackroll_mirror_version_re = re.compile(r'/slackware(64|arm|)-([^/]+)/')
+slackroll_mirror_version_re = re.compile(r'/slackware(64|arm|aarch64|)-([^/]+)/')
 
 slackroll_locale_envvars = ['LANG', 'LC_CTYPE', 'LC_NUMERIC', 'LC_TIME', 'LC_COLLATE', 'LC_MONETARY', 'LC_MESSAGES', 'LC_ALL', 'LC_PAPER', 'LC_NAME', 'LC_ADDRESS', 'LC_TELEPHONE', 'LC_MEASUREMENT', 'LC_IDENTIFICATION']
 slackroll_locale_mainvar = 'LANG'
@@ -645,7 +645,7 @@ def get_primary_mirror(): # From the 'pmirror' file or default value
     return get_default_primary_mirror(arch, version)
 
 def get_default_primary_mirror(arch, version):
-    if arch == 'arm':
+    if arch == 'arm' or arch == 'aarch64':
         return slackroll_arm_primary_site_url % (arch, version)
     return slackroll_default_primary_site_url % (arch, version)
 
