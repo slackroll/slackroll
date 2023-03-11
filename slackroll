@@ -14,7 +14,6 @@
 # this software. If not, see
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
-
 import anydbm
 
 anydbm._defaultmod = __import__('gdbm')
@@ -49,6 +48,11 @@ if not PY2:
     from functools import reduce
 
 if PY2:
+    # we don't use input anywhere in slackroll, so make `input` behave like raw_input,
+    # which is actually the behaviour on python3.
+    input = raw_input
+
+
     try:
         next
     except NameError:
@@ -1210,7 +1214,7 @@ def choose_option(option_list): # Prompt user and return option index
     codes = [x[0].lower() for x in option_list]
     while True:
         print_flush('You choose option... ')
-        chosen = raw_input().lower()
+        chosen = input().lower()
         if chosen not in codes:
             continue
         break
@@ -1299,7 +1303,7 @@ def maybe_confirm_continue():
     # type: () -> None
     if slackroll_batch_mode:
         return
-    raw_input('Press Ctrl+C to cancel or Enter to continue... ')
+    input('Press Ctrl+C to cancel or Enter to continue... ')
 
 def print_in_states(states, persistent_list, header, print_state): # Print package name if its state matches
     # type: (List[int], Dict[str, int], str, bool) -> None
