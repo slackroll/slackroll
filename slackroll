@@ -15,6 +15,7 @@
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
 from __future__ import print_function
+from builtins import input
 from builtins import range
 import anydbm
 import bz2
@@ -994,7 +995,7 @@ def choose_option(option_list): # Prompt user and return option index
     codes = [x[0].lower() for x in option_list]
     while True:
         print_flush('You choose option... ')
-        chosen = raw_input().lower()
+        chosen = input().lower()
         if chosen not in codes:
             continue
         break
@@ -1067,7 +1068,7 @@ def print_repo_mod_advice():
 def maybe_confirm_continue():
     if slackroll_batch_mode:
         return
-    raw_input('Press Ctrl+C to cancel or Enter to continue... ')
+    input('Press Ctrl+C to cancel or Enter to continue... ')
 
 def print_in_states(states, persistent_list, header, print_state): # Print package name if its state matches
     keys = pkgs_in_state(persistent_list, states)
