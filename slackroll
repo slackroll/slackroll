@@ -1765,6 +1765,9 @@ def words_to_words_distance(words1, words2): # Distance between two lists of wor
     # against the words of the other list, plus the difference in words.
     return (sum(word_to_word_list_distance(i, words2) for i in words1) + abs(len(words1) - len(words2)))
 
+def load_persistent_db(filename):
+    return shelve.open(filename, 'c')
+
 
 if __name__ == "__main__":
     ### Main program ###
@@ -2137,7 +2140,7 @@ if __name__ == "__main__":
                 or operation == 'touch' or needs_rebuild)
 
         try:
-            persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
+            persistent_list = load_persistent_db(slackroll_persistentlist_filename)
         except anydbm.error:
             sys.exit('ERROR: unable to properly open %s' % slackroll_persistentlist_filename)
 
