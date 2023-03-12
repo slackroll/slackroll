@@ -447,7 +447,7 @@ class ChangeLog(object):
 
     def num_batches(self):
         # type: () -> int
-        return len(self._batches.keys())
+        return len(list(self._batches.keys()))
 
     def get_batch(self, batchnum):
         # type: (int) -> List[ChangeLogEntry]
@@ -1531,7 +1531,7 @@ def handle_dotnew_files_removal(dotnew_files): # Handle .new files left behind b
 
     print('\nSome previous .new files have been found.')
     print('Examining list in detail (this may take some seconds) ...')
-    knownfiles = concat(get_pkg_filelists().values())
+    knownfiles = concat(list(get_pkg_filelists().values()))
     knownfiles.extend(old_file(x) for x in knownfiles if x.endswith(slackroll_new_suffix))
     existing = list(frozenset(existing) - frozenset(knownfiles))
 
@@ -1673,7 +1673,7 @@ def search_manifest_database(regexp):
     manifestdb = try_load(slackroll_manifest_filename)
 
     results = []
-    for k in manifestdb.iterkeys():
+    for k in list(manifestdb.keys()):
         if regexp.search(k) is not None:
             results.append(k)
 
@@ -1957,7 +1957,7 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
                 persistent_list[name] = slackroll_state_new
 
     # Remaining packages, not present in local or remote systems, need to disappear
-    for name in persistent_list.keys():    # Must get keys before, as we are going to delete entries
+    for name in list(persistent_list.keys()):    # Must get keys before, as we are going to delete entries
         if name in already_analyzed:
             continue
         del persistent_list[name]
@@ -1970,7 +1970,7 @@ def verify_operation_and_args(op_num_args, operation, args): # Verify number of 
     if operation not in op_num_args:
         # Find the operations that the user may be meaning.
         given_words = operation.split('-')
-        command_words = [tuple(x.split('-')) for x in op_num_args.keys()]
+        command_words = [tuple(x.split('-')) for x in list(op_num_args.keys())]
         distances = dict((x, words_to_words_distance(given_words, x)) for x in command_words)
         min_distance = min(distances.values())
         best_matches = [x for x in distances if distances[x] == min_distance]
@@ -2625,7 +2625,7 @@ if __name__ == "__main__":
                 print('No packages with alternative versions')
                 sys.exit()
 
-            names = alternatives.keys()
+            names = list(alternatives.keys())
             names.sort(cmp=pkg_name_cmp)
             interceptor = SlackrollOutputInterceptor()
             print('Packages with alternatives:')
