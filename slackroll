@@ -47,6 +47,11 @@ PY2 = sys.version_info[0] == 2
 if not PY2:
     from functools import reduce
 
+    # python 3
+    def cmp(x, y):
+        # type: (Any, Any) -> int
+        return (x > y) - (x < y) # type: ignore
+
 if PY2:
     # we don't use input anywhere in slackroll, so make `input` behave like raw_input,
     # which is actually the behaviour on python3.
