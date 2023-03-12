@@ -14,15 +14,19 @@
 # this software. If not, see
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
+
 from __future__ import print_function
-from builtins import object
+from past.builtins import cmp
+
 from future import standard_library
 standard_library.install_aliases()
-from builtins import next
-from builtins import str
-from past.builtins import cmp
+
 from builtins import input
+from builtins import next
+from builtins import object
 from builtins import range
+from builtins import str
+
 import anydbm
 import bz2
 import pickle
@@ -1420,7 +1424,7 @@ def search_manifest_database(regexp):
     manifestdb = try_load(slackroll_manifest_filename)
 
     results = []
-    for k in manifestdb.keys():
+    for k in list(manifestdb.keys()):
         if regexp.search(k) is not None:
             results.append(k)
 
