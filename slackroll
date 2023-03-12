@@ -15,6 +15,10 @@
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
 import anydbm
+anydbm._defaultmod = __import__('gdbm')
+
+import bsddb
+
 import bz2
 import cPickle
 import cStringIO
@@ -28,6 +32,7 @@ import os.path
 import pwd
 import re
 import shelve
+import shutil
 import socket
 import struct
 import subprocess
@@ -35,6 +40,8 @@ import sys
 import termios
 import urllib
 import urlparse
+
+from tempfile import mkdtemp
 
 slackroll_version = 50
 
@@ -1747,6 +1754,43 @@ def words_to_words_distance(words1, words2): # Distance between two lists of wor
     # against the words of the other list, plus the difference in words.
     return (sum(word_to_word_list_distance(i, words2) for i in words1) + abs(len(words1) - len(words2)))
 
+def load_persistent_db(filename):
+    # Internally, shelve uses anydbm.open which defaults to dbhash on Python2.
+    # That module has been removed in Python3. To prepare for the Python3
+    # upgrade, we are going to switch the format used for the persistent.db file
+    # from berkeleydb to gdbm. We could keep the format in berkeleydb for
+    # python3, but this would require installing a package not included in
+    # slackware. slackroll has always been a simple self-contained python
+    # script, and I would like to keep it that way until it is absolutely no
+    # longer possible.
+    #
+    # We'll ship this as a normal release and eventually we will expect users
+    # to have used this version and have the existing files upgraded. New
+    # installations will immediately default to the new format. We can then
+    # ship the python3 version safely.
+    data = shelve.open(filename, 'c')
+
+    if not isinstance(data.dict, bsddb._DBWithCursor):
+        return data
+
+    temp_dir = mkdtemp()
+
+    try:
+        temp_file = os.path.join(temp_dir, "persistence.db")
+
+        new_data = shelve.open(temp_file, 'c')
+        new_data.update(data)
+
+        data.close()
+        new_data.close()
+
+        os.rename(temp_file, filename)
+    finally:
+        shutil.rmtree(temp_dir)
+
+    return shelve.open(filename, 'c')
+
+
 ### Main program ###
 try:
     local_list = None
@@ -2117,7 +2161,7 @@ try:
             or operation == 'touch' or needs_rebuild)
 
     try:
-        persistent_list = shelve.open(slackroll_persistentlist_filename, 'c')
+        persistent_list = load_persistent_db(slackroll_persistentlist_filename)
     except anydbm.error:
         sys.exit('ERROR: unable to properly open %s' % slackroll_persistentlist_filename)
 
