@@ -13,10 +13,12 @@ def temp_dir():
 
     shutil.rmtree(dir)
 
-def test_open():
+def test_open(temp_dir):
     """Checks if we can open a known good file."""
 
-    data_file = os.path.join(os.path.dirname(__file__), "..", "data", "py2_persistent.db")
+    data_file = os.path.join(temp_dir, "persistence.db")
+
+    shutil.copy2(os.path.join(os.path.dirname(__file__), "..", "data", "py2_persistent.db"), data_file)
 
     data = load_persistent_db(data_file)
 
