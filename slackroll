@@ -4,7 +4,7 @@
 # slackroll - A package or upgrade manager for Slackware Linux.
 #
 # Written in 2007,2009-2014,2017 by Ricardo Garcia <r@rg3.name>.
-# Contributions in 2017-2018,2021-2022 by Andrew Clemons <andrew.clemons@gmail.com>.
+# Contributions in 2017-2018,2021-2023 by Andrew Clemons <andrew.clemons@gmail.com>.
 #
 # To the extent possible under law, the author(s) have dedicated all copyright
 # and related and neighboring rights to this software to the public domain
@@ -28,6 +28,10 @@ from builtins import range
 from builtins import str
 
 import anydbm
+anydbm._defaultmod = __import__('gdbm')
+
+import bsddb
+
 import bz2
 import pickle
 import io
@@ -41,6 +45,7 @@ import os.path
 import pwd
 import re
 import shelve
+import shutil
 import socket
 import struct
 import subprocess
@@ -50,7 +55,9 @@ import urllib.request, urllib.parse, urllib.error
 import urllib.parse
 from functools import reduce
 
-slackroll_version = 50
+from tempfile import mkdtemp
+
+slackroll_version = 51
 
 slackroll_exit_failure = 1
 slackroll_exit_success = 0
@@ -1766,6 +1773,39 @@ def words_to_words_distance(words1, words2): # Distance between two lists of wor
     return (sum(word_to_word_list_distance(i, words2) for i in words1) + abs(len(words1) - len(words2)))
 
 def load_persistent_db(filename):
+    # Internally, shelve uses anydbm.open which defaults to dbhash on Python2.
+    # That module has been removed in Python3. To prepare for the Python3
+    # upgrade, we are going to switch the format used for the persistent.db file
+    # from berkeleydb to gdbm. We could keep the format in berkeleydb for
+    # python3, but this would require installing a package not included in
+    # slackware. slackroll has always been a simple self-contained python
+    # script, and I would like to keep it that way until it is absolutely no
+    # longer possible.
+    #
+    # We'll ship this as a normal release and eventually we will expect users
+    # to have used this version and have the existing files upgraded. New
+    # installations will immediately default to the new format. We can then
+    # ship the python3 version safely.
+    data = shelve.open(filename, 'c')
+
+    if not isinstance(data.dict, bsddb._DBWithCursor):
+        return data
+
+    temp_dir = mkdtemp()
+
+    try:
+        temp_file = os.path.join(temp_dir, "persistence.db")
+
+        new_data = shelve.open(temp_file, 'c')
+        new_data.update(data)
+
+        data.close()
+        new_data.close()
+
+        os.rename(temp_file, filename)
+    finally:
+        shutil.rmtree(temp_dir)
+
     return shelve.open(filename, 'c')
 
 

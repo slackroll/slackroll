@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "slackroll"
-version = "50"
+version = "51"
 description = "Package or upgrade manager for Slackware Linux"
 authors = ["Ricardo Garcia <commits@rg3.name>", "Andrew Clemons <andrew.clemons@gmail.com>"]
 license = "CC0 Public Domain Dedication"
