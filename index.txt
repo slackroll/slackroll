@@ -11,8 +11,8 @@ slackroll
 :theme: flask
 
 Latest release is
-link:https://github.com/rg3/slackroll/releases/download/v48/slackroll-v48-noarch-1.tgz[slackroll
-v48].
+link:https://github.com/slackroll/slackroll/releases/download/v51/slackroll-v51-noarch-1.tgz[slackroll
+v51].
 
 == Target audience ==
 
@@ -123,7 +123,7 @@ repositories*. These are managed with the `add-repo`, `list-repos` and
 
 == Get slackroll ==
 
-link:https://github.com/rg3/slackroll/releases/latest[slackroll] is a
+link:https://github.com/slackroll/slackroll/releases/latest[slackroll] is a
 self-contained Python script released to the public domain. You can download a
 premade package if available from Github, or grab the source code of the
 master branch or any tagged releases as a ZIP archive or by cloning the
@@ -331,7 +331,7 @@ or probably adding more package states.
 If you have a question, you should first read the FAQ. For other questions,
 comments or suggestions, link:http://rg3.name/contact.html[contact me] by
 email, or report an issue in the
-link:https://github.com/rg3/slackroll/issues[issue tracker]. Keep in mind I'm
+link:https://github.com/slackroll/slackroll/issues[issue tracker]. Keep in mind I'm
 using the program under `slackware64-current`. If you detect a problem under
 another version, please report it as soon as possible because it may go
 unnoticed to me.

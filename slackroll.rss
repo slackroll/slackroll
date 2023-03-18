@@ -3,10 +3,43 @@
   <channel>
     <title>slackroll package manager</title>
     <description>slackroll is a package or update manager for Slackware systems.</description>
-    <link>https://rg3.github.io/slackroll/</link>
+    <link>https://slackroll.github.io/slackroll/</link>
     <language>en</language>
 
 <!-- date -uR -->
+
+<pubDate>Sat, 18 Mar 2023 13:39:17 +0000</pubDate>
+
+<item>
+<title>slackroll v51 released</title>
+<link>https://github.com/slackroll/slackroll/releases/download/v51/slackroll-v51-noarch-1.tgz</link>
+<pubDate>Sat, 18 Mar 2023 13:39:17 +0000</pubDate>
+<description><![CDATA[
+	<p>This release switches the format of persistent.db to prepare for the Python 3 upgrade.</p>
+]]></description>
+</item>
+
+<pubDate>Sat, 24 Dec 2022 04:48:49 +0000</pubDate>
+
+<item>
+<title>slackroll v50 released</title>
+<link>https://github.com/slackroll/slackroll/releases/download/v50/slackroll-v50-noarch-1.tgz</link>
+<pubDate>Sat, 24 Dec 2022 04:48:49 +0000</pubDate>
+<description><![CDATA[
+	<p>This release adds support for Slackware AArch64.</p>
+]]></description>
+</item>
+
+<pubDate>Fri, 04 Feb 2022 21:15:32 +0000</pubDate>
+
+<item>
+<title>slackroll v49 released</title>
+<link>https://github.com/slackroll/slackroll/releases/download/v49/slackroll-v49-noarch-1.tgz</link>
+<pubDate>Fri, 04 Feb 2022 21:15:32 +0000</pubDate>
+<description><![CDATA[
+	<p>This release adds support for the new packages directory in Slackware 15.0.</p>
+]]></description>
+</item>
 
 <pubDate>Sun, 18 Mar 2018 06:04:06 +0000</pubDate>
 
