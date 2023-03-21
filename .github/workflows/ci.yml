@@ -19,7 +19,7 @@ jobs:
           docker run --rm -v "$(pwd)":/slackroll -w /slackroll acidrain/python-poetry:2.7-1.1.15 bash -o pipefail -c 'poetry env use 2.7 && poetry install && poetry run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=slackroll -vv | tee pytest-coverage.txt'
 
       - name: Coverage
-        uses: MishaKav/pytest-coverage-comment@v1.1.46
+        uses: MishaKav/pytest-coverage-comment@v1.1.47
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
