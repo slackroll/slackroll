@@ -49,6 +49,7 @@ def test_transient_cmp_prioritised_pkg_sed():
     assert transient_cmp(right, left) == 1
     assert transient_cmp(left, left) == 0
 
+
 def test_transient_cmp_prioritised_pkg_pkgtools():
     left = ("pkgtools", "slackroll_state_new")
     right = ("python3", "slackroll_state_outdated")

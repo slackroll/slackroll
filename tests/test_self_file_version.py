@@ -11,7 +11,6 @@ else:
     from unittest.mock import patch
 
 
-
 def test_round_trip_serialisation():
     """Checks if we can round trip write the self file version and then read it again."""
 

@@ -8,7 +8,12 @@ from slackroll import try_dump, try_load
 
 @pytest.fixture
 def blacklist():
-    return ['^\\.\\/(?!chromium|libreoffice|vlc).*$@\\/sbrepos\\/', '^\\./testing.*', 'glibc-(?!zoneinfo)@^(?!http)']
+    return [
+        "^\\.\\/(?!chromium|libreoffice|vlc).*$@\\/sbrepos\\/",
+        "^\\./testing.*",
+        "glibc-(?!zoneinfo)@^(?!http)",
+    ]
+
 
 def test_deserialise(blacklist):
     """Checks if we can deserialise a known good file."""
