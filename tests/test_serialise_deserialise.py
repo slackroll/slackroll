@@ -1,8 +1,10 @@
 import os
-import pytest
 from tempfile import NamedTemporaryFile
 
-from slackroll import try_load, try_dump
+import pytest
+
+from slackroll import try_dump, try_load
+
 
 @pytest.fixture
 def blacklist():

@@ -1,9 +1,11 @@
 import os
-import pytest
 import sys
+
+import pytest
 import toml
 
-from slackroll import add_blacklist_exprs, del_blacklist_exprs, print_blacklist, slackroll_blacklist_filename
+from slackroll import (add_blacklist_exprs, del_blacklist_exprs,
+                       print_blacklist, slackroll_blacklist_filename)
 
 PY2 = sys.version_info[0] <= 2
 

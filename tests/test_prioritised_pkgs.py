@@ -1,4 +1,5 @@
 import os
+
 import toml
 
 from slackroll import transient_cmp

@@ -1,8 +1,10 @@
 import os
-import pytest
 import shutil
 import sys
 from tempfile import NamedTemporaryFile, mkdtemp
+
+import pytest
+
 from slackroll import load_persistent_db, slackroll_state_installed
 
 PY2 = sys.version_info[0] <= 2
