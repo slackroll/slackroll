@@ -4,6 +4,7 @@ import sys
 import pytest
 import toml
 
+import tests
 from slackroll import (
     add_blacklist_exprs,
     del_blacklist_exprs,
@@ -11,12 +12,10 @@ from slackroll import (
     slackroll_blacklist_filename,
 )
 
-PY2 = sys.version_info[0] <= 2
-
-if PY2:
-    from mock import patch, MagicMock
+if tests.PY2:
+    from mock import MagicMock, patch
 else:
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 
 
 @pytest.fixture

@@ -1,13 +1,11 @@
 import os
 import shutil
-import sys
 from tempfile import NamedTemporaryFile, mkdtemp
 
 import pytest
 
+import tests
 from slackroll import load_persistent_db, slackroll_state_installed
-
-PY2 = sys.version_info[0] <= 2
 
 
 @pytest.fixture
@@ -19,7 +17,7 @@ def temp_dir():
     shutil.rmtree(dir)
 
 
-if PY2:
+if tests.PY2:
 
     def test_switch_format(temp_dir):
         """Checks if we can open a known good file."""
