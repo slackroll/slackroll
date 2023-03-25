@@ -27,10 +27,17 @@ from builtins import object
 from builtins import range
 from builtins import str
 
-import anydbm
-anydbm._defaultmod = __import__('gdbm')
+import sys
 
-import bsddb
+PY2 = sys.version_info[0] <= 2
+
+if PY2:
+    import anydbm
+    anydbm._defaultmod = __import__('gdbm')
+
+    import bsddb
+else:
+    import dbm
 
 import bz2
 import pickle
@@ -1788,6 +1795,9 @@ def load_persistent_db(filename):
     # ship the python3 version safely.
     data = shelve.open(filename, 'c')
 
+    if not PY2:
+        return data
+
     if not isinstance(data.dict, bsddb._DBWithCursor):
         return data
 
@@ -2179,10 +2189,16 @@ if __name__ == "__main__":
                 or newer_than(slackroll_locallist_filename, slackroll_persistentlist_filename)
                 or operation == 'touch' or needs_rebuild)
 
-        try:
-            persistent_list = load_persistent_db(slackroll_persistentlist_filename)
-        except anydbm.error:
-            sys.exit('ERROR: unable to properly open %s' % slackroll_persistentlist_filename)
+        if PY2:
+            try:
+                persistent_list = load_persistent_db(slackroll_persistentlist_filename)
+            except anydbm.error:
+                sys.exit('ERROR: unable to properly open %s' % slackroll_persistentlist_filename)
+        else:
+            try:
+                persistent_list = load_persistent_db(slackroll_persistentlist_filename)
+            except dbm.error:
+                sys.exit('ERROR: unable to properly open %s' % slackroll_persistentlist_filename)
 
         if needs_analyze:
             analyze_changes(local_list, remote_list, persistent_list)

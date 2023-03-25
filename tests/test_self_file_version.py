@@ -1,4 +1,12 @@
-from mock import patch
+import sys
+
+PY2 = sys.version_info[0] <= 2
+
+if PY2:
+    from mock import patch
+else:
+    from unittest.mock import patch
+
 from tempfile import NamedTemporaryFile
 
 from slackroll import get_self_file_version, write_self_file_version

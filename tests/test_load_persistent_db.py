@@ -1,9 +1,11 @@
 import os
 import pytest
 import shutil
+import sys
 from tempfile import NamedTemporaryFile, mkdtemp
-
 from slackroll import load_persistent_db, slackroll_state_installed
+
+PY2 = sys.version_info[0] <= 2
 
 @pytest.fixture
 def temp_dir():
@@ -13,18 +15,19 @@ def temp_dir():
 
     shutil.rmtree(dir)
 
-def test_open(temp_dir):
-    """Checks if we can open a known good file."""
+if PY2:
+    def test_switch_format(temp_dir):
+        """Checks if we can open a known good file."""
 
-    data_file = os.path.join(temp_dir, "persistence.db")
+        data_file = os.path.join(temp_dir, "persistence.db")
 
-    shutil.copy2(os.path.join(os.path.dirname(__file__), "..", "data", "py2_persistent.db"), data_file)
+        shutil.copy2(os.path.join(os.path.dirname(__file__), "..", "data", "py2_persistent.db"), data_file)
 
-    data = load_persistent_db(data_file)
+        data = load_persistent_db(data_file)
 
-    assert dict(data) == { 'python2': slackroll_state_installed, 'python3': slackroll_state_installed }
+        assert dict(data) == { 'python2': slackroll_state_installed, 'python3': slackroll_state_installed }
 
-    data.close()
+        data.close()
 
 
 def test_round_trip_serialisation(temp_dir):

@@ -1,9 +1,17 @@
 import os
 import pytest
+import sys
 import toml
 
-from mock import patch, MagicMock
 from slackroll import add_blacklist_exprs, del_blacklist_exprs, print_blacklist, slackroll_blacklist_filename
+
+PY2 = sys.version_info[0] <= 2
+
+if PY2:
+    from mock import patch, MagicMock
+else:
+    from unittest.mock import patch, MagicMock
+
 
 @pytest.fixture
 def blacklist():
