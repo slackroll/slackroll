@@ -20,7 +20,7 @@ jobs:
 
       - name: Coverage
         if: ${{ github.ref != 'refs/heads/master' }}
-        uses: MishaKav/pytest-coverage-comment@v1.1.47
+        uses: MishaKav/pytest-coverage-comment@v1.1.48
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
