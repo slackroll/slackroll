@@ -1957,8 +1957,7 @@ if __name__ == "__main__":
             args = args[1:]
             verify_operation_and_args(op_num_args, operation, args)
 
-        handle_writable_dir(slackroll_base_dir)
-
+        # The following operations do not require a writable /var/slackroll (i.e. don't have to be root)
         if operation == 'help':
             if len(args) == 0:
                 helpname = '00-default'
@@ -1979,6 +1978,9 @@ if __name__ == "__main__":
         if operation == 'print-blacklist':
             print_blacklist()
             sys.exit()
+
+        # Everything after this point *does* require a writable /var/slackroll
+        handle_writable_dir(slackroll_base_dir)
 
         if operation == 'blacklist-add':
             add_blacklist_exprs(args)
