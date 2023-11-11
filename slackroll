@@ -1160,13 +1160,13 @@ def print_list_or(the_list, header, message_on_empty): # Idem using interceptor 
 # BCS: useful for printing version numbers within some commands, e.g. maintaining kernel packages
 def print_pairs_or(the_list, header, message_on_empty):
     if len(the_list) == 0:
-        print message_on_empty
+        print(message_on_empty)
         return
     interceptor = SlackrollOutputInterceptor()
-    print header
+    print(header)
     the_list.sort()
     for (a, b) in the_list:
-        print ' %s (%s)' % (a, b)
+        print(' %s (%s)' % (a, b))
     interceptor.stop()
 
 def superseded_in(pkg, the_list):
@@ -2429,7 +2429,7 @@ if __name__ == "__main__":
             names = pkgs_in_state(persistent_list, states)
             names.sort(cmp=pkg_name_cmp)
             if len(names) == 0:
-                print 'No %s packages' % state_str
+                print('No %s packages' % state_str)
             else:
                 install_operations_family('info', names, local_list, remote_list, persistent_list)
                 sys.exit()
@@ -2724,7 +2724,7 @@ if __name__ == "__main__":
                 sys.exit()
             print_pairs_or([(x.name, x.version + '-' + x.build) for x in outdated_kernel_pkgs], 'Superseded kernel packages to be removed:', 'No superseded kernel packages to remove')
             if "kernel-source" in [x.name for x in outdated_kernel_pkgs]:
-                print "You may wish to run a 'make clean' or 'make distclean' in kernel source directories before removing the package"
+                print("You may wish to run a 'make clean' or 'make distclean' in kernel source directories before removing the package")
             maybe_confirm_continue()
             remove_pkgs(outdated_kernel_pkgs)
             post_kernel_operation()
