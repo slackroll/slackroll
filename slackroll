@@ -874,7 +874,7 @@ gnupg_exec_name = next(yield_gnupg_exec_name())
 def import_key(filename):
     try:
         print('Importing keys from %s ...' % filename)
-        retcode = subprocess.call([gnupg_exec_name(), '--import', filename], stdout=open(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
+        retcode = subprocess.call([gnupg_exec_name, '--import', filename], stdout=open(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
         if retcode != 0:
             raise SlackrollError('GnuPG exited with error when importing key')
     except (OSError, IOError, SlackrollError) as err:
@@ -883,7 +883,7 @@ def import_key(filename):
 def verify_signature(filename):    # Does not exit on errors
     try:
         print('Verifying signature %s ... ' % os.path.basename(filename))
-        retcode = subprocess.call([gnupg_exec_name(), '--verify', filename], stdout=open(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
+        retcode = subprocess.call([gnupg_exec_name, '--verify', filename], stdout=open(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
         if retcode != 0:
             sys.stderr.write('ERROR: signature verification failed: %s\n' % filename)
             raise SlackrollError('GnuPG exited with status code %s' % retcode)
