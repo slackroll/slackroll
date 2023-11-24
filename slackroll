@@ -64,6 +64,7 @@ from functools import reduce
 from packaging import version
 
 from tempfile import mkdtemp
+from packaging import version
 
 # BCS: Pickle protocols > 2 will not be backward-compatible with Python 2
 pickle_protocol = 2
