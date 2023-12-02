@@ -771,7 +771,7 @@ def try_to_remove(file_path, fatal=True): # When it returns, it is True if file 
 
 def try_to_rename(src, dest, fatal=True): # When it returns, it is True if file could be renamed
     try:
-        os.rename(src, dest)
+        shutil.move(src, dest)
         return True
     except (OSError, IOError), err:
         sys.stderr.write('ERROR: %s\n' % err)
