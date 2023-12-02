@@ -41,8 +41,6 @@ import termios
 import urllib
 import urlparse
 
-from tempfile import mkdtemp
-
 slackroll_version = 51
 
 slackroll_exit_failure = 1
@@ -1773,20 +1771,19 @@ def load_persistent_db(filename):
     if not isinstance(data.dict, bsddb._DBWithCursor):
         return data
 
-    temp_dir = mkdtemp()
+    tmpdir = get_temp_dir()
+    output_name = os.path.join(tmpdir, "persistence.db")
 
     try:
-        temp_file = os.path.join(temp_dir, "persistence.db")
-
-        new_data = shelve.open(temp_file, 'c')
+        new_data = shelve.open(output_name, 'c')
         new_data.update(data)
 
         data.close()
         new_data.close()
 
-        os.rename(temp_file, filename)
+        try_to_rename(output_name, filename)
     finally:
-        shutil.rmtree(temp_dir)
+        try_to_remove(output_name)
 
     return shelve.open(filename, 'c')
 
