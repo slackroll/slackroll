@@ -8,6 +8,17 @@
 
 <!-- date -uR -->
 
+<pubDate>Sat, 16 Dec 2023 01:14:19 +0000</pubDate>
+
+<item>
+<title>slackroll v52 released</title>
+<link>https://github.com/slackroll/slackroll/releases/download/v52/slackroll-v52-noarch-1.tgz</link>
+<pubDate>Sat, 16 Dec 2023 01:14:19 +0000</pubDate>
+<description><![CDATA[
+	<p>This release fixes a bug when upgrading the slackroll db format if TMP is on a different filesystem.</p>
+]]></description>
+</item>
+
 <pubDate>Sat, 18 Mar 2023 13:39:17 +0000</pubDate>
 
 <item>
