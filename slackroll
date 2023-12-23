@@ -94,6 +94,7 @@ slackroll_pkg_re_suffix = 6
 
 slackroll_base_dir = os.path.join(os.path.sep, 'var', 'slackroll')
 slackroll_default_temp_dir = os.path.join(slackroll_base_dir, 'tmp')
+slackroll_info_dir = os.path.join(slackroll_base_dir, 'info')
 slackroll_pkgs_dir_glob = os.path.join(slackroll_base_dir, 'packages', '*')
 slackroll_pkgs_dir = os.path.dirname(slackroll_pkgs_dir_glob)
 slackroll_help_file_template = os.path.join(os.path.sep, 'usr', 'doc', 'slackroll-v%s' % slackroll_version, 'helpfiles', '%s.txt')
@@ -1033,12 +1034,15 @@ def download_verify(mirror, package): # Download package, signature and verify i
     try_to_rename(local_name, local_final)
     return local_final
 
-def get_remote_info(mirror, package): # Downloads info file and returns its contents
+def get_remote_info(mirror, package, redownload=False, keep_cached=True): # Downloads info file and returns its contents
+    handle_writable_dir(slackroll_info_dir)
     remote_file = package.fullname[:-len(slackroll_info_suffix)] + slackroll_info_suffix
-    local_file = os.path.join(slackroll_base_dir, os.path.basename(remote_file))
-    download_or_exit(package.base_url(mirror), remote_file, slackroll_base_dir)
+    local_file = os.path.join(slackroll_info_dir, os.path.basename(remote_file))
+    if redownload or not os.path.exists(local_file):
+        download_or_exit(package.base_url(mirror), remote_file, slackroll_info_dir)
     data = io.open(local_file, 'r', encoding="unicode_escape").read()
-    try_to_remove(local_file)
+    if not keep_cached:
+        try_to_remove(local_file)
     return data
 
 def update_changelog(mirror, full=False): # Returns answer to "has it been updated?"
@@ -1936,6 +1940,7 @@ if __name__ == "__main__":
             'download-path':            -1,
             'download-upgrades':        0,
             'erase-cache':              0,
+            'erase-info':               0,
             'erase-tmp':                0,
             'erase-all':                0,
             'foreign':                  -1,
@@ -2120,10 +2125,12 @@ if __name__ == "__main__":
             print_repo_mod_advice()
             sys.exit()
 
-        if operation in ['erase-cache', 'erase-tmp', 'erase-all']:
+        if operation in ['erase-cache', 'erase-info', 'erase-tmp', 'erase-all']:
             directories = []
             if operation in ['erase-cache', 'erase-all']:
                 directories.append(slackroll_pkgs_dir)
+            if operation in ['erase-info', 'erase-all']:
+                directories.append(slackroll_info_dir)
             if operation in ['erase-tmp', 'erase-all']:
                 directories.append(get_temp_dir())
             files = concat([glob.glob(os.path.join(directory, '*')) for directory in directories])

@@ -156,9 +156,10 @@ Searching for packages and files:
 
 Other maintenance operations (usually not needed):
 
-  erase-cache		Remove every file from package cache
+  erase-cache	Remove every file from package cache
+  erase-info	Remove package info (.txt) files from cache
   erase-tmp		Remove every file from the temporary directory
-  erase-all		Remove every file from both locations above
+  erase-all		Remove every file from all locations above
   touch			Force update on persistent database
 
 
