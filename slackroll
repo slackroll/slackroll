@@ -27,8 +27,8 @@ from builtins import object
 from builtins import range
 from builtins import str
 
-import io
 import sys
+import io
 
 PY2 = sys.version_info[0] <= 2
 
@@ -40,18 +40,22 @@ if PY2:
 else:
     import dbm
 
-# Workaround for Unicode/bytestring handling differences between Python 2 and 3
+# Prefer to write files in UTF-8 for easiest interoperability between Python 2 and 3
 default_output_encoding = "UTF-8"
+
+# Slackware ChangeLog and package info files are normally in the Latin charset
+assumed_file_encoding = "latin-1"
+
+# Set up stdout to accommodate Unicode/bytestring handling differences between Python 2 and 3
 if PY2:
     def print(message=""):
-        write_to_pipe(sys.stdout, message + "\n")
+        write_to_stream(sys.stdout, message + "\n")
     import collections
 else:
     sys.stdout = io.open(sys.stdout.fileno(), mode='w', encoding=default_output_encoding, buffering=1)
 
 import bz2
 import pickle
-import io
 import fcntl
 import functools
 import glob
@@ -427,19 +431,26 @@ def to_dbkey(x):
     return x.encode(default_output_encoding)
 
 # Attempt to determine/use the system-set encoding for the given file or pipe
-def output_encoding(stream):
+def stream_encoding(stream, fallback_if_not_determined):
     try:
         if stream.encoding is None:
-            return default_output_encoding
+            return fallback_if_not_determined
         else:
             return stream.encoding
     except (AttributeError, TypeError):
         pass
-    return default_output_encoding
+    return fallback_if_not_determined
+
+def output_encoding(stream):
+    return stream_encoding(stream, default_output_encoding)
+
+# Assume that ChangeLogs, package info files, etc. are more likely be be in latin-1
+def input_encoding(stream):
+    return stream_encoding(stream, assumed_file_encoding)
 
 # Consolidate writes in one place to handle string/representation conversions between Python 2 & 3
 # Use force_encoding when the source of the text was itself a pipe (e.g. pager program)
-def write_to_pipe(fd, text, force_encoding=False):
+def write_to_stream(fd, text, force_encoding=False):
     preferred_encoding = output_encoding(fd)
     if PY2:
         # Provide some backup options in case the detected encoding is limited (e.g. pager stdin pipe will probably report 'ascii')
@@ -450,10 +461,7 @@ def write_to_pipe(fd, text, force_encoding=False):
         while len(trial_encodings) > 0: 
             encoding = trial_encodings.popleft()
             try:
-                if force_encoding:
-                    fd.write(text.encode(encoding))
-                else:
-                    fd.write(text.decode(encoding))
+                fd.write(text.encode(encoding))
                 return
             except UnicodeEncodeError:
                 if len(trial_encodings) > 0:
@@ -465,8 +473,36 @@ def write_to_pipe(fd, text, force_encoding=False):
     else:
         fd.write(text)
 
+# Consolidate reads in one place to handle string/representation conversions between Python 2 & 3
+def read_stream(fd): # Read entire stream into single internal buffer
+    if PY2 and False:
+        inferred_encoding = input_encoding(fd)
+        return fd.read().encode(inferred_encoding)
+    else:
+        return fd.read()
+
+def read_lines_from_stream(fd): # Read text stream into a list of individual lines
+    if PY2:
+        inferred_encoding = input_encoding(fd)
+        raw = fd.readlines()
+        return [x.encode(inferred_encoding) for x in raw]
+    else:
+        return fd.readlines()
+
+def read_file(filename): # Wrapper to open file in appropriate encoding mode
+    if PY2:
+        return read_stream(io.open(filename, 'r', encoding=assumed_file_encoding))
+    else:
+        return read_stream(io.open(filename, 'r'))
+
+def read_lines_from_file(filename): # Wrapper to open file in appropriate encoding mode
+    if PY2:
+        return read_lines_from_stream(io.open(filename, 'r', encoding=assumed_file_encoding))
+    else:
+        return read_lines_from_stream(io.open(filename, 'r'))
+
 def print_flush(message=""):
-    write_to_pipe(sys.stdout, message)
+    write_to_stream(sys.stdout, message)
     sys.stdout.flush()
 
 def concat(list_of_lists):
@@ -625,7 +661,7 @@ def clean_filename(s, encoding="latin1"):
 
 def extract_file_list(filename): # Extracts the file list from a local info file
     try:
-        lines = io.open(filename, 'r', encoding="unicode_escape").readlines()
+        lines = read_lines_from_file(filename)
         paths = ['/%s' % clean_filename(x) for x in lines[lines.index(slackroll_local_pkg_filelist_marker) + 1:]]
         return paths
     except ValueError:
@@ -688,7 +724,7 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
 
 def get_remote_pkgs(local_filelist, url): # Return a list of packages from FILELIST.TXT
     try:
-        lines = io.open(local_filelist, 'r', encoding="unicode_escape").readlines()
+        lines = read_lines_from_file(local_filelist)
         matches = [slackroll_filelist_pkg_re.match(x) for x in lines]
         nm_sz = [(x.group(slackroll_filelist_pkg_str), x.group(slackroll_filelist_pkg_size)) for x in matches if x is not None]
         return [pkg_from_name_size_url(nm, sz, url) for (nm, sz) in nm_sz if slackroll_source_indicator not in nm]
@@ -725,7 +761,7 @@ def get_remote_list(): # Return list of remote packages from cached list, updati
 def get_mirror_from_file(filepath):
     try:
         filename = os.path.basename(filepath)
-        lines = io.open(filepath, 'r', encoding="unicode_escape").readlines()
+        lines = read_lines_from_file(filepath)
         if len(lines) != 1:
             raise ValueError('more than one line on %s file' % filename)
         mirror = lines[0].strip()
@@ -845,17 +881,17 @@ class SlackrollOutputInterceptor(object): # Intercepts stdout and uses a pager i
         numlines = output.count('\n')
         if needs_pager(numlines):
             proc = call_pager()
-            write_to_pipe(proc.stdin, output, True)
+            write_to_stream(proc.stdin, output, True)
             proc.stdin.close()
             proc.wait()
         else:
-            write_to_pipe(sys.stdout, output)
+            write_to_stream(sys.stdout, output)
 
 def run_program(arg_list, env=None): # Does not exit on errors
     try:
         subprocess.call(arg_list, env=env)
     except (OSError, IOError) as err:
-        write_to_pipe(sys.stderr, 'ERROR: %s\n' % err)
+        write_to_stream(sys.stderr, 'ERROR: %s\n' % err)
 
 def run_visual_on(file_path): # Does not exit on errors
     run_program(get_visual().split() + [file_path])
@@ -870,7 +906,7 @@ def try_to_remove(file_path, fatal=True): # When it returns, it is True if file 
         os.remove(file_path)
         return True
     except (OSError, IOError) as err:
-        write_to_pipe(sys.stderr, 'ERROR: %s\n' % err)
+        write_to_stream(sys.stderr, 'ERROR: %s\n' % err)
         if fatal:
             sys.exit(slackroll_exit_failure)
         return False
@@ -880,7 +916,7 @@ def try_to_rename(src, dest, fatal=True): # When it returns, it is True if file 
         os.rename(src, dest)
         return True
     except (OSError, IOError) as err:
-        write_to_pipe(sys.stderr, 'ERROR: %s\n' % err)
+        write_to_stream(sys.stderr, 'ERROR: %s\n' % err)
         if fatal:
             sys.exit(slackroll_exit_failure)
         return False
@@ -906,7 +942,7 @@ def download_file(mirror, filepath, local_temp, local_final, displayed_name=None
         if not try_to_rename(local_temp, local_final, fatal=False):
             raise SlackrollError('rename error: %s => %s' % (local_temp, local_final))
     except (OSError, IOError, socket.error, urllib.error.ContentTooShortError) as err:
-        write_to_pipe(sys.stderr, 'ERROR: %s\n' % err)
+        write_to_stream(sys.stderr, 'ERROR: %s\n' % err)
         raise SlackrollError(str(err))
 
 def download(mirror, filepath, localdir, displayed_name=None): # Wrapper that does NOT exit on errors
@@ -960,10 +996,10 @@ def verify_signature(filename):    # Does not exit on errors
         print('Verifying signature %s ... ' % os.path.basename(filename))
         retcode = subprocess.call([gnupg_exec_name, '--verify', filename], stdout=open(os.path.devnull, 'w'), stderr=subprocess.STDOUT)
         if retcode != 0:
-            write_to_pipe(sys.stderr, 'ERROR: signature verification failed: %s\n' % filename)
+            write_to_stream(sys.stderr, 'ERROR: signature verification failed: %s\n' % filename)
             raise SlackrollError('GnuPG exited with status code %s' % retcode)
     except (OSError, IOError) as err:
-        write_to_pipe(sys.stderr, 'ERROR: %s\n' % err)
+        write_to_stream(sys.stderr, 'ERROR: %s\n' % err)
         raise SlackrollError(str(err))
 
 def upgrade_or_install(filename, reinstall): # upgradepkg
@@ -1040,7 +1076,7 @@ def get_remote_info(mirror, package, redownload=False, keep_cached=True): # Down
     local_file = os.path.join(slackroll_info_dir, os.path.basename(remote_file))
     if redownload or not os.path.exists(local_file):
         download_or_exit(package.base_url(mirror), remote_file, slackroll_info_dir)
-    data = io.open(local_file, 'r', encoding="unicode_escape").read()
+    data = read_file(local_file)
     if not keep_cached:
         try_to_remove(local_file)
     return data
@@ -1050,7 +1086,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
         temp_dir = get_temp_dir()
         download_or_exit(mirror, slackroll_changelog_filename, temp_dir)
         local_filename = os.path.join(temp_dir, slackroll_changelog_filename)
-        text = io.open(local_filename, 'r', encoding="unicode_escape").read()
+        text = read_file(local_filename)
         cl = ChangeLog()
         cl.add_entries(clentrylist_from_text(text))
         try_dump(cl, slackroll_local_changelog)
@@ -1259,9 +1295,9 @@ def tr_pkg_detail(local_list, remote_list, persistent_list, pkg_name): # Returns
     return ' '.join(x.path for x in remote_list[pkg_name])
 
 def error_unknown_packages(name_list): # Print package names as unknown and exit with error
-    write_to_pipe(sys.stderr, ''.join('WARNING: %s looks like an unexpected full version\n' % x for x in name_list if may_be_full_version(x)))
-    write_to_pipe(sys.stderr, 'ERROR: The following packages are unknown:\n')
-    write_to_pipe(sys.stderr, ''.join('ERROR:    %s\n' % x for x in name_list))
+    write_to_stream(sys.stderr, ''.join('WARNING: %s looks like an unexpected full version\n' % x for x in name_list if may_be_full_version(x)))
+    write_to_stream(sys.stderr, 'ERROR: The following packages are unknown:\n')
+    write_to_stream(sys.stderr, ''.join('ERROR:    %s\n' % x for x in name_list))
     sys.exit(slackroll_exit_failure)
 
 def maybe_error_unknown_packages(name_list, by_name):
@@ -1310,7 +1346,7 @@ def handle_dotnew_files_installation_batch(dotnew_files): # Handles .new files p
             new_exists = os.path.exists(newfile)
             old_exists = os.path.exists(oldfile)
         except (OSError, IOError) as err:
-            write_to_pipe(sys.stderr, 'ERROR: %s\n' % err)
+            write_to_stream(sys.stderr, 'ERROR: %s\n' % err)
             break
 
         if new_exists and old_exists: # Both
@@ -1349,7 +1385,7 @@ def handle_dotnew_files_installation_interactive(dotnew_files): # Handles .new f
                 new_exists = os.path.exists(newfile)
                 old_exists = os.path.exists(oldfile)
             except (OSError, IOError) as err:
-                write_to_pipe(sys.stderr, 'ERROR: %s\n' % err)
+                write_to_stream(sys.stderr, 'ERROR: %s\n' % err)
                 break
 
             print('\n%s %s' % (['Reviewing', 'Still reviewing'][pair_iterations > 1], newfile))
@@ -1668,7 +1704,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
         for pkg in chosen_pkgs:
             try:
                 if pkg_in_map(pkg, local_list):
-                    lines = io.open(pkg.fullname, 'r', encoding="unicode_escape").readlines()
+                    lines = read_lines_from_file(pkg.fullname)
                     header = lines[:lines.index(slackroll_local_pkg_filelist_marker)]
                     info_map[pkg.fullname] = ''.join(header)
                 else:
@@ -1691,7 +1727,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 def extend_manifest_list(manifest_list, index, mirror, local_filelist):
     # Build the list of MANIFEST.bz2 files
     try:
-        lines = io.open(local_filelist, 'r', encoding="unicode_escape").readlines()
+        lines = read_lines_from_file(local_filelist)
     except (IOError, OSError) as err:
         sys.exit('ERROR: %s' % err)
     files = [slackroll_manifest_re.search(x) for x in lines]
@@ -1822,9 +1858,9 @@ def verify_operation_and_args(op_num_args, operation, args): # Verify number of 
         best_matches.sort()
 
         # Print the error and the list.
-        write_to_pipe(sys.stderr, 'ERROR: no operation called "%s"\n' % (operation, ))
-        write_to_pipe(sys.stderr, 'Use the "help" operation to get a list.\n')
-        write_to_pipe(sys.stderr, 'Did you mean %s?\n' % ' or '.join('"%s"' % ('-'.join(x), ) for x in best_matches))
+        write_to_stream(sys.stderr, 'ERROR: no operation called "%s"\n' % (operation, ))
+        write_to_stream(sys.stderr, 'Use the "help" operation to get a list.\n')
+        write_to_stream(sys.stderr, 'Did you mean %s?\n' % ' or '.join('"%s"' % ('-'.join(x), ) for x in best_matches))
         sys.exit(slackroll_exit_failure)
     else:
         verify_num_args(op_num_args[operation], operation, args)
@@ -2046,7 +2082,7 @@ if __name__ == "__main__":
             if not is_readable_file(helpfile):
                 sys.exit('ERROR: no help found for "%s"' % helpname)
             interceptor = SlackrollOutputInterceptor()
-            print(io.open(helpfile, 'r', encoding="unicode_escape").read())
+            print(read_file(helpfile))
             interceptor.stop()
             sys.exit()
 
@@ -2657,7 +2693,8 @@ if __name__ == "__main__":
             verify_local_names(args, local_list)
             interceptor = SlackrollOutputInterceptor()
             try:
-                print('\n'.join(io.open(x.fullname, 'r', encoding="unicode_escape").read() for x in concat(local_list[pkg] for pkg in args)))
+                print('\n'.join(read_file(x.filename) for x in concat(local_list[pkg] for pkg in args)))
+
             except (IOError, OSError) as err:
                 sys.exit('ERROR: %s' % err)
             interceptor.stop()
@@ -2667,8 +2704,8 @@ if __name__ == "__main__":
             # Verify readable files
             bad_files = [x for x in args if not is_readable_file(x)]
             if len(bad_files) > 0:
-                write_to_pipe(sys.stderr, 'ERROR: the following items are not readable files:\n')
-                write_to_pipe(sys.stderr, ''.join('ERROR:    %s\n' % x for x in bad_files))
+                write_to_stream(sys.stderr, 'ERROR: the following items are not readable files:\n')
+                write_to_stream(sys.stderr, ''.join('ERROR:    %s\n' % x for x in bad_files))
                 sys.exit(slackroll_exit_failure)
 
             # Verify and get package names
@@ -2680,8 +2717,8 @@ if __name__ == "__main__":
             # The packages must not be present in persistent list or be foreign already
             bad_pkgs = [x for x in pkgs if to_dbkey(x.name) in persistent_list and persistent_list[x.name] != slackroll_state_foreign]
             if len(bad_pkgs) > 0:
-                write_to_pipe(sys.stderr, 'ERROR: the following packages are known and not foreign\n')
-                write_to_pipe(sys.stderr, ''.join('ERROR:    %s\n' % x.name for x in bad_pkgs))
+                write_to_stream(sys.stderr, 'ERROR: the following packages are known and not foreign\n')
+                write_to_stream(sys.stderr, ''.join('ERROR:    %s\n' % x.name for x in bad_pkgs))
                 sys.exit(slackroll_exit_failure)
 
             # Get .new files from old packages
@@ -2707,7 +2744,7 @@ if __name__ == "__main__":
             for name in args:
                 if name not in persistent_list:
                     if may_be_full_version(name):
-                        write_to_pipe(sys.stderr, 'WARNING: %s looks like an unexpected full version\n' % name)
+                        write_to_stream(sys.stderr, 'WARNING: %s looks like an unexpected full version\n' % name)
                     sys.exit('ERROR: no package named %s' % name)
 
             unavpkg = args[0]
@@ -2837,16 +2874,16 @@ if __name__ == "__main__":
 
     except (KeyboardInterrupt, IOError, EOFError) as error:
         if isinstance(error, KeyboardInterrupt):
-            write_to_pipe(sys.stderr, '\nProgram aborted by user\n')
+            write_to_stream(sys.stderr, '\nProgram aborted by user\n')
         if persistent_list is not None:
             persistent_list.close()
         sys.exit(slackroll_exit_failure)
     except SlackrollBatchModeError:
-        write_to_pipe(sys.stderr, '\nProgram aborted because operation could not be completed in batch mode\n')
+        write_to_stream(sys.stderr, '\nProgram aborted because operation could not be completed in batch mode\n')
         if persistent_list is not None:
             persistent_list.close()
         sys.exit(slackroll_exit_failure)
     except IndexError:
-        write_to_pipe(sys.stderr, 'ERROR: no operation given\n')
-        write_to_pipe(sys.stderr, 'Use "help" operation to get a list\n')
+        write_to_stream(sys.stderr, 'ERROR: no operation given\n')
+        write_to_stream(sys.stderr, 'Use "help" operation to get a list\n')
         sys.exit(slackroll_exit_failure)
