@@ -644,7 +644,11 @@ def try_dump(object, filepath): # pickle.dump()
 
 def try_load(filepath): # pickle.load()
     try:
-        return pickle.load(open(filepath, 'rb'))
+        if PY2:
+            return pickle.load(open(filepath, 'rb'))
+        else:
+            # BCS: in case DB was written by a Python 2 instance and contains non-ASCII characters
+            return pickle.load(open(filepath, 'rb'), encoding='Latin1')
     except (OSError, IOError, pickle.PickleError) as err:
         sys.exit('ERROR: %s' % err)
 
@@ -1164,10 +1168,10 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
     try:
         conn = urllib.request.urlopen(changelog_url)
         while True:
-            new_line = conn.readline()
+            new_line = interpret_as_str(conn.readline())
             if len(new_line) == 0 or new_line.strip() in limits:
                 break
-            lines.append(interpret_as_str(new_line))
+            lines.append(new_line)
         conn.close()
     except (OSError, IOError, socket.error, urllib.error.ContentTooShortError) as err:
         sys.exit('\nERROR: %s' % err)
