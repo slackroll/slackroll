@@ -15,6 +15,7 @@
 # this software. If not, see
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
+from __future__ import print_function
 import bz2
 import fcntl
 import functools
@@ -137,16 +138,33 @@ if TYPE_CHECKING:
 
     T = TypeVar("T")
 
-# Workaround for Unicode/bytestring handling differences between Python 2 and 3
-default_output_encoding = "UTF-8"
+# Slackware ChangeLog and package info files are normally in the Windows charset (1252 / ANSI), supported by most terminals
+# However, the 2 March 2022 ChangeLog entry contained a character (0x9E) not in the ASCII or Latin-1 (8859-1) character sets
+# A more recent example occurs in the 17 Feb 2026 ChangeLog entry (0xB3, 0xB7, 0xD8, 0xD9 in a non-European Top-Level Domain name)
+#  => prefer binary stream format for proper handling of non-Latin chars in ChangeLogs and/or .info files, e.g. avoid false EOF
+# Recommend keeping filenames in Latin-1 for maximum interoperability with primitive filesystems (e.g. ISO9660, FAT16/32 without VFAT)
+assumed_file_encoding = "CP1252"
+default_output_encoding = "CP1252"
+default_filename_encoding = "Latin-1"
+standard_encodings = ["CP1252", "Latin-1", "UTF-8", "unicode_internal"]
 
-# Slackware ChangeLog and package info files are normally in the Latin charset
-assumed_file_encoding = "latin-1"
-
+# Accommodate Unicode/bytestring handling differences between Python 2 and 3
 if PY2:
+    interceptor_newline = '\n'
     import collections
 else:
-    sys.stdout = io.open(sys.stdout.fileno(), mode='w', encoding=default_output_encoding, buffering=1)
+    sys.stdout = io.open(sys.stdout.fileno(), mode='wb')
+    interceptor_newline = b'\n'
+
+# Safe whether stdout is a Unicode or binary stream, under Python 2 or 3
+def print(message=""):
+    if isinstance(sys.stdout, io.BytesIO) and not is_encoded(message):
+        mesg_bytes = message.encode(default_output_encoding, "replace")
+        write_to_stream(sys.stdout, mesg_bytes + b"\n")
+    elif isinstance(message, bytes):
+        write_to_stream(sys.stdout, message + b"\n")
+    else:
+        write_to_stream(sys.stdout, message + "\n")
 
 # BCS: Pickle protocols > 2 will not be backward-compatible with Python 2
 pickle_protocol = 2
@@ -412,11 +430,11 @@ class SlackwarePackage(object):
 
     def url(self, mirror):
         # type: (Optional[str]) -> str
-        return urljoin(self.base_url(mirror), self.fullname) # type: ignore
+        return urljoin(self.base_url(mirror), interpret_as_str(self.fullname)) # type: ignore
 
     def sig_url(self, mirror):
         # type: (str) -> str
-        return urljoin(self.base_url(mirror), self.fullsigname) # type: ignore
+        return urljoin(self.base_url(mirror), str(self.fullsigname)) # type: ignore
 
 class SlackrollURLopener(urllib.request.FancyURLopener): # type: ignore
     def http_error_default(self, url, fp, errcode, errmsg, headers): # type: ignore
@@ -522,11 +540,40 @@ def clentrylist_from_text(text):
     entries = [x for x in entries if len(x) > 0]
     return [clentry_from_text(x) for x in entries]
 
-# dbm on Python 2 only accepts encoded strings as keys, not general Unicode
+# True iff the argument is already encoded to an output representation (not abstract Unicode)
+def is_encoded(text):
+    return PY2 or isinstance(text, bytes)
+
+# Convert the argument into a format that a binary stream .write() method will accept (str for Python 2, bytes for Python 3)
+def format_for_writing(text, always_encode=False, encoding = default_output_encoding, mode="strict"):
+    if (always_encode and PY2) or not is_encoded(text):
+        return text.encode(encoding, mode)
+    else:
+        return text
+
+# Convert the argument into a format that a Unicode stream .write() method will accept (unicode for Python 2, str for Python 3)
+def force_to_unicode(text):
+    if not is_encoded(text):
+        return text
+    elif PY2:
+        return unicode(text)
+    else:
+        return try_encodings(text.decode, standard_encodings)
+
+# Coerce the argument into the default internal "string" format if not already
+# Differs from system str() in that this attempts each the specified encodings until one succeeds
+# User beware: on Python 2 this is a bytestring, on Python 3 it will be abstract Unicode
+def interpret_as_str(text, encodings = standard_encodings):
+    if PY2 and isinstance(text, unicode):
+        return try_encodings(text.encode, encodings)
+    elif not PY2 and not isinstance(text, str):
+        return try_encodings(text.decode, encodings)
+    else:
+        return text
+
+# dbm on Python 2 only accepts decoded strings as keys, not general Unicode
 def to_dbkey(x):
-    if isinstance(x, str):
-        return x
-    return x.encode(default_output_encoding)
+    return interpret_as_str(x)
 
 # Attempt to determine/use the system-set encoding for the given file or pipe
 def stream_encoding(stream, fallback_if_not_determined):
@@ -539,65 +586,68 @@ def stream_encoding(stream, fallback_if_not_determined):
         pass
     return fallback_if_not_determined
 
-def output_encoding(stream):
+def output_encoding(stream):  # Determine most appropriate encoding for output stream
     return stream_encoding(stream, default_output_encoding)
 
-# Assume that ChangeLogs, package info files, etc. are more likely be be in latin-1
-def input_encoding(stream):
+def input_encoding(stream):   # Guess most likely encoding for input stream
     return stream_encoding(stream, assumed_file_encoding)
+
+# Helper function to construct a list with no duplicates
+def merge_encodings(preferred, defaults):
+    rv = [preferred]
+    for x in defaults:
+        rv.append(x)
+    return rv
+
+# Monad to repeat a Unicode-related operation until a successful encoding/decoding is found
+def try_encodings(operation, encodings):
+    for trial_encoding in encodings:
+        try:
+            return operation(trial_encoding, "strict")
+        except (UnicodeEncodeError, UnicodeDecodeError, TypeError) as err:
+            pass
+
+    # Retry last-resort encoding with character replacement
+    return operation(trial_encoding, "replace")
+
 
 # Consolidate writes in one place to handle string/representation conversions between Python 2 & 3
 # Use force_encoding when the source of the text was itself a pipe (e.g. pager program)
 def write_to_stream(fd, text, force_encoding=False):
-    preferred_encoding = output_encoding(fd)
-    if PY2:
-        # Provide some backup options in case the detected encoding is limited (e.g. pager stdin pipe will probably report 'ascii')
-        trial_encodings = collections.deque()
-        for i in [preferred_encoding, "latin_1", "UTF-8", "unicode_internal"]:
-            if i not in trial_encodings:
-                trial_encodings.append(i)
-        while len(trial_encodings) > 0: 
-            encoding = trial_encodings.popleft()
-            try:
-                fd.write(text.encode(encoding))
-                return
-            except UnicodeEncodeError:
-                if len(trial_encodings) > 0:
-                    continue
-                else:
-                    raise
-    elif force_encoding:
-        fd.write(text.encode(preferred_encoding))
-    else:
-        fd.write(text)
+    try:
+        # Easiest case, assuming the text encodes in the default stream format
+        fd.write(format_for_writing(text, force_encoding))
+        return
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        pass
+    except (TypeError) as err:
+        # Most likely an output stream (e.g. Interceptor) opened for Unicode only
+        fd.write(force_to_unicode(text))
+        return
+
+    # OK, try reasonable encodings until we find one that can handle this buffer
+    potential_encodings = merge_encodings(output_encoding(fd), standard_encodings)
+    writer = lambda trial_encoding, mode : fd.write(format_for_writing(text, True, trial_encoding, mode))
+    try_encodings(writer, potential_encodings)
+    return
 
 # Consolidate reads in one place to handle string/representation conversions between Python 2 & 3
 def read_stream(fd): # Read entire stream into single internal buffer
-    if PY2 and False:
-        inferred_encoding = input_encoding(fd)
-        return fd.read().encode(inferred_encoding)
-    else:
-        return fd.read()
+    potential_encodings = merge_encodings(input_encoding(fd), standard_encodings)
+    raw_text = fd.read()
+    return interpret_as_str(raw_text, potential_encodings)
 
 def read_lines_from_stream(fd): # Read text stream into a list of individual lines
-    if PY2:
-        inferred_encoding = input_encoding(fd)
-        raw = fd.readlines()
-        return [x.encode(inferred_encoding) for x in raw]
-    else:
-        return fd.readlines()
+    potential_encodings = merge_encodings(input_encoding(fd), standard_encodings)
+    raw_text = fd.readlines()
+    decoder = lambda trial_encoding, mode : [x.decode(trial_encoding, mode) for x in raw_text]
+    return try_encodings(decoder, potential_encodings)
 
 def read_file(filename): # Wrapper to open file in appropriate encoding mode
-    if PY2:
-        return read_stream(io.open(filename, 'r', encoding=assumed_file_encoding))
-    else:
-        return read_stream(io.open(filename, 'r'))
+    return read_stream(io.open(filename, 'rb'))
 
 def read_lines_from_file(filename): # Wrapper to open file in appropriate encoding mode
-    if PY2:
-        return read_lines_from_stream(io.open(filename, 'r', encoding=assumed_file_encoding))
-    else:
-        return read_lines_from_stream(io.open(filename, 'r'))
+    return read_lines_from_stream(io.open(filename, 'rb'))
 
 def print_flush(message=""):
     # type: (str) -> None
@@ -660,7 +710,7 @@ def get_self_file_version(): # Get self version from disk file
 def write_self_file_version(): # Write self version to disk file
     # type: () -> None
     try:
-        io.open(slackroll_self_filename, 'w').write(str(slackroll_version) + '\n')
+        write_to_stream(io.open(slackroll_self_filename, 'w'), str(slackroll_version) + '\n')
     except (OSError, IOError, AttributeError) as err:
         sys.exit('ERROR: %s' % err)
 
@@ -781,14 +831,15 @@ def print_blacklist():
     numbered = ['%-4s  %s' % (x, bl[x]) for x in range(len(bl))]
     print_list_or(numbered, 'Blacklisted expressions:', 'No blacklisted expressions')
 
-def clean_filename(s, encoding="latin1"):
+def clean_filename(s, encoding=default_filename_encoding):
     if PY2:
         return s.strip().decode('string_escape')
     else:
-        if encoding == "latin1":
+        if encoding == default_filename_encoding:
             return s.strip().encode(encoding).decode("unicode_escape")
         else:
-            return s.strip().encode(encoding).decode("unicode_escape").encode("latin1").decode(encoding)
+            # Horrendous but robust
+            return s.strip().encode(encoding).decode("unicode_escape").encode(default_filename_encoding).decode(encoding)
 
 def extract_file_list(filename): # Extracts the file list from a local info file
     # type: (str) -> List[str]
@@ -846,7 +897,7 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
         dupes = set() # type: Set[str]
         local_list = dict() # type: Dict[str, List[SlackwarePackage]]
         for pkg in get_local_pkgs():
-            name = pkg.name
+            name = to_dbkey(pkg.name)
             if name in local_list:
                 dupes.add(name)
             value = local_list.get(name, [])
@@ -1020,11 +1071,14 @@ class SlackrollOutputInterceptor(object): # Intercepts stdout and uses a pager i
 
         self.__buffer = None
         self.__old_stdout = None # type: Optional[IO[str]]
-        self.__was_not_tty = False
         if not sys.stdout.isatty():
             self.__was_not_tty = True
         else:
-            self.__buffer = StringIO()
+            self.__was_not_tty = False
+            if PY2:
+                self.__buffer = io.StringIO()
+            else:
+                self.__buffer = io.BytesIO()
             self.__old_stdout = sys.stdout
             sys.stdout = self.__buffer
 
@@ -1039,7 +1093,7 @@ class SlackrollOutputInterceptor(object): # Intercepts stdout and uses a pager i
             return
         output = self.__buffer.getvalue()
         self.__buffer.close()
-        numlines = output.count('\n')
+        numlines = output.count(interceptor_newline)
         if needs_pager(numlines):
             proc = call_pager()
             assert proc.stdin is not None
@@ -1104,7 +1158,7 @@ def download_file(mirror, filepath, local_temp, local_final, displayed_name=None
         if displayed_name is None:
             displayed_name = os.path.basename(filepath)
         print_flush('Downloading %s ... ' % displayed_name)
-        full_url = urljoin(mirror, filepath)
+        full_url = urljoin(str(mirror), str(filepath))
         hook = None if slackroll_batch_mode else functools.partial(download_report_hook, displayed_name)
         urlretrieve(full_url, local_temp, hook) # type: ignore
         print('')
@@ -1300,7 +1354,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
     except (OSError, IOError) as err:
         sys.exit('ERROR: %s' % err)
 
-    changelog_url = urljoin(mirror, slackroll_changelog_filename)
+    changelog_url = urljoin(str(mirror), str(slackroll_changelog_filename))
     lines = []
     try:
         conn = urlopen(changelog_url)
@@ -1308,7 +1362,7 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
             new_line = conn.readline()
             if len(new_line) == 0 or new_line.strip() in limits:
                 break
-            lines.append(new_line)
+            lines.append(interpret_as_str(new_line))
         conn.close()
     except (OSError, IOError, socket.error, urllib.error.ContentTooShortError) as err: # type: ignore
         sys.exit('\nERROR: %s' % err)
@@ -1978,7 +2032,7 @@ def update_operation(mirror):
 
     for (x, repo) in enumerate(get_repo_list()):
         displayed_name = '%s from repository %s' % (slackroll_filelist_filename, x)
-        full_url = urljoin(repo, slackroll_filelist_filename)
+        full_url = urljoin(str(repo), str(slackroll_filelist_filename))
         download_or_exit(repo, slackroll_filelist_filename, get_temp_dir(), displayed_name)
         extend_remote_list(local_filelist, remote_list, repo)
         extend_manifest_list(manifest_list, x, repo, local_filelist)
@@ -2026,7 +2080,8 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
     already_analyzed = set()
 
     # Go over packages present in local system and update their state or introduce them
-    for local_name in local_list:
+    for raw_local_name in local_list:
+        local_name = to_dbkey(raw_local_name)
         already_analyzed.add(local_name)
         if local_name in persistent_list:
             # Update their state if needed
@@ -2056,7 +2111,8 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
                 persistent_list[local_name] = slackroll_state_unavailable
 
     # Go over remaining remote packages not already analyzed (hence, not present in local system)
-    for name in remote_list:
+    for raw_name in remote_list:
+        name = to_dbkey(raw_name)
         if name in already_analyzed:
             continue
         already_analyzed.add(name)
@@ -2075,7 +2131,8 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
                 persistent_list[name] = slackroll_state_new
 
     # Remaining packages, not present in local or remote systems, need to disappear
-    for name in list(persistent_list.keys()):    # Must get keys before, as we are going to delete entries
+    for raw_name in list(persistent_list.keys()):    # Must get keys before, as we are going to delete entries
+        name = to_dbkey(raw_name)
         if name in already_analyzed:
             continue
         del persistent_list[name]
