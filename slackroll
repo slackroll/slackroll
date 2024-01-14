@@ -252,18 +252,6 @@ def transient_key(name_state):
         group = -1
     return (priority, group, name)
 
-# BCS: This function is NO LONGER USED after the conversion to key-style sorting.
-# However, it is required for a test in the current CI pipeline.
-# It can safely be deleted after pull request #22 is merged.
-def transient_cmp(name_state1, name_state2): # Special sort for transient list
-    (name1, state1) = name_state1
-    (name2, state2) = name_state2
-    if name1 in slackroll_prioritized_pkgs or name2 in slackroll_prioritized_pkgs:
-        return pkg_name_cmp(name1, name2)
-    if state1 != state2:
-        return (index_of(slackroll_transient_states, state1) - index_of(slackroll_transient_states, state2))
-    return cmp(name1, name2)
-
 class SlackrollError(Exception):
     pass
 
