@@ -30,6 +30,8 @@ from builtins import str
 import sys
 import io
 
+debug_output = True
+
 PY2 = sys.version_info[0] <= 2
 
 if PY2:
@@ -58,10 +60,11 @@ else:
 
 # Safe whether stdout is a Unicode or binary stream, under Python 2 or 3
 def print(message=""):
-    if isinstance(sys.stdout, io.BytesIO) and not is_encoded(message):
-        message = message.encode(default_output_encoding, "replace")
+    if isinstance(sys.stdout, io.BytesIO):
+        if not is_encoded(message):
+            message = message.encode(default_output_encoding, "replace")
         write_to_stream(sys.stdout, message + b"\n")
-    elif isinstance(message, bytes):
+    elif not PY2 and isinstance(message, bytes):
         write_to_stream(sys.stdout, message + b"\n")
     else:
         write_to_stream(sys.stdout, message + "\n")
@@ -191,7 +194,7 @@ slackroll_manifest_list_filename = os.path.join(slackroll_base_dir, 'manifestlis
 slackroll_batch_mode = False
 
 def debug_mesg(mesg):
-    if True:
+    if debug_output:
         sys.stderr.write(mesg)
     else:
         return
@@ -460,8 +463,6 @@ def format_for_writing(text, always_encode=False, encoding = default_output_enco
 def force_to_unicode(text):
     if not is_encoded(text):
         return text
-    elif PY2:
-        return unicode(text)
     else:
         return try_encodings(text.decode, standard_encodings)
 
