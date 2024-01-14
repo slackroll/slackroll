@@ -1325,7 +1325,7 @@ def print_list(the_list, header): # Print every list entry, sorted
 
 def print_list_or(the_list, header, message_on_empty): # Idem using interceptor and a message if empty list
     if len(the_list) == 0:
-        print message_on_empty
+        print(message_on_empty)
         return
     interceptor = SlackrollOutputInterceptor()
     print_list(the_list, header)
@@ -2902,7 +2902,7 @@ if __name__ == "__main__":
             auto_kernel_pkgs = concat([local_list[x] for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and (persistent_list[x] == slackroll_state_installed or persistent_list[x] == slackroll_state_outdated)])
             outdated_kernel_pkgs = [x for x in auto_kernel_pkgs if superseded_in(x, auto_kernel_pkgs)]
             if len(outdated_kernel_pkgs) == 0:
-                print 'No obsolete kernel packages found'
+                print('No obsolete kernel packages found')
                 sys.exit()
             print_pairs_or([(x.name, x.version + '-' + x.build) for x in outdated_kernel_pkgs], 'Superseded kernel packages to be removed:', 'No superseded kernel packages to remove')
             if "kernel-source" in [x.name for x in outdated_kernel_pkgs]:
