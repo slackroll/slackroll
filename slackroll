@@ -355,10 +355,6 @@ class SlackwarePackage(object):
     def sig_url(self, mirror):
         return urllib.parse.urljoin(self.base_url(mirror), str(self.fullsigname))
 
-class SlackrollURLopener(urllib.request.FancyURLopener):
-    def http_error_default(self, url, fp, errcode, errmsg, headers):
-        raise IOError('%s: %s' % (errcode, errmsg))
-
 def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
     return pkg_from_name_size_url(path_or_name)
 
@@ -2023,7 +2019,6 @@ if __name__ == "__main__":
         local_list = None
         remote_list = None
         persistent_list = None
-        urllib._urlopener = SlackrollURLopener()
         socket.setdefaulttimeout(slackroll_socket_timeout)
         standardize_locales()
 
