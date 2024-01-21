@@ -1286,12 +1286,7 @@ def handle_dotnew_files_installation_interactive(dotnew_files): # Handles .new f
                     run_visual_on(newfile)
 
             elif not new_exists and old_exists: # Old only
-                options = [go_next, visual_old]
-                chosen = choose_option(options)
-                if chosen == 0:
-                    break
-                else:
-                    run_visual_on(oldfile)
+                break
             else: # None
                 options = [go_next]
                 chosen = choose_option(options)

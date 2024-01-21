@@ -25,8 +25,11 @@ only the one without the .new suffix, maybe after making changes to either file.
 How does slackroll help you on this?
 
 slackroll helps, first, by automatically detecting which .new files have been
-installed after an upgrade, and prompting you about each one. For each case,
-normally you have up to four options.
+installed after an upgrade, and prompting you about each one, except for the
+case where upgradepkg directly moved the .new file into place (often the
+doinst.sh of a package will compare the two files and remove the .new file if
+they are exactly the same). Otherwise, for each case, normally you have up to
+four options.
 
 First, an option to continue to the next pair once you consider you're done
 with the current pair. Even when you don't want to do anything with the
