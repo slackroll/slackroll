@@ -19,6 +19,14 @@ from __future__ import print_function
 from past.builtins import cmp
 
 from future import standard_library
+
+# Avoid Python 2 exception when calling install_aliases() from a directory that no longer exists
+import os
+try:
+    dir = os.getcwd()
+except OSError as err:
+    os.chdir("/")
+
 standard_library.install_aliases()
 
 from builtins import input
