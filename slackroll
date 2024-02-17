@@ -72,6 +72,7 @@ slackroll_filelist_pkg_str = 2
 slackroll_source_indicator = '/source/'
 slackroll_pasture_indicator = '/pasture/'
 slackroll_patch_indicator = '/patches/'
+slackroll_old_kernel_indicator = '/patches/packages/old-linux-'
 slackroll_main_indicator = re.compile(r'/slackware(?:64|arm|aarch64)?/')
 slackroll_extra_indicator = '/extra/'
 slackroll_prioritized_pkgs = ['aaa_glibc-solibs', 'glibc-solibs', 'sed', 'pkgtools']
@@ -580,12 +581,15 @@ def get_local_list(forced_rebuild): # Return list of local packages from cached 
         try_dump(local_list, slackroll_locallist_filename)
     return try_load(slackroll_locallist_filename)
 
+def ignore_package_path(path):
+    return slackroll_source_indicator in path or slackroll_old_kernel_indicator in path
+
 def get_remote_pkgs(local_filelist, url): # Return a list of packages from FILELIST.TXT
     try:
         lines = file(local_filelist, 'r').readlines()
         matches = [slackroll_filelist_pkg_re.match(x) for x in lines]
         nm_sz = [(x.group(slackroll_filelist_pkg_str), x.group(slackroll_filelist_pkg_size)) for x in matches if x is not None]
-        return [pkg_from_name_size_url(nm, sz, url) for (nm, sz) in nm_sz if slackroll_source_indicator not in nm]
+        return [pkg_from_name_size_url(nm, sz, url) for (nm, sz) in nm_sz if not ignore_package_path(nm)]
     except (OSError, IOError), err:
         sys.exit('ERROR: %s' % err)
 
@@ -1382,7 +1386,7 @@ def update_manifest_database():
             pkgpath = mobj.group(1)
             pkgfiles = mobj.group(2)
 
-            if slackroll_source_indicator in pkgpath:
+            if ignore_package_path(pkgpath):
                 continue
             database_value = pkg_from_str(pkgpath).archivename
 
@@ -1568,7 +1572,7 @@ def extend_manifest_list(manifest_list, index, mirror, local_filelist):
         sys.exit('ERROR: %s' % err)
     files = [slackroll_manifest_re.search(x) for x in lines]
     files = [x.group(1) for x in files if x is not None]
-    files = [x for x in files if slackroll_source_indicator not in x]
+    files = [x for x in files if not ignore_package_path(x)]
     new_elements = [(index, mirror, x) for x in files]
     manifest_list.extend(new_elements)
 
