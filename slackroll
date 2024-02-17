@@ -1281,9 +1281,9 @@ def handle_dotnew_files_removal(dotnew_files): # Handle .new files left behind b
         return
 
     if slackroll_batch_mode:
-        handle_dotnew_files_removal_batch(dotnew_files)
+        handle_dotnew_files_removal_batch(existing)
     else:
-        handle_dotnew_files_removal_interactive(dotnew_files)
+        handle_dotnew_files_removal_interactive(existing)
 
 def handle_dotnew_files_removal_batch(existing): # Remove .new files left behind by removepkg in batch mode
     for path in existing:
