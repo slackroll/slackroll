@@ -16,8 +16,6 @@
 #
 
 from __future__ import print_function
-from past.builtins import cmp
-
 from future import standard_library
 
 # Avoid Python 2 exception when calling install_aliases() from a directory that no longer exists
@@ -42,6 +40,11 @@ debug_output = True
 
 PY2 = sys.version_info[0] <= 2
 
+# DEPRECATED, but support the SlackwarePackage.__cmp__() method
+if not PY2:
+    from past.builtins import cmp
+
+# Select an appropriate DB backend
 if PY2:
     import anydbm
     anydbm._defaultmod = __import__('gdbm')
@@ -99,7 +102,6 @@ import urllib.request, urllib.parse, urllib.error
 import urllib.parse
 from functools import reduce
 from tempfile import mkdtemp
-from packaging import version
 
 # BCS: Pickle protocols > 2 will not be backward-compatible with Python 2
 pickle_protocol = 2
@@ -1349,10 +1351,47 @@ def print_pairs_or(the_list, header, message_on_empty):
         print(' %s (%s)' % (a, b))
     interceptor.stop()
 
+# Break a version string into a list of (string) components separated by . or - or +
+# This is NOT as strict as the standard packaging.version library or PEP 440, but the
+# additional flexibility is required to handle packages that use hexadecimal hash numbers
+# and/or underscores as part of the version string (as many SlackBuilds do).
+# slackware-current's latest version of python-packaging (24.0 for Python 3.11) will throw
+# an exception on such strings.
+def str_to_version_list(s):
+    return re.split("\.|-|\+", s)
+
+# Compare two lists representing the components of a version string. Uses numerical comparison if
+# two elements in the same position are both decimal digit strings (e.g. so "11" will test as
+# less than "101", otherwise tests in lexicographical order (so "b101" tests as less than "b11").
+def version_list_cmp(v1, v2):
+    if not v1 and not v2:
+        return 0
+    elif v1 and not v2:
+        return 1
+    elif v2 and not v1:
+        return -1
+
+    if v1[0].isdigit() and v2[0].isdigit():
+        key1, key2 = int(v1[0]), int(v2[0])
+    else:
+        key1, key2 = v1[0], v2[0]
+    if key1 == key2:
+        return version_list_cmp(v1[1:], v2[1:])
+    elif key1 < key2:
+        return -1
+    else:
+        return 1
+
+def versions_equal(str1, str2):
+    return version_list_cmp(str_to_version_list(str1), str_to_version_list(str2)) == 0
+
+def first_is_newer(str1, str2):
+    return version_list_cmp(str_to_version_list(str1), str_to_version_list(str2)) > 0
+
+# True iff the given package has a newer version available in the provided list
 def superseded_in(pkg, the_list):
     name = pkg.name
-    old_version = version.parse(pkg.version)
-    newer_pkgs = [x for x in the_list if x.name == name and (version.parse(x.version) > old_version or version.parse(x.version) == old_version and x.build > pkg.build)]
+    newer_pkgs = [x for x in the_list if x.name == name and (first_is_newer(x.version, pkg.version) or versions_equal(x.version, pkg.version) and x.build > pkg.build)]
     return len(newer_pkgs) > 0
 
 def tr_pkg_detail(local_list, remote_list, persistent_list, pkg_name): # Returns a string with package details for a transient package
