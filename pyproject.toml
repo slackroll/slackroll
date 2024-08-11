@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "slackroll"
+version = "55"
+description = "Package or upgrade manager for Slackware Linux"
+authors = ["Ricardo Garcia <commits@rg3.name>", "Andrew Clemons <andrew.clemons@gmail.com>"]
+license = "CC0 Public Domain Dedication"
+
+[tool.poetry.dependencies]
+python = "~2.7"
+
+[tool.poetry.dev-dependencies]
+mock = "3.0.5"
+pytest =  "4.6.11"
+pytest-cov = "2.12.1"
+toml = "0.10.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
