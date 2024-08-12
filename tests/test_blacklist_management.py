@@ -1,8 +1,11 @@
+import re
+
 import pytest
 from mock import patch  # type: ignore
 from slackroll import (
     add_blacklist_exprs,
     del_blacklist_exprs,
+    get_blacklist_re,
     print_blacklist,
     slackroll_blacklist_filename,
 )
@@ -19,7 +22,20 @@ if TYPE_CHECKING:
 @pytest.fixture  # type: ignore
 def blacklist():
     # type: () -> List[str]
-    return ["entry1", "entry2", "entry3"]
+    return ["entry1", "entry2", "entry3@myrepo"]
+
+
+def test_get_blacklist_re(blacklist):
+    # type: (List[str]) -> None
+    with patch("slackroll.get_blacklist") as get_blacklist_mock:
+        get_blacklist_mock.return_value = blacklist
+
+        res = get_blacklist_re()
+
+        assert len(res) == 3
+        assert (re.compile("entry1"), re.compile("")) == res[0]
+        assert (re.compile("entry2"), re.compile("")) == res[1]
+        assert (re.compile("entry3"), re.compile("myrepo")) == res[2]
 
 
 def test_print_blacklist(blacklist):
@@ -31,7 +47,7 @@ def test_print_blacklist(blacklist):
             print_blacklist()
 
             print_list_or_mock.assert_called_with(
-                ["0     entry1", "1     entry2", "2     entry3"],
+                ["0     entry1", "1     entry2", "2     entry3@myrepo"],
                 "Blacklisted expressions:",
                 "No blacklisted expressions",
             )
@@ -46,7 +62,7 @@ def test_add_blacklist_exprs(blacklist):
             add_blacklist_exprs(["newentry1", "newentry2"])
 
             try_dump_mock.assert_called_with(
-                ["entry1", "entry2", "entry3", "newentry1", "newentry2"],
+                ["entry1", "entry2", "entry3@myrepo", "newentry1", "newentry2"],
                 slackroll_blacklist_filename,
             )
 
@@ -100,7 +116,7 @@ def test_del_blacklist_exprs(blacklist):
             del_blacklist_exprs(["0"])
 
             try_dump_mock.assert_called_with(
-                ["entry2", "entry3"], slackroll_blacklist_filename
+                ["entry2", "entry3@myrepo"], slackroll_blacklist_filename
             )
 
 
@@ -112,7 +128,9 @@ def test_del_blacklist_exprs_multiple(blacklist):
         with patch("slackroll.try_dump") as try_dump_mock:
             del_blacklist_exprs(["0", "1"])
 
-            try_dump_mock.assert_called_with(["entry3"], slackroll_blacklist_filename)
+            try_dump_mock.assert_called_with(
+                ["entry3@myrepo"], slackroll_blacklist_filename
+            )
 
 
 def test_del_blacklist_exprs_invalid_index_negative(blacklist):
