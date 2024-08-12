@@ -171,8 +171,9 @@ def yield_slackroll_local_pkgs_dir():
             yield opt
     sys.exit('ERROR: unable to find local packages directgory')
 
-slackroll_local_pkgs_glob = os.path.join(yield_slackroll_local_pkgs_dir().next(), '*')
-slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
+if __name__ == "__main__":
+    slackroll_local_pkgs_glob = os.path.join(yield_slackroll_local_pkgs_dir().next(), '*')
+    slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 
 def standarize_locales():
     # type: () -> None
