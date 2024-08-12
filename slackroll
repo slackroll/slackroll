@@ -203,8 +203,10 @@ def pkg_name_cmp(name1, name2): # To be used for sorting functions
         return -1
     return (idx1 - idx2)
 
-def transient_cmp((name1, state1), (name2, state2)): # Special sort for transient list
+def transient_cmp(name_state1, name_state2): # Special sort for transient list
     # type: (Tuple[str, int], Tuple[str, int]) -> int
+    (name1, state1) = name_state1
+    (name2, state2) = name_state2
     if name1 in slackroll_prioritized_pkgs or name2 in slackroll_prioritized_pkgs:
         return pkg_name_cmp(name1, name2)
     if state1 != state2:
