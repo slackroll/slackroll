@@ -321,11 +321,11 @@ class SlackwarePackage(object):
 
     def url(self, mirror):
         # type: (Optional[str]) -> str
-        return urlparse.urljoin(self.base_url(mirror), self.fullname)
+        return urlparse.urljoin(self.base_url(mirror), self.fullname) # type: ignore
 
     def sig_url(self, mirror):
         # type: (str) -> str
-        return urlparse.urljoin(self.base_url(mirror), self.fullsigname)
+        return urlparse.urljoin(self.base_url(mirror), self.fullsigname) # type: ignore
 
 class SlackrollURLopener(urllib.FancyURLopener):
     def http_error_default(self, url, fp, errcode, errmsg, headers): # type: ignore
@@ -847,13 +847,17 @@ class SlackrollOutputInterceptor(object): # Intercepts stdout and uses a pager i
         # type: () -> None
         if self.__was_not_tty:
             return
-        sys.stdout = self.__old_stdout
+        if self.__old_stdout is not None:
+            sys.stdout = self.__old_stdout
         self.__old_stdout = None
+        if self.__buffer is None:
+            return
         output = self.__buffer.getvalue()
         self.__buffer.close()
         numlines = output.count('\n')
         if needs_pager(numlines):
             proc = call_pager()
+            assert proc.stdin is not None
             proc.stdin.write(output)
             proc.stdin.close()
             proc.wait()
@@ -992,7 +996,10 @@ def upgrade_or_install(filename, reinstall): # upgradepkg
     # type: (str, bool) -> None
     try:
         print 'Installing %s ...' % os.path.basename(filename)
-        retcode = subprocess.call(['/sbin/upgradepkg', '--install-new'] + ([[], ['--reinstall']][reinstall]) + [filename])
+        reinstall_args = [] # type: List[str]
+        if reinstall:
+            reinstall_args.append('--reinstall')
+        retcode = subprocess.call(['/sbin/upgradepkg', '--install-new'] + reinstall_args + [filename])
         if retcode != 0:
             sys.exit('ERROR: installation failed: %s' % filename)
     except (OSError, IOError), err:
@@ -1051,8 +1058,12 @@ def download_verify(mirror, package): # Download package, signature and verify i
     local_final = os.path.join(slackroll_pkgs_dir, package.archivename) # type: str
 
     try:
-        download(package.base_url(sigmirror), remote_sig, tempdir)
-        download(package.base_url(mirror), remote_name, tempdir)
+        sig_base_url = package.base_url(sigmirror)
+        pkg_base_url = package.base_url(mirror)
+        assert sig_base_url is not None
+        assert pkg_base_url is not None
+        download(sig_base_url, remote_sig, tempdir)
+        download(pkg_base_url, remote_name, tempdir)
         verify_signature(local_sig)
     except SlackrollError:
         try_to_remove(local_sig)
@@ -1067,7 +1078,9 @@ def get_remote_info(mirror, package): # Downloads info file and returns its cont
     # type: (str, SlackwarePackage) -> str
     remote_file = package.fullname[:-len(slackroll_info_suffix)] + slackroll_info_suffix
     local_file = os.path.join(slackroll_base_dir, os.path.basename(remote_file))
-    download_or_exit(package.base_url(mirror), remote_file, slackroll_base_dir)
+    pkg_base_url = package.base_url(mirror)
+    assert pkg_base_url is not None
+    download_or_exit(pkg_base_url, remote_file, slackroll_base_dir)
     data = file(local_file, 'r').read()
     try_to_remove(local_file)
     return data
@@ -1628,6 +1641,7 @@ def parse_install_args(args, local_list, remote_list, use_local_version, use_pas
         (is_full, name, pkg) = parse_pkg_arg(arg)
 
         if is_full:
+            assert pkg is not None # this is set when if_full is True
             # Specific version given
             if use_local_version and pkg_in_map(pkg, local_list):
                 chosen_pkgs.append([x for x in local_list[name] if x == pkg][0])
@@ -2744,6 +2758,9 @@ if __name__ == "__main__":
                 filename_new = download_verify(get_mirror(), chosen_new)
             else:
                 filename_new = os.path.join(slackroll_pkgs_dir, chosen_new.archivename)
+
+            if filename_new is None:
+                sys.exit(slackroll_exit_failure)
 
             # upgradepkg
             prev_dotnew = extract_dotnew_files(local_list[unavpkg])
