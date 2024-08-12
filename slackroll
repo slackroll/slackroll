@@ -217,15 +217,6 @@ class SlackrollBatchModeError(SlackrollError):
     pass
 
 class SlackwarePackage(object):
-    __name = None
-    __version = None
-    __arch = None
-    __build = None
-    __path = None
-    __suffix = None
-    __size = None
-    __base_url = None
-
     def __init__(self, name, version, arch, build, path, suffix, size, url):
         # type: (str, str, str, str, str, Optional[str], Optional[int], Optional[str]) -> None
         self.__name = name
@@ -368,9 +359,6 @@ def pkg_in_map(pkg, map_by_name): # Checks if pkg is in map[pkg.name], usable fo
     return pkg in map_by_name.get(pkg.name, [])
 
 class ChangeLogEntry(object):
-    _timestamp = None    # Entry timestamp
-    _text = None        # Entry text
-
     def __init__(self, timestamp, text):
         # type: (str, str) -> None
         self._timestamp = timestamp
@@ -398,9 +386,6 @@ class ChangeLogEntry(object):
         return '%s\n%s' % (self.timestamp, self.text)
 
 class ChangeLog(object):
-    _cur_batch = None
-    _batches = None
-
     def __init__(self):
         # type: () -> None
         self._cur_batch = 0
@@ -845,18 +830,18 @@ def needs_pager(numlines): # Returns True if lines do not fit in screen
     return (numlines >= rows - 2)
 
 class SlackrollOutputInterceptor(object): # Intercepts stdout and uses a pager if the output is too long
-    __was_not_tty = None
-    __old_stdout = None
-    __buffer = None
-
     def __init__(self):
         # type: () -> None
+
+        self.__buffer = None
+        self.__old_stdout = None # type: Optional[IO[str]]
+        self.__was_not_tty = False
         if not sys.stdout.isatty():
             self.__was_not_tty = True
-            return
-        self.__buffer = cStringIO.StringIO()
-        self.__old_stdout = sys.stdout # type: Optional[IO[str]]
-        sys.stdout = self.__buffer
+        else:
+            self.__buffer = cStringIO.StringIO()
+            self.__old_stdout = sys.stdout
+            sys.stdout = self.__buffer
 
     def stop(self):
         # type: () -> None
