@@ -239,6 +239,9 @@ class SlackwarePackage(object):
 
     def __eq__(self, other):
         # type: (object) -> bool
+        if not isinstance(other, SlackwarePackage):
+            return False
+
         return self.__name == other.__name and self.__version == other.__version and self.__arch == other.__arch and self.__build == other.__build
 
     @property
@@ -303,6 +306,7 @@ class SlackwarePackage(object):
 
     def __cmp__(self, other):
         # type: (object) -> int
+        assert isinstance(other, SlackwarePackage)
         return pkg_name_cmp(self.__name, other.__name)
 
     def local(self): # Returns the equivalent local pkg
@@ -384,6 +388,9 @@ class ChangeLogEntry(object):
 
     def __eq__(self, other):
         # type: (object) -> bool
+        if not isinstance(other, ChangeLogEntry):
+            return False
+
         return (self.timestamp == other.timestamp or self.text == other.text)
 
     def __str__(self):
@@ -653,11 +660,11 @@ def get_normalized_known_files(): # Return a set of known files for orphan-searc
 
 def get_local_pkgs(): # Return a list of packages from slackroll_local_pkgs_dir
     # type: () -> List[SlackwarePackage]
-    local_pkgs = glob.glob(slackroll_local_pkgs_glob)
-    if len(local_pkgs) == 0:
+    local_pkg_names = glob.glob(slackroll_local_pkgs_glob)
+    if len(local_pkg_names) == 0:
         sys.exit('ERROR: could not read list of local packages')
     try:
-        local_pkgs = [pkg_from_str(x) for x in local_pkgs]
+        local_pkgs = [pkg_from_str(x) for x in local_pkg_names]
     except SlackrollError, err:
         sys.exit('ERROR: %s' % err)
     return local_pkgs
@@ -913,7 +920,7 @@ def download_report_hook(filename, numblocks, blocksize, totalsize): # Template 
         percent = 'N/A'
         size = 'N/A'
     else:
-        percent = min(int(round(numblocks * blocksize * 100.0 / totalsize)), 100)
+        percent = str(min(int(round(numblocks * blocksize * 100.0 / totalsize)), 100))
         size = optimum_size_conversion(totalsize)
     print_flush('\rDownloading %s ... %s%% of %s' % (filename, percent, size))
 
@@ -1087,9 +1094,9 @@ def update_changelog(mirror, full=False): # Returns answer to "has it been updat
         download_or_exit(mirror, slackroll_changelog_filename, temp_dir)
         local_filename = os.path.join(temp_dir, slackroll_changelog_filename)
         text = file(local_filename).read()
-        cl = ChangeLog()
-        cl.add_entries(clentrylist_from_text(text))
-        try_dump(cl, slackroll_local_changelog)
+        new_cl = ChangeLog()
+        new_cl.add_entries(clentrylist_from_text(text))
+        try_dump(new_cl, slackroll_local_changelog)
         try_to_remove(local_filename)
         return True
 
@@ -1695,7 +1702,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
 
     # After selecting the packages, run the requested operation on them
     if operation != 'info':
-        print 'Total size: %s' % optimum_size_conversion(sum(x.size for x in chosen_pkgs))
+        print 'Total size: %s' % optimum_size_conversion(sum(x.size for x in chosen_pkgs if x.size is not None))
         if operation != 'urls':
             to_be_downloaded = [x for x in chosen_pkgs if not package_in_cache(x)]
             cached_ones = [x for x in chosen_pkgs if x not in to_be_downloaded]
@@ -1703,7 +1710,7 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
             for pkg in cached_ones:
                 print 'Package %s found in cache' % pkg.archivename
 
-            if not enough_fs_resources(len(to_be_downloaded), sum(x.size for x in to_be_downloaded)):
+            if not enough_fs_resources(len(to_be_downloaded), sum(x.size for x in to_be_downloaded if x.size is not None)):
                 low_fs_resources_warning()
                 if slackroll_batch_mode:
                     raise SlackrollBatchModeError('Aborting %s in batch mode since fs space is low' % operation)
@@ -1717,11 +1724,11 @@ def install_operations_family(operation, args, local_list, remote_list, persiste
                 local_pkgs.append(local_name)
             if is_real_install:
                 reinstall = (operation == 'reinstall')
-                for pkg in local_pkgs:
+                for pkg_name in local_pkgs:
                     if operation == 'installpkg':
-                        install_with_installpkg(pkg)
+                        install_with_installpkg(pkg_name)
                     else:
-                        upgrade_or_install(pkg, reinstall)
+                        upgrade_or_install(pkg_name, reinstall)
         else:    # urls operation
             for pkg in chosen_pkgs:
                 print_urls(mirror, pkg)
@@ -1758,10 +1765,10 @@ def extend_manifest_list(manifest_list, index, mirror, local_filelist):
         lines = open(local_filelist, 'r').readlines()
     except (IOError, OSError), err:
         sys.exit('ERROR: %s' % err)
-    files = [slackroll_manifest_re.search(x) for x in lines]
-    files = [x.group(1) for x in files if x is not None]
-    files = [x for x in files if not ignore_package_path(x)]
-    new_elements = [(index, mirror, x) for x in files]
+    all_matches = [slackroll_manifest_re.search(x) for x in lines]
+    filtered_matches = [y.group(1) for y in all_matches if y is not None]
+    files = [z for z in filtered_matches if not ignore_package_path(z)]
+    new_elements = [(index, mirror, f) for f in files]
     manifest_list.extend(new_elements)
 
 def update_operation(mirror):
@@ -1826,34 +1833,34 @@ def analyze_changes(local_list, remote_list, persistent_list): # XXX THIS FUNCTI
     already_analyzed = set()
 
     # Go over packages present in local system and update their state or introduce them
-    for name in local_list:
-        already_analyzed.add(name)
-        if name in persistent_list:
+    for local_name in local_list:
+        already_analyzed.add(local_name)
+        if local_name in persistent_list:
             # Update their state if needed
-            state = persistent_list[name]
+            state = persistent_list[local_name]
             if state in [slackroll_state_new, slackroll_state_notinstalled]:
-                if name in remote_list:
-                    persistent_list[name] = outdated_or_installed(local_list[name], not_pasture(remote_list[name]))
+                if local_name in remote_list:
+                    persistent_list[local_name] = outdated_or_installed(local_list[local_name], not_pasture(remote_list[local_name]))
                 else:
-                    persistent_list[name] = slackroll_state_unavailable
+                    persistent_list[local_name] = slackroll_state_unavailable
             elif state in [slackroll_state_unavailable, slackroll_state_foreign]:
-                if name in remote_list:
-                    persistent_list[name] = outdated_or_installed(local_list[name], not_pasture(remote_list[name]))
+                if local_name in remote_list:
+                    persistent_list[local_name] = outdated_or_installed(local_list[local_name], not_pasture(remote_list[local_name]))
             elif state in [slackroll_state_frozen]:
-                if name not in remote_list:
-                    persistent_list[name] = slackroll_state_unavailable
+                if local_name not in remote_list:
+                    persistent_list[local_name] = slackroll_state_unavailable
             elif state in [slackroll_state_installed, slackroll_state_outdated]:
-                if name not in remote_list:
-                    persistent_list[name] = slackroll_state_unavailable
+                if local_name not in remote_list:
+                    persistent_list[local_name] = slackroll_state_unavailable
                 else:
-                    persistent_list[name] = outdated_or_installed(local_list[name], not_pasture(remote_list[name]))
+                    persistent_list[local_name] = outdated_or_installed(local_list[local_name], not_pasture(remote_list[local_name]))
 
         else:
             # Introduce them in the persistent list
-            if name in remote_list:
-                persistent_list[name] = outdated_or_installed(local_list[name], not_pasture(remote_list[name]))
+            if local_name in remote_list:
+                persistent_list[local_name] = outdated_or_installed(local_list[local_name], not_pasture(remote_list[local_name]))
             else:
-                persistent_list[name] = slackroll_state_unavailable
+                persistent_list[local_name] = slackroll_state_unavailable
 
     # Go over remaining remote packages not already analyzed (hence, not present in local system)
     for name in remote_list:
@@ -2180,8 +2187,8 @@ if __name__ == "__main__":
                     invalid.append(x)
             if len(invalid) > 0:
                 sys.exit('ERROR: invalid repository numbers: %s' % ', '.join(str(x) for x in invalid))
-            for x in valid:
-                del repo_dict[x]
+            for v in valid:
+                del repo_dict[v]
             repo_list = [repo_dict[x] for x in sorted(repo_dict.keys())]
             dump_repo_list(repo_list)
             print_repo_mod_advice()
@@ -2226,8 +2233,8 @@ if __name__ == "__main__":
             entries = []
             for code in args:
                 try:
-                    (idb, ide) = code.split('.')
-                    (idb, ide) = (long(idb), long(ide))
+                    (idbs, ides) = code.split('.')
+                    (idb, ide) = (long(idbs), long(ides))
                     entries.append(cl.get_batch(idb)[ide])
                 except (IndexError, ValueError):
                     sys.exit('ERROR: invalid entry: %s' % code)
@@ -2504,15 +2511,15 @@ if __name__ == "__main__":
             pkgs_and_states.sort(cmp=transient_cmp)
 
             # Translate states to strings and precalculate constants
-            pkgs_and_states = [(name, slackroll_state_strings[state]) for (name, state) in pkgs_and_states]
+            pkgs_and_str_states = [(name, slackroll_state_strings[state]) for (name, state) in pkgs_and_states]
             max_state_len = max(len(slackroll_state_strings[x]) for x in slackroll_transient_states)
-            max_name_len = max(len(a) for (a, b) in pkgs_and_states)
+            max_name_len = max(len(a) for (a, b) in pkgs_and_str_states)
             format = '    %%-%ss  %%-%ss  %%s' % (max_state_len, max_name_len)
 
             # Print the transient list
             interceptor = SlackrollOutputInterceptor()
             print 'Transient packages:'
-            print '\n'.join(format % (state, name, tr_pkg_detail(local_list, remote_list, persistent_list, name)) for (name, state) in pkgs_and_states)
+            print '\n'.join(format % (state, name, tr_pkg_detail(local_list, remote_list, persistent_list, name)) for (name, state) in pkgs_and_str_states)
             print 'End of list'
             maybe_print_key_pkg_watchout(persistent_list)
             interceptor.stop()
@@ -2793,9 +2800,9 @@ if __name__ == "__main__":
             sys.exit()
 
         if operation == 'kernel-clean':
-            outdated_kernel_pkgs = [[y for y in local_list[x] if y not in remote_list[x]]
+            outdated_kernel_pkgs_full = [[y for y in local_list[x] if y not in remote_list[x]]
                     for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[x] == slackroll_state_installed]
-            outdated_kernel_pkgs = concat(outdated_kernel_pkgs)
+            outdated_kernel_pkgs = concat(outdated_kernel_pkgs_full)
             if len(outdated_kernel_pkgs) == 0:
                 print 'No obsolete kernel packages found'
                 sys.exit()
