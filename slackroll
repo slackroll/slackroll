@@ -14,10 +14,6 @@
 # this software. If not, see
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
-import anydbm
-
-anydbm._defaultmod = __import__('gdbm')
-
 import bz2
 import fcntl
 import functools
@@ -37,7 +33,6 @@ import sys
 import termios
 import urllib
 
-import bsddb
 import cPickle
 import cStringIO
 import urlparse
@@ -45,14 +40,33 @@ import urlparse
 PY2 = sys.version_info[0] == 2
 
 if not PY2:
+    # python 3
+    import dbm
+
+    def needs_db_upgrade(db):
+        # type: (Any) -> bool
+        return False
+
     from functools import reduce
 
     # python 3
     def cmp(x, y):
         # type: (Any, Any) -> int
-        return (x > y) - (x < y) # type: ignore
+        return (x > y) - (x < y)
+
 
 if PY2:
+    import anydbm
+    anydbm._defaultmod = __import__('gdbm')
+
+    import bsddb
+
+    dbm = anydbm
+
+    def needs_db_upgrade(db):
+        # type: (Any) -> bool
+        return isinstance(db, bsddb._DBWithCursor)
+
     # we don't use input anywhere in slackroll, so make `input` behave like raw_input,
     # which is actually the behaviour on python3.
     input = raw_input
@@ -2056,7 +2070,7 @@ def load_persistent_db(filename):
     # ship the python3 version safely.
     data = shelve.open(filename, 'c', pickle_protocol)
 
-    if not isinstance(data.dict, bsddb._DBWithCursor): # type: ignore
+    if not needs_db_upgrade(data.dict): # type: ignore
         return data # type: ignore
 
     tmpdir = get_temp_dir()
@@ -2449,7 +2463,7 @@ if __name__ == "__main__":
 
         try:
             persistent_list = load_persistent_db(slackroll_persistentlist_filename)
-        except anydbm.error:
+        except dbm.error:
             sys.exit('ERROR: unable to properly open %s' % slackroll_persistentlist_filename)
 
         if needs_analyze:
