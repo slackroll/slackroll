@@ -23,7 +23,50 @@ def blacklist():
     ]
 
 
-def test_deserialise(blacklist):
+@pytest.fixture  # type: ignore
+def repos():
+    # type: () -> List[str]
+    return [
+        "https://slackware.nl/people/alien/multilib/15.0/",
+        "https://slackware.nl/people/alien/sbrepos/15.0/x86_64/",
+    ]
+
+
+@pytest.fixture  # type: ignore
+def manifestlist():
+    # type: () -> List[Tuple[Optional[int], str, str]]
+    return [
+        (
+            None,
+            "https://slackware.osuosl.org/slackware64-15.0/",
+            "./extra/MANIFEST.bz2",
+        ),
+        (
+            None,
+            "https://slackware.osuosl.org/slackware64-15.0/",
+            "./pasture/MANIFEST.bz2",
+        ),
+        (
+            None,
+            "https://slackware.osuosl.org/slackware64-15.0/",
+            "./patches/MANIFEST.bz2",
+        ),
+        (
+            None,
+            "https://slackware.osuosl.org/slackware64-15.0/",
+            "./slackware64/MANIFEST.bz2",
+        ),
+        (
+            None,
+            "https://slackware.osuosl.org/slackware64-15.0/",
+            "./testing/MANIFEST.bz2",
+        ),
+        (0, "https://slackware.nl/people/alien/multilib/15.0/", "./MANIFEST.bz2"),
+        (1, "https://slackware.nl/people/alien/sbrepos/15.0/x86_64/", "./MANIFEST.bz2"),
+    ]
+
+
+def test_deserialise_bl(blacklist):
     # type: (List[str]) -> None
     """Checks if we can deserialise a known good file."""
 
@@ -32,7 +75,7 @@ def test_deserialise(blacklist):
     assert blacklist == try_load(data_file)
 
 
-def test_round_trip_serialisation(blacklist):
+def test_round_trip_serialisation_bl(blacklist):
     # type: (List[str]) -> None
     """Checks if we can round trip serialise then deserialise a value."""
 
@@ -41,5 +84,49 @@ def test_round_trip_serialisation(blacklist):
     try_dump(blacklist, f.name)
 
     assert blacklist == try_load(f.name)
+
+    f.close()
+
+
+def test_deserialise_repos(repos):
+    # type: (List[str]) -> None
+    """Checks if we can deserialise a known good file."""
+
+    data_file = os.path.join(os.path.dirname(__file__), "..", "data", "repos.db")
+
+    assert repos == try_load(data_file)
+
+
+def test_round_trip_serialisation_repos(repos):
+    # type: (List[str]) -> None
+    """Checks if we can round trip serialise then deserialise a value."""
+
+    f = NamedTemporaryFile(delete=True)
+
+    try_dump(repos, f.name)
+
+    assert repos == try_load(f.name)
+
+    f.close()
+
+
+def test_deserialise_manifestlist(manifestlist):
+    # type: (List[str]) -> None
+    """Checks if we can deserialise a known good file."""
+
+    data_file = os.path.join(os.path.dirname(__file__), "..", "data", "manifestlist.db")
+
+    assert manifestlist == try_load(data_file)
+
+
+def test_round_trip_serialisation_manifestlist(manifestlist):
+    # type: (List[str]) -> None
+    """Checks if we can round trip serialise then deserialise a value."""
+
+    f = NamedTemporaryFile(delete=True)
+
+    try_dump(manifestlist, f.name)
+
+    assert manifestlist == try_load(f.name)
 
     f.close()
