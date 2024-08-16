@@ -1,7 +1,13 @@
 from typing import ValuesView
 
-from mock import patch  # type: ignore
 from slackroll import verify_num_args
+
+import tests
+
+if tests.PY2:
+    from mock import patch  # type: ignore
+else:
+    from unittest.mock import patch
 
 
 def test_verify_num_args_zero_or_one():
