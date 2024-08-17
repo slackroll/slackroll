@@ -1,8 +1,6 @@
 import re
 
 import pytest
-
-import tests
 from slackroll import (
     add_blacklist_exprs,
     del_blacklist_exprs,
@@ -10,6 +8,8 @@ from slackroll import (
     print_blacklist,
     slackroll_blacklist_filename,
 )
+
+import tests
 
 if tests.PY2:
     from mock import patch  # type: ignore
@@ -79,14 +79,10 @@ def test_add_blacklist_exprs_invalid(blacklist):
         get_blacklist_mock.return_value = blacklist
 
         with patch("sys.exit") as exit_mock:
-            exit_mock.side_effect = ValueError
+            exit_mock.side_effect = ValueError("boom")
 
-            try:
+            with pytest.raises(ValueError):
                 add_blacklist_exprs(["test@[\\]"])
-            except:
-                pass
-            else:
-                raise ValueError("failed")
 
             exit_mock.assert_called_with(
                 'ERROR: "test@[\\]" is an invalid regular expression'
@@ -101,12 +97,8 @@ def test_add_blacklist_exprs_invalid_url_regex(blacklist):
         with patch("sys.exit") as exit_mock:
             exit_mock.side_effect = ValueError
 
-            try:
+            with pytest.raises(ValueError):
                 add_blacklist_exprs(["[\\]"])
-            except:
-                pass
-            else:
-                raise ValueError("failed")
 
             exit_mock.assert_called_with(
                 'ERROR: "[\\]" is an invalid regular expression'
@@ -147,12 +139,8 @@ def test_del_blacklist_exprs_invalid_index_negative(blacklist):
         with patch("sys.exit") as exit_mock:
             exit_mock.side_effect = ValueError
 
-            try:
+            with pytest.raises(ValueError):
                 del_blacklist_exprs(["-1"])
-            except:
-                pass
-            else:
-                raise ValueError("failed")
 
             exit_mock.assert_called_with("ERROR: invalid blacklist entry index: -1")
 
@@ -165,11 +153,7 @@ def test_del_blacklist_exprs_invalid_index_exceeds_length(blacklist):
         with patch("sys.exit") as exit_mock:
             exit_mock.side_effect = ValueError
 
-            try:
+            with pytest.raises(ValueError):
                 del_blacklist_exprs(["3"])
-            except:
-                pass
-            else:
-                raise ValueError("failed")
 
             exit_mock.assert_called_with("ERROR: invalid blacklist entry index: 3")

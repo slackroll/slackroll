@@ -3,9 +3,9 @@ import shutil
 from tempfile import mkdtemp
 
 import pytest
+from slackroll import load_persistent_db, slackroll_state_installed
 
 import tests
-from slackroll import load_persistent_db, slackroll_state_installed
 
 if tests.PY2:
     from mock import patch  # type: ignore

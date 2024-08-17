@@ -1,7 +1,6 @@
 import os
 
 import toml  # type: ignore
-
 from slackroll import slackroll_version
 
 

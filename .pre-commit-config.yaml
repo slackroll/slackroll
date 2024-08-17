@@ -24,23 +24,24 @@ repos:
     hooks:
       - id: actionlint-docker
 
-  - repo: https://github.com/psf/black
-    rev: 21.12b0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.1
     hooks:
-      - id: black
-        files: ^tests/
-        additional_dependencies:
-          - "click==8.0.4"
-
-  - repo: local
-    hooks:
-      - id: isort
-        name: isort
-        entry: isort --profile black
-        language: python
-        types_or: [cython, pyi, python]
-        additional_dependencies:
-          - "isort==5.10.1"
+      - id: ruff # run ruff equivalent of isort on everything
+        args: ["--select", "I", "--target-version", "py39", "--fix"]
+      - id: ruff
+        files: ^tests/ # only check tests right now.
+        args:
+          [
+            "--config",
+            'lint.ignore = ["F401"]',
+            "--target-version",
+            "py39",
+            "--fix",
+          ]
+      - id: ruff-format
+        files: ^tests/ # we won't reformat everything yet.
+        args: ["--target-version", "py39"]
 
   - repo: local
     hooks:

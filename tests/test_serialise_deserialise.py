@@ -5,7 +5,6 @@ import sys
 from tempfile import NamedTemporaryFile
 
 import pytest
-
 from slackroll import ChangeLog, ChangeLogEntry, try_dump, try_load
 
 try:
