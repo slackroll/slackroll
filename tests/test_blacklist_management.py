@@ -1,6 +1,8 @@
 import re
 
 import pytest
+
+import tests
 from slackroll import (
     add_blacklist_exprs,
     del_blacklist_exprs,
@@ -9,12 +11,10 @@ from slackroll import (
     slackroll_blacklist_filename,
 )
 
-import tests
-
 if tests.PY2:
-    from mock import MagicMock, patch  # type: ignore
+    from mock import patch  # type: ignore
 else:
-    from unittest.mock import MagicMock, patch
+    from unittest.mock import patch
 
 try:
     from typing import TYPE_CHECKING

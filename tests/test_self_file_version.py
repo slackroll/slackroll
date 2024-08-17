@@ -1,8 +1,7 @@
 from tempfile import NamedTemporaryFile
 
-from slackroll import get_self_file_version, write_self_file_version
-
 import tests
+from slackroll import get_self_file_version, write_self_file_version
 
 if tests.PY2:
     from mock import patch  # type: ignore

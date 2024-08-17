@@ -1,8 +1,7 @@
 from typing import ValuesView
 
-from slackroll import verify_num_args
-
 import tests
+from slackroll import verify_num_args
 
 if tests.PY2:
     from mock import patch  # type: ignore
