@@ -122,11 +122,13 @@ def changelog_non_ascii(changelog_pickle):
     return cl
 
 
-def test_deserialise_bl(blacklist):
+def test_deserialise_py2_bl(blacklist):
     # type: (List[str]) -> None
     """Checks if we can deserialise a known good file."""
 
-    data_file = os.path.join(os.path.dirname(__file__), "..", "data", "blacklist.db")
+    data_file = os.path.join(
+        os.path.dirname(__file__), "..", "data", "py2_blacklist.db"
+    )
 
     assert blacklist == try_load(data_file)
 
@@ -144,11 +146,11 @@ def test_round_trip_serialisation_bl(blacklist):
     f.close()
 
 
-def test_deserialise_repos(repos):
+def test_deserialise_py2_repos(repos):
     # type: (List[str]) -> None
     """Checks if we can deserialise a known good file."""
 
-    data_file = os.path.join(os.path.dirname(__file__), "..", "data", "repos.db")
+    data_file = os.path.join(os.path.dirname(__file__), "..", "data", "py2_repos.db")
 
     assert repos == try_load(data_file)
 
@@ -166,11 +168,13 @@ def test_round_trip_serialisation_repos(repos):
     f.close()
 
 
-def test_deserialise_manifestlist(manifestlist):
+def test_deserialise_py2_manifestlist(manifestlist):
     # type: (List[str]) -> None
     """Checks if we can deserialise a known good file."""
 
-    data_file = os.path.join(os.path.dirname(__file__), "..", "data", "manifestlist.db")
+    data_file = os.path.join(
+        os.path.dirname(__file__), "..", "data", "py2_manifestlist.db"
+    )
 
     assert manifestlist == try_load(data_file)
 
@@ -188,11 +192,13 @@ def test_round_trip_serialisation_manifestlist(manifestlist):
     f.close()
 
 
-def test_deserialise_changelog(changelog):
+def test_deserialise_py2_changelog(changelog):
     # type: (ChangeLog) -> None
     """Checks if we can deserialise a known good file."""
 
-    data_file = os.path.join(os.path.dirname(__file__), "..", "data", "changelog.db")
+    data_file = os.path.join(
+        os.path.dirname(__file__), "..", "data", "py2_changelog.db"
+    )
 
     loaded = try_load(data_file)  # type: ChangeLog
 
@@ -217,12 +223,12 @@ def test_round_trip_changelog(changelog):
     f.close()
 
 
-def test_deserialise_changelog_non_ascii(changelog_non_ascii):
+def test_deserialise_py2_changelog_non_ascii(changelog_non_ascii):
     # type: (ChangeLog) -> None
     """Checks if we can deserialise a known good file."""
 
     data_file = os.path.join(
-        os.path.dirname(__file__), "..", "data", "changelog_non_ascii.db"
+        os.path.dirname(__file__), "..", "data", "py2_changelog_non_ascii.db"
     )
 
     loaded = try_load(data_file)  # type: ChangeLog
