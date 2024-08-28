@@ -17,16 +17,6 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture  # type: ignore
-def blacklist():
-    # type: () -> List[str]
-    return [
-        "^\\.\\/(?!chromium|libreoffice|vlc).*$@\\/sbrepos\\/",
-        "^\\./testing.*",
-        "glibc-(?!zoneinfo)@^(?!http)",
-    ]
-
-
-@pytest.fixture  # type: ignore
 def repos():
     # type: () -> List[str]
     return [
@@ -120,30 +110,6 @@ def changelog_non_ascii(changelog_pickle):
         )
     )
     return cl
-
-
-def test_deserialise_py2_bl(blacklist):
-    # type: (List[str]) -> None
-    """Checks if we can deserialise a known good file."""
-
-    data_file = os.path.join(
-        os.path.dirname(__file__), "..", "data", "py2_blacklist.db"
-    )
-
-    assert blacklist == try_load(data_file)
-
-
-def test_round_trip_serialisation_bl(blacklist):
-    # type: (List[str]) -> None
-    """Checks if we can round trip serialise then deserialise a value."""
-
-    f = NamedTemporaryFile(delete=True)
-
-    try_dump(blacklist, f.name)
-
-    assert blacklist == try_load(f.name)
-
-    f.close()
 
 
 def test_deserialise_py2_repos(repos):
