@@ -1,15 +1,17 @@
 from tempfile import NamedTemporaryFile
 
-import tests
 from slackroll import get_self_file_version, write_self_file_version
 
+import tests
+
 if tests.PY2:
-    from mock import patch
+    from mock import patch  # type: ignore
 else:
     from unittest.mock import patch
 
 
 def test_round_trip_serialisation():
+    # type: () -> None
     """Checks if we can round trip write the self file version and then read it again."""
 
     version = 42

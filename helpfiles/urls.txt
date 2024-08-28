@@ -7,4 +7,3 @@ operations, stopping before the package download takes place, and printing the
 URLs instead.
 
 Also see: install, upgrade.
-

@@ -23,4 +23,3 @@ run the "clean-cache" operation to get rid of old and no longer relevant
 package archive files previously downloaded to the package cache.
 
 Also see: changelog, list-transient, clean-cache.
-

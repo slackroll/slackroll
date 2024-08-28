@@ -7,4 +7,3 @@ occasional files may be left in /var/slackroll/tmp if downloads are interrupted
 and never resumed, for example. Running it should pose no risk whatsoever.
 
 Also see: erase-cache, erase-all.
-

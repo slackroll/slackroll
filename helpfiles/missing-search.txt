@@ -14,4 +14,3 @@ It could be useful if you accidentally delete files by mistake, and want to
 know which packages have been affected, in order to reinstall them.
 
 Also see: orphan-search, broken-symlinks.
-

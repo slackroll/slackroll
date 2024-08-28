@@ -1,11 +1,11 @@
 import os
 
-import toml
-
+import toml  # type: ignore
 from slackroll import slackroll_version
 
 
 def test_versions_match():
+    # type: () -> None
     """Checks if the version in pyproject.toml and slackroll_version in `slackroll` match."""
 
     pyproject_file = os.path.join(os.path.dirname(__file__), "..", "pyproject.toml")

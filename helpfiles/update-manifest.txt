@@ -7,4 +7,3 @@ use the "manifest-search" operation for searching which package provides a
 given file.
 
 Also see: manifest-search, local-search.
-

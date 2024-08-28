@@ -13,4 +13,3 @@ Also, it features some extras like the automated process of reviewing .new
 files after installation.
 
 Also see: dotnew, foreign.
-
