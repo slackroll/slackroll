@@ -1885,7 +1885,10 @@ def is_dotnew_file(path):
     return os.path.isfile(path) and not os.path.islink(path) and path.endswith(slackroll_new_suffix)
 
 def up_to_date(local_versions, remote_versions): # Is the local package up to date?
-    return (len([x for x in local_versions if x in remote_versions]) > 0)
+    for i in local_versions:
+        if not superseded_in(i, remote_versions):
+            return True
+    return False
 
 def outdated_or_installed(local_versions, remote_versions): # Returns outdated or installed state depending on up_to_date()
     return [slackroll_state_outdated, slackroll_state_installed][up_to_date(local_versions, remote_versions)]
