@@ -1360,10 +1360,21 @@ def print_pairs_or(the_list, header, message_on_empty):
 def str_to_version_list(s):
     return re.split(r'\.|-|\+', s)
 
-# Compare two lists representing the components of a version string. Uses numerical comparison if
-# two elements in the same position are both decimal digit strings (e.g. so "11" will test as
+# True iff the provided string consists only of decimal digits
+def all_digits(s):
+    m = re.match(r'(\d+)$', s)
+    if m == None:
+        return False
+    return m.end() == len(s)
+
+# Compare two lists representing the components of a version string.
+#
+# Uses numerical comparison if they're both decimal digit strings (e.g. so "11" will test as
 # less than "101", otherwise tests in lexicographical order (so "b101" tests as less than "b11").
+#
+# Return value will be 1 if v1 is "greater than" v2, 0 if they're equal, -1 if v2 is greater.
 def version_list_cmp(v1, v2):
+    # If the lists are unequal length, treat the longer argument as the "larger" version number
     if not v1 and not v2:
         return 0
     elif v1 and not v2:
@@ -1371,7 +1382,7 @@ def version_list_cmp(v1, v2):
     elif v2 and not v1:
         return -1
 
-    if v1[0].isdigit() and v2[0].isdigit():
+    if all_digits(v1[0]) and all_digits(v2[0]):
         key1, key2 = int(v1[0]), int(v2[0])
     else:
         key1, key2 = v1[0], v2[0]
@@ -1382,16 +1393,29 @@ def version_list_cmp(v1, v2):
     else:
         return 1
 
-def versions_equal(str1, str2):
-    return version_list_cmp(str_to_version_list(str1), str_to_version_list(str2)) == 0
+# True iff the packages share an architecture and build suffix (e.g. _SBo, _alien, etc.)
+# This is used to avoid false-positives when a package with the same main version number as the locally-installed package is
+# available in remote repositories under more than one architecture or build family.
+def comparable_arch_and_build_tag(arch1, build1, arch2, build2):
+    if arch1 != arch2:
+        return False
+    m1 = re.match(r'(\d+)', build1)
+    m2 = re.match(r'(\d+)', build2)
+    return m1 == None and m2 == None or m1 != None and m2 != None and build1[m1.end():] == build2[m2.end():]
 
-def first_is_newer(str1, str2):
-    return version_list_cmp(str_to_version_list(str1), str_to_version_list(str2)) > 0
+# True iff (version2, arch2, build2) appears to be a newer replacement for (version1, arch1, build1)
+# This will ALWAYS be true if version2 is higher than version1, regardless of architecture & build type.
+#
+# Otherwise, if they have identical leading version numbers, the second package is considered a replacement only if
+# its architecture and build tag suffix, if any, are identical to the first package, and the build sequence number is higher.
+def package_superseded_by(version1, arch1, build1, version2, arch2, build2):
+    v_cmp = version_list_cmp(str_to_version_list(version1), str_to_version_list(version2))
+    return v_cmp < 0 or v_cmp == 0 and comparable_arch_and_build_tag(arch1, build1, arch2, build2) and build1 < build2
 
 # True iff the given package has a newer version available in the provided list
 def superseded_in(pkg, the_list):
     name = pkg.name
-    newer_pkgs = [x for x in the_list if x.name == name and (first_is_newer(x.version, pkg.version) or versions_equal(x.version, pkg.version) and x.build > pkg.build)]
+    newer_pkgs = [x for x in the_list if x.name == name and package_superseded_by(pkg.version, pkg.arch, pkg.build, x.version, x.arch, x.build)]
     return len(newer_pkgs) > 0
 
 def tr_pkg_detail(local_list, remote_list, persistent_list, pkg_name): # Returns a string with package details for a transient package
