@@ -200,6 +200,7 @@ slackroll_manifest_basename = 'MANIFEST.bz2'
 slackroll_manifest_filename = os.path.join(slackroll_base_dir, 'manifest.db')
 slackroll_manifest_list_filename = os.path.join(slackroll_base_dir, 'manifestlist.db')
 slackroll_batch_mode = False
+slackroll_auto_select = False
 
 def debug_mesg(mesg):
     if debug_output:
@@ -336,6 +337,10 @@ class SlackwarePackage(object):
     @property
     def fullsigname(self):
         return '%s%s' % (self.fullname, slackroll_signature_suffix)
+
+    @property
+    def build_tag(self):
+        return self.build[re.match(r'(\d+)', self.build).end():]
 
     def __cmp__(self, other):
         return pkg_name_cmp(self.__name, other.__name)
@@ -1764,6 +1769,25 @@ def parse_install_args(args, local_list, remote_list, use_local_version, use_pas
         if not use_pasture: # Filter /pasture/ candidates if indicated
             candidates = not_pasture(candidates)
 
+        # Filter out candidates with a different build suffix (e.g. _alien) than the installed version
+        if slackroll_auto_select and name in local_list:
+            local_versions = local_list[name]
+            match_tag = local_versions[0].build_tag
+            print("Auto-selecting against tag '%s'" % match_tag)
+            for x in local_versions[1:]: # Make sure the identified match_tag is the only one used by locally-installed copies
+                if x.build_tag != match_tag:
+                    print("WARNING: package '%s' installed locally under multiple build suffixes and you specified --auto-select" % name)
+                    print("    Matching against '%s', ignoring '%s'" % (match_tag, x.build_tag))
+
+            auto_selected_pkgs = [pkg for pkg in candidates if pkg.build_tag == match_tag]
+            if len(auto_selected_pkgs) == 0 and len(candidates) != 0:
+                print("WARNING: no matches for build tag '%s' on package %s, forcing manual selection" % (match_tag, name))
+            else:
+                if len(auto_selected_pkgs) == 1 and len(candidates) > 1:
+                    # Ensure user realizes some candidates were automatically filtered out, since there won't be a manual selection menu
+                    print('Auto-selected %s' % auto_selected_pkgs[0].fullname)
+                candidates = auto_selected_pkgs
+
         # Choose among the candidates
         if len(candidates) == 0:
             print('WARNING: %s only present in /pasture/' % name)
@@ -2003,6 +2027,14 @@ def verify_operation_and_args(op_num_args, operation, args): # Verify number of 
 def verify_num_args(num, opname, arg_list): # Verify number of arguments of a given operation
     # -1 means any nonzero quantity
     # -2 means zero or one
+
+    # Before validating the number of "mandatory" arguments, handle any special option parameters:
+    global slackroll_auto_select
+    if opname in ["upgrade", "upgrade-key-packages"]:
+        if "--auto-select" in arg_list:
+            slackroll_auto_select = True
+            arg_list.remove("--auto-select")
+
     if num == -2:
         if len(arg_list) > 1:
             sys.exit('ERROR: %s expects one argument or no arguments' % opname)
