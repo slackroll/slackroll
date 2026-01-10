@@ -1250,6 +1250,27 @@ def key_transient_pkgs(persistent_list):
 def key_pkg_activity_pending(persistent_list): # True if any new, outdated or unavailable package is prioritized
     return (len(key_transient_pkgs(persistent_list)) > 0)
 
+# Filter out candidates with build suffix (e.g. _alien) that does not match any locally-installed version
+def match_local_build_suffix(candidates, local_versions, verbose = False):
+    if local_versions == []: # Nothing to filter against!
+        return candidates
+    name = local_versions[0].name
+
+    local_tags = []
+    for x in local_versions:
+        if x.build_tag not in local_tags:
+            if verbose and len(local_tags) == 1:
+                print("WARNING: package '%s' installed locally under multiple build suffixes and you specified --auto-select" % name)
+            local_tags.append(x.build_tag)
+
+    auto_selected_pkgs = [pkg for pkg in candidates if pkg.build_tag in local_tags]
+    if verbose and auto_selected_pkgs == [] and candidates != []:
+        print("WARNING: no candidate for package '%s' matches any local build tag [%s]" % (name, ', '.join(local_tags)))
+    elif verbose and len(auto_selected_pkgs) == 1 and len(candidates) > 1:
+        # Ensure user realizes some candidates were automatically filtered out, since there won't be a manual selection menu
+        print("    Auto-selected %s" % auto_selected_pkgs[0].fullname)
+    return auto_selected_pkgs
+
 def maybe_print_key_pkg_watchout(persistent_list):
     if key_pkg_activity_pending(persistent_list):
         print('\nWATCH OUT: ACTIVITY IN KEY SYSTEM PACKAGES')
@@ -1769,24 +1790,8 @@ def parse_install_args(args, local_list, remote_list, use_local_version, use_pas
         if not use_pasture: # Filter /pasture/ candidates if indicated
             candidates = not_pasture(candidates)
 
-        # Filter out candidates with a different build suffix (e.g. _alien) than the installed version
         if slackroll_auto_select and name in local_list:
-            local_versions = local_list[name]
-            match_tag = local_versions[0].build_tag
-            print("Auto-selecting against tag '%s'" % match_tag)
-            for x in local_versions[1:]: # Make sure the identified match_tag is the only one used by locally-installed copies
-                if x.build_tag != match_tag:
-                    print("WARNING: package '%s' installed locally under multiple build suffixes and you specified --auto-select" % name)
-                    print("    Matching against '%s', ignoring '%s'" % (match_tag, x.build_tag))
-
-            auto_selected_pkgs = [pkg for pkg in candidates if pkg.build_tag == match_tag]
-            if len(auto_selected_pkgs) == 0 and len(candidates) != 0:
-                print("WARNING: no matches for build tag '%s' on package %s, forcing manual selection" % (match_tag, name))
-            else:
-                if len(auto_selected_pkgs) == 1 and len(candidates) > 1:
-                    # Ensure user realizes some candidates were automatically filtered out, since there won't be a manual selection menu
-                    print('Auto-selected %s' % auto_selected_pkgs[0].fullname)
-                candidates = auto_selected_pkgs
+            candidates = match_local_build_suffix(candidates, local_list[name], True)
 
         # Choose among the candidates
         if len(candidates) == 0:
@@ -2030,10 +2035,10 @@ def verify_num_args(num, opname, arg_list): # Verify number of arguments of a gi
 
     # Before validating the number of "mandatory" arguments, handle any special option parameters:
     global slackroll_auto_select
-    if opname in ["upgrade", "upgrade-key-packages"]:
-        if "--auto-select" in arg_list:
+    if opname in ['upgrade', 'upgrade-key-packages', 'list-upgrades', 'list-upgradable', 'list-upgradeable']:
+        if '--auto-select' in arg_list:
             slackroll_auto_select = True
-            arg_list.remove("--auto-select")
+            arg_list.remove('--auto-select')
 
     if num == -2:
         if len(arg_list) > 1:
@@ -2641,6 +2646,8 @@ if __name__ == "__main__":
                 if len(candidates) == 0:
                     print('    %s: WARNING: only present in /pasture/\n' % name)
                     continue
+                if slackroll_auto_select:
+                    candidates = match_local_build_suffix(candidates, local_list[name])
                 print('    %s:' % name)
                 print('\n'.join('\tLocal:\t%s' % pkg.archivename for pkg in local_list[name]))
                 print('\n'.join('\tRemote:\t%s' % pkg.fullname for pkg in candidates))

@@ -1,12 +1,12 @@
 
 upgrade-key-packages
 
-It's essentially an operation similar to "upgrade", but it only affects the
-key system packages (aaa_glibc-solibs, glibc-solibs, sed and pkgtools), which
-usually should be upgraded before any other outdated or new package, unless
-there's a specific reason (probably mentioned in the change log) to install or
-upgrade other packages first. It's normally only run after "list-transient"
-when you detect they are outdated.
+Essentially similar to "upgrade", but it only affects the key system packages
+(aaa_glibc-solibs, glibc-solibs, sed and pkgtools), which usually should be
+upgraded before any other outdated or new package, unless there's a specific
+reason (probably mentioned in the change log) to install or upgrade other
+packages first. It's normally only run after "list-transient" when you detect
+they are outdated.
 
 Two important notes: list-transient will notice there are outdated system
 packages and emit a big and noticeable warning at the end of the package list
@@ -20,10 +20,10 @@ list-transient always lists packages in the common preferred order, and you
 will notice it always puts key system packages first when they are outdated.
 
 This operation requires no arguments, but just like the "upgrade" command,
-you can optionally append '--auto-select' to have slackroll automatically
-ignore any installation candidates that don't have the same build suffix
-as the already-installed version.  See the "slackroll help upgrade" page for
-further details on this option.
+you can optionally append '--auto-select' to automatically ignore any
+installation candidates that don't have the same build suffix as an
+already-installed version.  See the "slackroll help upgrade" page for further
+details on this option.
 
 Also see: list-transient.
 

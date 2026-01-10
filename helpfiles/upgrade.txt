@@ -1,16 +1,14 @@
 
 upgrade
 
-Upgrade will do a lot things for you, but
-the general purpose is to upgrade outdated packages. It will not install new
-packages and it will not remove unavailable packages. Only outdated packages
-are taken into account.
+Upgrade will do a lot things for you, but the general purpose is to upgrade
+outdated packages. It will not install new packages and it will not remove
+unavailable packages. Only outdated packages are taken into account.
 
 Its main actions are downloading, verifying package signatures and upgrading,
 using upgradepkg, the packages that are outdated. It will do extra things
 sometimes, like letting you review .new files or letting you choose a specific
-package version if several ones are available, but its usage is mostly
-intuitive.
+package version if several are available, but its usage is mostly intuitive.
 
 When it prompts you to choose a specific package version, it will also print
 the version currently installed just above the choice question, as this may
@@ -20,20 +18,21 @@ For a description on how reviewing .new files works, read the help on the
 "dotnew" topic.
 
 This operation requires no arguments, but you can optionally append
-'--auto-select' to have slackroll automatically ignore any installation
-candidates that don't have the same build suffix as the already-installed
-version.  For example, if you have an _SBo version of a package installed,
-this option will prevent 'slackroll upgrade' from automatically replacing
-it with a version from the standard repository.  This can be particularly
-useful if you use a third-party repository which provides alternate versions
-for a large number of standard packages, such as _lngn (KDE Plasma 6).
-Without the '--auto-select' option, slackroll would manually prompt you to
-choose between the standard and third-party versions of every package that
-exists in both repos.  With '--auto-select', slackroll assumes that any
-packages that already have _lngn versions installed should continue to
-follow the _lngn versions, and packages with the standard versions installed
-should continue to use the standard versions, any packages with _alien
-versions installed should continue to follow the _alien repository, etc.
+'--auto-select' to automatically ignore any installation candidates that don't
+have the same build suffix as an already-installed version.  For example, if
+you have only an _SBo version of a particular package installed, this option
+will prevent 'slackroll upgrade' from automatically replacing it with a version
+from a remote repository.  This can be particularly useful if you use a
+third-party repository which provides alternate versions for a large number of
+standard packages, such as _lngn (KDE Plasma 6).  Without '--auto-select',
+slackroll would manually prompt you to choose between the standard and
+third-party versions of every package that exists in both repos.  With
+'--auto-select', slackroll assumes that any packages that only have _lngn
+versions currently installed should continue to follow the _lngn versions, any
+any packages with only _alien versions installed should continue to follow the
+_alien repository, etc.  You normally shouldn't have different versions of a
+package locally installed, but if for some reason you do, '--auto-select' will
+consider upgrades that match /any/ of the already-installed versions.
 
-Also see: list-transient.
+Also see: list-transient, list-upgrades, upgrade-key-packages.
 

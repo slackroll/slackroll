@@ -1,9 +1,15 @@
 
 list-upgrades
 
-This operation expects no arguments. It will print a detailed list of packages
-in the "outdated" state. The list includes the currently installed version of
-every outdated packages, as well as every known remote version of them.
+Prints a detailed list of all packages in the "outdated" state. The list
+includes the currently installed version of every outdated packages, as well
+as every known remote version of them.
+
+This operation requires no arguments, but just like the "upgrade" command,
+you can optionally append '--auto-select' to only consider installation
+candidates whose build suffix matches an already-installed version.  This is
+useful if your repos often provide alternate versions of the same package.
+See the "slackroll help upgrade" page for further details on this option.
 
 Normally, this operation is not needed, as "list-transient" provides the list
 of every package in a transient state, including "outdated" packages, and
