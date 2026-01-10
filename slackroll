@@ -85,6 +85,7 @@ import pickle
 import fcntl
 import functools
 import glob
+import hashlib
 import math
 import operator
 import os
@@ -154,10 +155,12 @@ slackroll_known_files = os.path.join(slackroll_base_dir, 'knownfiles.db')
 slackroll_blacklist_filename = os.path.join(slackroll_base_dir, 'blacklist.db')
 slackroll_repolist_filename = os.path.join(slackroll_base_dir, 'repos.db')
 slackroll_filelist_filename = 'FILELIST.TXT'
-slackroll_changelog_filename = 'ChangeLog.txt'
+slackroll_changelog_basename = 'ChangeLog'
+slackroll_changelog_suffix = '.txt'
+slackroll_changelog_db_basename = 'changelog'
+slackroll_changelog_db_suffix = '.db'
 slackroll_changelog_entry_separator = '+--------------------------+\n'
 slackroll_local_filelist = os.path.join(slackroll_base_dir, slackroll_filelist_filename)
-slackroll_local_changelog = os.path.join(slackroll_base_dir, 'changelog.db')
 slackroll_gpgkey_filename = 'GPG-KEY'
 slackroll_local_gpgkey = os.path.join(slackroll_base_dir, slackroll_gpgkey_filename)
 slackroll_temp_suffix = '.part'
@@ -201,6 +204,12 @@ slackroll_manifest_filename = os.path.join(slackroll_base_dir, 'manifest.db')
 slackroll_manifest_list_filename = os.path.join(slackroll_base_dir, 'manifestlist.db')
 slackroll_batch_mode = False
 slackroll_auto_select = False
+
+# Cache of all third-party repositories
+slackroll_internal_repo_list = {}
+
+# Track opened DBs so we can clean up manually instead of waiting for program exit
+slackroll_open_databases = {}
 
 def debug_mesg(mesg):
     if debug_output:
@@ -646,21 +655,46 @@ def newer_than(path1, path2): # path1 modification time more recent than path2 m
 def is_readable_file(filepath):
     return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
 
-def try_dump(object, filepath): # pickle.dump()
+def try_dump(object, filepath, caller_handles_exceptions = False): # pickle.dump()
     try:
         pickle.dump(object, open(filepath, 'wb'), pickle_protocol)
     except (OSError, IOError, pickle.PickleError) as err:
-        sys.exit('ERROR: %s' % err)
+        if caller_handles_exceptions:
+            raise err
+        else:
+            sys.exit('ERROR: %s' % err)
 
-def try_load(filepath): # pickle.load()
+def try_load(filepath, caller_handles_exceptions = False): # pickle.load()
+    global slackroll_open_databases
     try:
+        if filepath in slackroll_open_databases:
+            fd = slackroll_open_databases[filepath]
+        else:
+            fd = open(filepath, 'rb')
+            slackroll_open_databases[filepath] = fd
         if PY2:
-            return pickle.load(open(filepath, 'rb'))
+            return pickle.load(fd)
         else:
             # BCS: in case DB was written by a Python 2 instance and contains non-ASCII characters
-            return pickle.load(open(filepath, 'rb'), encoding='Latin1')
+            return pickle.load(fd, encoding='Latin1')
     except (OSError, IOError, pickle.PickleError) as err:
-        sys.exit('ERROR: %s' % err)
+        if caller_handles_exceptions:
+            raise err
+        else:
+            sys.exit('ERROR: %s' % err)
+
+def close_db(filepath, caller_handles_exceptions = False):
+    global slackroll_open_databases
+    try:
+        if filepath in slackroll_open_databases:
+            slackroll_open_databases.pop(filepath).close()
+        else:
+            print('WARNING: tried to close database %s, but it is not open' % filepath)
+    except (OSError, IOError, pickle.PickleError) as err:
+        if caller_handles_exceptions:
+            raise err
+        else:
+            sys.exit('ERROR: %s' % err)
 
 def get_blacklist(): # Get blacklist expression list
     if is_readable_file(slackroll_blacklist_filename):
@@ -880,13 +914,19 @@ def get_mirror_version_components(mirror): # Extract Slackware version component
     return (match.group(1), match.group(2))
 
 def get_repo_list():
+    # BCS: due to database access, this function was not originally idempotent => memoized
+    global slackroll_internal_repo_list
+    if len(slackroll_internal_repo_list) > 0:
+        return slackroll_internal_repo_list
     if not is_readable_file(slackroll_repolist_filename):
-        repo_list = []
-        try_dump(repo_list, slackroll_repolist_filename)
-    return try_load(slackroll_repolist_filename)
+        try_dump([], slackroll_repolist_filename)
+    slackroll_internal_repo_list = try_load(slackroll_repolist_filename)
+    return slackroll_internal_repo_list
 
-def dump_repo_list(repo_list):
-    try_dump(repo_list, slackroll_repolist_filename)
+def dump_repo_list(new_repo_list):
+    global slackroll_internal_repo_list
+    try_dump(new_repo_list, slackroll_repolist_filename)
+    slackroll_internal_repo_list = new_repo_list
 
 def get_pkg_cache_size(): # Return total bytes for files in cache
     try:
@@ -1153,47 +1193,81 @@ def get_remote_info(mirror, package, redownload=False, keep_cached=True): # Down
         try_to_remove(local_file)
     return data
 
-def update_changelog(mirror, full=False): # Returns answer to "has it been updated?"
-    if not os.path.exists(slackroll_local_changelog) or full:
-        temp_dir = get_temp_dir()
-        download_or_exit(mirror, slackroll_changelog_filename, temp_dir)
-        local_filename = os.path.join(temp_dir, slackroll_changelog_filename)
-        text = read_file(local_filename)
-        cl = ChangeLog()
-        cl.add_entries(clentrylist_from_text(text))
-        try_dump(cl, slackroll_local_changelog)
-        try_to_remove(local_filename)
-        return True
+# Return a short hexadecimal hash of the given URL.  Ignore trailing slashes as immaterial.
+# This is only used for a small set of third-party repositories, so collision probability is not a concern.
+def hash_url(url):
+    while url[-1] == '/':
+        url = url[:-1]
+    return hashlib.sha1(url.encode('UTF-8')).hexdigest()[-8:]
 
-    print_flush('Updating change log ... ')
+# Return a list of (URL, hash value) pairs for every configured repository (used for ChangeLog management)
+# The first entry will be the main Slackware mirror, with the empty string as its hash value.
+def enumerate_repos_and_hashes():
+    return [(get_mirror(), '')] + [(repo, hash_url(repo)) for (index, repo) in enumerate(get_repo_list())]
 
-    try: # Only read until last known entry
-        cl = try_load(slackroll_local_changelog)
-        limits = set(concat([[x.timestamp for x in cl.get_batch(y)] for y in range(cl.num_batches())]))
-    except (OSError, IOError) as err:
-        sys.exit('ERROR: %s' % err)
+# Return the local database file corresponding to a given repo's ChangeLog.
+# The key value will be blank for the main Slackware mirror, and a URL hash for third-party repos.
+def local_changelog_db(key):
+    trailing_part = slackroll_changelog_db_basename + ('' if key == '' else '-' + key) + slackroll_changelog_db_suffix
+    return os.path.join(slackroll_base_dir, trailing_part)
 
-    changelog_url = urllib.parse.urljoin(str(mirror), str(slackroll_changelog_filename))
-    lines = []
-    try:
-        conn = urllib.request.urlopen(changelog_url)
-        while True:
-            new_line = interpret_as_str(conn.readline())
-            if len(new_line) == 0 or new_line.strip() in limits:
-                break
-            lines.append(new_line)
-        conn.close()
-    except (OSError, IOError, socket.error, urllib.error.ContentTooShortError) as err:
-        sys.exit('\nERROR: %s' % err)
+# Return the temporary file to use for retrieving a given repo's ChangeLog.
+# Filenames don't really need to be unique since they're usually immediately deleted, but might as well
+# prevent any left-behind remnants (in the event of a previous crash) from causing potential confusion.
+def local_changelog_copy(temp_dir, key):
+    trailing_part = slackroll_changelog_basename + ('' if key == '' else '-' + key) + slackroll_changelog_suffix
+    return os.path.join(temp_dir, trailing_part)
 
-    if len(lines) == 0:
-        print('no new entries.')
-        return False
-    print('new entries found.')
-    cl.start_new_batch()
-    cl.add_entries(clentrylist_from_text(''.join(lines)))
-    try_dump(cl, slackroll_local_changelog)
-    return True
+def update_all_changelogs(full=False): # Returns answer to "have any of the ChangeLogs been updated?"
+    temp_dir = get_temp_dir()
+    found_changes = False
+
+    for (repo_url, key) in enumerate_repos_and_hashes():
+        database = local_changelog_db(key)
+        if not os.path.exists(database) or full:
+            try:
+                download(repo_url, slackroll_changelog_basename + slackroll_changelog_suffix, temp_dir)
+            except SlackrollError:
+                print('Failed to retrieve ChangeLog from %s, continuing' % repo_url)
+                continue
+            local_filename = local_changelog_copy(temp_dir, key)
+            text = read_file(local_filename)
+            cl = ChangeLog()
+            cl.add_entries(clentrylist_from_text(text))
+            try_dump(cl, database)
+            try_to_remove(local_filename)
+            found_changes = True
+
+        print_flush('Updating change log for %s... ' % repo_url)
+        try: # Only read until last known entry
+            cl = try_load(database)
+            limits = set(concat([[x.timestamp for x in cl.get_batch(y)] for y in range(cl.num_batches())]))
+        except (OSError, IOError) as err:
+            sys.exit('ERROR: %s' % err)
+
+        changelog_url = urllib.parse.urljoin(str(repo_url), str(slackroll_changelog_basename + slackroll_changelog_suffix))
+        lines = []
+        try:
+            conn = urllib.request.urlopen(changelog_url)
+            while True:
+                new_line = interpret_as_str(conn.readline())
+                if len(new_line) == 0 or new_line.strip() in limits:
+                    break
+                lines.append(new_line)
+            conn.close()
+        except (OSError, IOError, socket.error, urllib.error.ContentTooShortError) as err:
+            sys.exit('\nERROR: %s' % err)
+
+        if len(lines) == 0:
+            print('no new entries.')
+        else:
+            print('new entries found.')
+            cl.start_new_batch()
+            cl.add_entries(clentrylist_from_text(''.join(lines)))
+            try_dump(cl, database)
+            found_changes = True
+
+    return found_changes
 
 def print_urls(mirror, package):
     sigmirror = get_primary_mirror()
@@ -2356,41 +2430,67 @@ if __name__ == "__main__":
 
         if operation == 'changelog':
             interceptor = SlackrollOutputInterceptor()
-            cl = try_load(slackroll_local_changelog)
-            print(slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch()))
+            repo_list = enumerate_repos_and_hashes()
+            for (repo_url, key) in repo_list:
+                database = local_changelog_db(key)
+                try:
+                    cl = try_load(database, True)
+                except (OSError, IOError, pickle.PickleError) as err:
+                    continue
+                print(slackroll_changelog_entry_separator.join('%s' % entry for entry in cl.last_batch()))
+                close_db(database)
             interceptor.stop()
             sys.exit()
 
         if operation == 'list-changelog':
             interceptor = SlackrollOutputInterceptor()
-            cl = try_load(slackroll_local_changelog)
-            print('ChangeLog.txt entries:')
-            for idb in range(cl.num_batches() - 1, -1, -1):
-                batch = cl.get_batch(idb)
-                for ide in range(len(batch)):
-                    print('    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp))
+            for (repo_url, key) in enumerate_repos_and_hashes():
+                database = local_changelog_db(key)
+                try:
+                    cl = try_load(database, True)
+                except (OSError, IOError, pickle.PickleError) as err:
+                    continue
+                print('ChangeLog.txt entries from %s:' % repo_url)
+                for idb in range(cl.num_batches() - 1, -1, -1):
+                    batch = cl.get_batch(idb)
+                    for ide in range(len(batch)):
+                        print('    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp))
+                close_db(database)
             print('End of list')
             interceptor.stop()
             sys.exit()
 
         if operation == 'changelog-entries':
-            cl = try_load(slackroll_local_changelog)
             entries = []
-            for code in args:
+            for (repo_url, key) in enumerate_repos_and_hashes():
+                database = local_changelog_db(key)
                 try:
-                    (idb, ide) = code.split('.')
-                    (idb, ide) = (int(idb), int(ide))
-                    entries.append(cl.get_batch(idb)[ide])
-                except (IndexError, ValueError):
-                    sys.exit('ERROR: invalid entry: %s' % code)
+                    cl = try_load(database, True)
+                except (OSError, IOError, pickle.PickleError) as err:
+                    continue
+                for code in args:
+                    try:
+                        (idb, ide) = code.split('.')
+                        (idb, ide) = (int(idb), int(ide))
+                        entries.append(cl.get_batch(idb)[ide])
+                    except (IndexError, ValueError):
+                        sys.exit('ERROR: invalid entry: %s' % code)
+                close_db(database)
             interceptor = SlackrollOutputInterceptor()
             print(slackroll_changelog_entry_separator.join('%s' % x for x in entries))
             interceptor.stop()
             sys.exit()
 
         if operation == 'full-changelog':
-            cl = try_load(slackroll_local_changelog)
-            entries = concat([[x for x in cl.get_batch(y)] for y in range(cl.num_batches() - 1, -1, -1)])
+            entries = []
+            for (repo_url, key) in enumerate_repos_and_hashes():
+                database = local_changelog_db(key)
+                try:
+                    cl = try_load(database, True)
+                except (OSError, IOError, pickle.PickleError) as err:
+                    continue
+                entries += concat([[x for x in cl.get_batch(y)] for y in range(cl.num_batches() - 1, -1, -1)])
+                close_db(database)
             interceptor = SlackrollOutputInterceptor()
             print(slackroll_changelog_entry_separator.join('%s' % x for x in entries))
             interceptor.stop()
@@ -2491,7 +2591,7 @@ if __name__ == "__main__":
             sys.exit()
 
         if operation == 'download-changelog':
-            update_changelog(get_mirror(), full=True)
+            update_all_changelogs(full=True)
             sys.exit()
 
         if operation == 'update-manifest':
@@ -2529,9 +2629,8 @@ if __name__ == "__main__":
         write_self_file_version()
 
         if operation == 'update':
-            mirror = get_mirror()
             print('Package cache size: %s' % optimum_size_conversion(get_pkg_cache_size()))
-            updated = update_changelog(mirror)
+            updated = update_all_changelogs()
             transient_packages_present = any(persistent_list[x] in slackroll_transient_states for x in persistent_list)
             if updated or transient_packages_present:
                 print()
