@@ -46,4 +46,3 @@ Obviously, the "replace" operation was easier to use and didn't ask so many
 questions.
 
 Also see: install, install-new, remove, remove-unavailable.
-

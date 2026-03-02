@@ -5,4 +5,3 @@ This operation expects no arguments. It will print every entry from the change
 log database in chronological order, as it appers in the Slackware Changelog.
 
 Also see: changelog, download-changelog.
-

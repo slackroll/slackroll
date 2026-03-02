@@ -21,4 +21,3 @@ Examples:
 slackroll batch install sqlite
 slackroll batch kernel-upgrade
 slackroll batch remove bash-completion
-

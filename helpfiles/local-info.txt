@@ -13,4 +13,3 @@ than to run "less /var/log/packages/PKG-something", but other than that they
 are mostly equivalent.
 
 Also see: info.
-

@@ -9,4 +9,3 @@ package with a matching remote path. For an explanation on this, see
 and the URLs are printed.
 
 Also see: install-path, download-path.
-

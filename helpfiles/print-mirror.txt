@@ -4,4 +4,3 @@ print-mirror
 This operation expects no arguments and prints the mirror URL.
 
 Also see: set-mirror.
-

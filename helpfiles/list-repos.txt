@@ -4,4 +4,3 @@ list-repos
 This operation prints the list of configured third-party repositories.
 
 Also see: add-repo, remove-repo.
-

@@ -5,4 +5,3 @@ This operation expects no arguments, and is similar to the "info" operation
 applied to every package in the state "new".
 
 Also see: info, info-path.
-

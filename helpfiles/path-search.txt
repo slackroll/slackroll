@@ -7,4 +7,3 @@ example, if you run "slackroll path-search /slackware/kde/", you should get a
 list of package files in the "kde" set.
 
 Also see: name-search.
-

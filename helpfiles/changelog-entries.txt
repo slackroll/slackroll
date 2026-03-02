@@ -5,4 +5,3 @@ This operation expects a list of change log entry identifiers as its
 arguments, and will print the change log text associated with them.
 
 Also see: changelog, list-changelog.
-

@@ -6,4 +6,3 @@ is slackroll's equivalent of "removepkg" with a few extras, the most important
 one being the process of reviewing possible .new files left behind.
 
 Also see: dotnew.
-

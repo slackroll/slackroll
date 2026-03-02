@@ -25,4 +25,3 @@ use the "help" operation.
 * *slackroll help* will print a brief description of the common operations.
 * *slackroll help all* will print a brief description of every operation.
 * *slackroll help OPERATION* will describe that operation in detail.
-

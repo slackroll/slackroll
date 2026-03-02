@@ -6,4 +6,3 @@ local and remote version of the given packages, in a format similar to the one
 used in list-upgrades.
 
 Also see: list-alternatives, list-upgrades.
-

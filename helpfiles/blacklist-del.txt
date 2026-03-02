@@ -6,4 +6,3 @@ them from the blacklist. Identifiers are printed when you run
 "print-blacklist".
 
 Also see: print-blacklist, blacklist-add.
-

@@ -12,4 +12,3 @@ Example:
 slackroll not-installed koffice-l10n-ca@valencia
 
 Also see: install, install-new.
-

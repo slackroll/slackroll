@@ -8,4 +8,3 @@ you boot to the new one. After you've booted with the new kernel, you can
 remove obsolete kernel packages with the "kernel-clean" operation.
 
 Also see: kernel-clean.
-

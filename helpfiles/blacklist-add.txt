@@ -44,4 +44,3 @@ As you can imagine from the previous points, usually the blacklist is short and
 very specific.
 
 Also see: blacklist-del, print-blacklist.
-

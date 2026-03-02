@@ -16,4 +16,3 @@ mirror of choice. This mirror is the main Slackware mirror, is almost
 guaranteed to be up-to-date at any given moment, and is almost never down.
 
 Also see: set-mirror.
-

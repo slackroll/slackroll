@@ -30,4 +30,3 @@ rebuilt package (2) copy the resulting file to the package cache, in
 "upgrade" operation (5) put the package again in the frozen state if you wish.
 
 Also see: list-frozen, list-transient, list-outdated.
-

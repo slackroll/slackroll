@@ -1,3 +1,6 @@
 *.pyc
+.coverage
 __pycache__
+htmlcov
+pytest-coverage.txt
 slackrollc

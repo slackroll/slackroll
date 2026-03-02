@@ -7,4 +7,3 @@ Useful to reset the changelog database from time to time if you do not wish to
 keep the whole change log history, specially when running -current.
 
 Also see: changelog.
-

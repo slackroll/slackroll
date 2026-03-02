@@ -11,4 +11,3 @@ Examples:
 
 slackroll set-mirror 'http://slackware.osuosl.org/slackware-current/'
 slackroll set-mirror 'http://slackware.osuosl.org/slackware64-13.0/'
-

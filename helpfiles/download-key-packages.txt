@@ -8,4 +8,3 @@ outdated key system packages (aaa_glibc-solibs, glibc-solibs, sed and
 pkgtools).
 
 Also see: download, upgrade-key-packages.
-

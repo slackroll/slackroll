@@ -27,4 +27,3 @@ slackroll install ./slackware/kde/amarok-2.3.0-i486-1.txz
 The last two commands are equivalent.
 
 Also see: dotnew, upgrade, remove.
-

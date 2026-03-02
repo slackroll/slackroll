@@ -7,4 +7,3 @@ provided regular expressions. For more details on remote paths and regular
 expressions, see the help text for "install-path".
 
 Also see: info, install-path.
-
