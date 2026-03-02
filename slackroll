@@ -239,13 +239,13 @@ def yield_slackroll_local_pkgs_dir():
     for opt in slackroll_local_pkgs_dir_names:
         while os.path.isdir(opt):
             yield opt
-    sys.exit('ERROR: unable to find local packages directgory')
+    sys.exit('ERROR: unable to find local packages directory')
 
 if __name__ == "__main__":
     slackroll_local_pkgs_glob = os.path.join(next(yield_slackroll_local_pkgs_dir()), '*')
     slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 
-def standarize_locales():
+def standardize_locales():
     # type: () -> None
     for varname in slackroll_locale_envvars:
         if varname in os.environ:
@@ -1379,10 +1379,10 @@ def print_list(the_list, header): # Print every list entry, sorted
         print('    %s' % entry)
     print('End of list')
 
-def print_list_or(the_list, header, message_on_emtpy): # Idem using interceptor and a message if empty list
+def print_list_or(the_list, header, message_on_empty): # Idem using interceptor and a message if empty list
     # type: (List[str], str, str) -> None
     if len(the_list) == 0:
-        print(message_on_emtpy)
+        print(message_on_empty)
         return
     interceptor = SlackrollOutputInterceptor()
     print_list(the_list, header)
@@ -2090,7 +2090,7 @@ if __name__ == "__main__":
         persistent_list = None
         URLOpenerTarget._urlopener = SlackrollURLopener() # type: ignore
         socket.setdefaulttimeout(slackroll_socket_timeout)
-        standarize_locales()
+        standardize_locales()
 
         op_num_args = {    # Map of operations and their appropriate number of arguments.
             'add-repo':                 -1,
