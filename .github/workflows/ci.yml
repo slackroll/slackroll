@@ -21,14 +21,14 @@ jobs:
           python-version: "3.9"
 
       - name: Configure pre-commit repo cache
-        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.cache/pre-commit
           key: ${{ runner.os }}-pre-commit-repo-${{ env.pythonLocation }}-${{
             hashFiles('.pre-commit-config.yaml') }}
 
       - name: Configure pre-commit install cache
-        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         id: pre_commit_install_cache
         with:
           path: ~/.pre-commit-venv
