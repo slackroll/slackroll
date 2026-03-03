@@ -16,6 +16,7 @@
 # <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
 from __future__ import print_function
+
 import bz2
 import fcntl
 import functools
@@ -579,7 +580,7 @@ def stream_encoding(stream, fallback_if_not_determined):
         if stream.encoding is None:
             return fallback_if_not_determined
         else:
-            return stream.encoding
+            return stream.encoding      # type: ignore
     except (AttributeError, TypeError):
         pass
     return fallback_if_not_determined
@@ -653,7 +654,7 @@ def read_file(filename): # Wrapper to open file in appropriate encoding mode
     return read_stream(io.open(filename, 'rb'))
 
 def read_lines_from_file(filename): # Wrapper to open file in appropriate encoding mode
-    # type: (str) -> List[Any]
+    # type: (str) -> Any
     return read_lines_from_stream(io.open(filename, 'rb'))
 
 def print_flush(message=""):
@@ -972,9 +973,9 @@ def get_mirror_from_file(filepath):
             raise ValueError('%s is empty' % filename)
         if not mirror.endswith('/'):
             mirror = mirror + '/'
-        return mirror
+        return mirror # type: ignore
     except (OSError, IOError, ValueError) as err:
-        sys.exit('ERROR: %s' % err) # type: ignore
+        sys.exit('ERROR: %s' % err)
 
 def get_mirror(): # From the 'mirror' file
     # type: () -> str
