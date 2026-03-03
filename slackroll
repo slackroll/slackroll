@@ -1490,7 +1490,8 @@ def maybe_confirm_continue():
     # type: () -> None
     if slackroll_batch_mode:
         return
-    input('Press Ctrl+C to cancel or Enter to continue... ')
+    print('Press Ctrl+C to cancel or Enter to continue... ')
+    input()
 
 def print_in_states(states, persistent_list, header, print_state): # Print package name if its state matches
     # type: (List[int], Dict[str, int], str, bool) -> None
