@@ -1,4 +1,4 @@
-from slackroll import transient_key, slackroll_state_new, slackroll_state_outdated
+from slackroll import slackroll_state_new, slackroll_state_outdated, transient_key
 
 
 def test_transient_cmp_normal_pkg_same_state():

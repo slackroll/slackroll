@@ -46,18 +46,15 @@ if not PY2:
         # type: (Any) -> bool
         return False
 
-    from functools import reduce
     import pickle
     import urllib
+    from functools import reduce
     from io import StringIO
     from urllib.request import urljoin, urlopen, urlretrieve
     URLOpenerTarget = urllib.request
 
     # DEPRECATED, but support the SlackwarePackage.__cmp__() method
     from past.builtins import cmp
-
-    def unescape_string(s):
-        return s.encode('utf8').decode('unicode_escape')
 
 if PY2:
     import anydbm
@@ -108,9 +105,6 @@ if PY2:
 
     URLOpenerTarget = urllib
 
-    def unescape_string(s):
-        return s.decode('string_escape')
-
 try:
     from typing import TYPE_CHECKING
 except ImportError:
@@ -158,6 +152,7 @@ else:
 
 # Safe whether stdout is a Unicode or binary stream, under Python 2 or 3
 def print(message=""):
+    # type: (Any) -> None
     if isinstance(sys.stdout, io.BytesIO) or not PY2 and isinstance(message, bytes):
         if not is_encoded(message):
             mesg_bytes = message.encode(default_output_encoding, "replace")
@@ -291,6 +286,7 @@ def index_of(thelist, elem):
         return -1
 
 def pkg_name_key(name):
+    # type: (str) -> Tuple[Any, str]
     # Used for sorting: packages in the prioritized list wind up ahead of others in the sorted output
     priority = index_of(slackroll_prioritized_pkgs, name)
     if priority < 0:
@@ -311,6 +307,7 @@ def pkg_name_cmp(name1, name2): # DEPRECATED; maintained only to provide Slackwa
     return (idx1 - idx2)
 
 def transient_key(name_state):
+    # type: (Tuple[str, Any]) -> Tuple[Any, Any, str]
     # Special sort key for list-transient: group packages by state, sorted by name within each group
     (name, state) = name_state
     priority = index_of(slackroll_prioritized_pkgs, name)
@@ -539,10 +536,12 @@ def clentrylist_from_text(text):
 
 # True iff the argument is already encoded to an output representation (not abstract Unicode)
 def is_encoded(text):
+    # type: (Any) -> bool
     return PY2 or isinstance(text, bytes)
 
 # Convert the argument into a format that a binary stream .write() method will accept (str for Python 2, bytes for Python 3)
 def format_for_writing(text, always_encode=False, encoding = default_output_encoding, mode="strict"):
+    # type: (Any, bool, str, str) -> Any
     if (always_encode and PY2) or not is_encoded(text):
         return text.encode(encoding, mode)
     else:
@@ -550,15 +549,17 @@ def format_for_writing(text, always_encode=False, encoding = default_output_enco
 
 # Convert the argument into a format that a Unicode stream .write() method will accept (unicode for Python 2, str for Python 3)
 def force_to_unicode(text):
+    # type: (Any) -> Any
     if is_encoded(text):
         return try_encodings(text.decode, standard_encodings)
     else:
         return text
 
 # Coerce the argument into the default internal "string" format if not already
-# Differs from system str() in that this attempts each the specified encodings until one succeeds
+# Differs from system str() in that this attempts each of the specified encodings until one succeeds
 # User beware: on Python 2 this is a bytestring, on Python 3 it will be abstract Unicode
 def interpret_as_str(text, encodings = standard_encodings):
+    # type: (Any, List[str]) -> Any
     if PY2 and isinstance(text, unicode):
         return try_encodings(text.encode, encodings)
     elif not PY2 and not isinstance(text, str):
@@ -568,10 +569,12 @@ def interpret_as_str(text, encodings = standard_encodings):
 
 # dbm on Python 2 only accepts decoded strings as keys, not general Unicode
 def to_dbkey(x):
+    # type: (Any) -> Any
     return interpret_as_str(x)
 
 # Attempt to determine/use the system-set encoding for the given file or pipe
 def stream_encoding(stream, fallback_if_not_determined):
+    # type: (Any, str) -> str
     try:
         if stream.encoding is None:
             return fallback_if_not_determined
@@ -582,13 +585,16 @@ def stream_encoding(stream, fallback_if_not_determined):
     return fallback_if_not_determined
 
 def output_encoding(stream):  # Determine most appropriate encoding for output stream
+    # type: (Any) -> str
     return stream_encoding(stream, default_output_encoding)
 
 def input_encoding(stream):   # Guess most likely encoding for input stream
+    # type: (Any) -> str
     return stream_encoding(stream, assumed_file_encoding)
 
 # Helper function to construct a list with no duplicates
 def merge_encodings(preferred, defaults):
+    # type: (str, List[str]) -> List[str]
     rv = [preferred]
     for x in defaults:
         rv.append(x)
@@ -596,6 +602,7 @@ def merge_encodings(preferred, defaults):
 
 # Monad to repeat a Unicode-related operation until a successful encoding/decoding is found
 def try_encodings(operation, encodings):
+    # type: (Any, List[str]) -> Any
     for trial_encoding in encodings:
         try:
             return operation(trial_encoding, "strict")
@@ -609,6 +616,7 @@ def try_encodings(operation, encodings):
 # Consolidate writes in one place to handle string/representation conversions between Python 2 & 3
 # Use force_encoding when the source of the text was itself a pipe (e.g. pager program)
 def write_to_stream(fd, text, force_encoding=False):
+    # type: (Any, Any, bool) -> None
     try:
         # Easiest case, assuming the text encodes in the default stream format
         fd.write(format_for_writing(text, force_encoding))
@@ -628,20 +636,24 @@ def write_to_stream(fd, text, force_encoding=False):
 
 # Consolidate reads in one place to handle string/representation conversions between Python 2 & 3
 def read_stream(fd): # Read entire stream into single internal buffer
+    # type: (Any) -> Any
     potential_encodings = merge_encodings(input_encoding(fd), standard_encodings)
     raw_text = fd.read()
     return interpret_as_str(raw_text, potential_encodings)
 
 def read_lines_from_stream(fd): # Read text stream into a list of individual lines
+    # type: (Any) -> Any
     potential_encodings = merge_encodings(input_encoding(fd), standard_encodings)
     raw_text = fd.readlines()
     decoder = lambda trial_encoding, mode : [x.decode(trial_encoding, mode) for x in raw_text]
     return try_encodings(decoder, potential_encodings)
 
 def read_file(filename): # Wrapper to open file in appropriate encoding mode
+    # type: (str) -> Any
     return read_stream(io.open(filename, 'rb'))
 
 def read_lines_from_file(filename): # Wrapper to open file in appropriate encoding mode
+    # type: (str) -> List[Any]
     return read_lines_from_stream(io.open(filename, 'rb'))
 
 def print_flush(message=""):
@@ -827,8 +839,9 @@ def print_blacklist():
     print_list_or(numbered, 'Blacklisted expressions:', 'No blacklisted expressions')
 
 def clean_filename(s, encoding=default_filename_encoding):
+    # type: (str, str) -> str
     if PY2:
-        return s.strip().decode('string_escape')
+        return str(s.strip().decode('string_escape'))
     else:
         if encoding == default_filename_encoding:
             return s.strip().encode(encoding).decode("unicode_escape")
@@ -841,7 +854,7 @@ def extract_file_list(filename): # Extracts the file list from a local info file
     try:
         lines = read_lines_from_file(filename)
         paths = ['/%s' % clean_filename(x) for x in lines[lines.index(slackroll_local_pkg_filelist_marker) + 1:]]
-        return paths # type: ignore
+        return paths
     except ValueError:
         sys.exit('ERROR: unable to find file list marker in %s' % filename)
     except (OSError, IOError) as err:
@@ -961,7 +974,7 @@ def get_mirror_from_file(filepath):
             mirror = mirror + '/'
         return mirror
     except (OSError, IOError, ValueError) as err:
-        sys.exit('ERROR: %s' % err)
+        sys.exit('ERROR: %s' % err) # type: ignore
 
 def get_mirror(): # From the 'mirror' file
     # type: () -> str
@@ -1075,7 +1088,7 @@ class SlackrollOutputInterceptor(object): # Intercepts stdout and uses a pager i
             else:
                 self.__buffer = io.BytesIO()
             self.__old_stdout = sys.stdout
-            sys.stdout = self.__buffer
+            sys.stdout = self.__buffer  # type: ignore
 
     def stop(self):
         # type: () -> None
@@ -1318,7 +1331,7 @@ def download_verify(mirror, package): # Download package, signature and verify i
     return local_final
 
 def get_remote_info(mirror, package): # Downloads info file and returns its contents
-    # type: (str, SlackwarePackage) -> str
+    # type: (str, SlackwarePackage) -> Any
     remote_file = package.fullname[:-len(slackroll_info_suffix)] + slackroll_info_suffix
     local_file = os.path.join(slackroll_base_dir, os.path.basename(remote_file))
     pkg_base_url = package.base_url(mirror)
@@ -2613,7 +2626,7 @@ if __name__ == "__main__":
 
         try:
             persistent_list = load_persistent_db(slackroll_persistentlist_filename)
-        except dbm.error:
+        except dbm.error as err:
             print('Database exception: %s' % err)
             sys.exit('ERROR: unable to properly open %s' % slackroll_persistentlist_filename)
 
@@ -2930,7 +2943,7 @@ if __name__ == "__main__":
             verify_local_names(args, local_list)
             interceptor = SlackrollOutputInterceptor()
             try:
-                print('\n'.join(read_file(x.filename) for x in concat(local_list[pkg] for pkg in args)))
+                print('\n'.join(read_file(x.fullname) for x in concat(local_list[pkg] for pkg in args)))
 
             except (IOError, OSError) as err:
                 sys.exit('ERROR: %s' % err)
