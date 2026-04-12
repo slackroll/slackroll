@@ -1823,7 +1823,7 @@ def update_manifest_database():
         # Decompress it
         print_flush('Processing manifest... ')
         stream = bz2.BZ2File(output_name, 'r')
-        contents = stream.read()
+        contents = read_stream(stream)
         stream.close()
 
         # Read the packages and their files
