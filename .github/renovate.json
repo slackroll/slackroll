@@ -14,5 +14,12 @@
   "pre-commit": {
     "enabled": true
   },
-  "timezone": "Asia/Tokyo"
+  "timezone": "Asia/Tokyo",
+  "packageRules": [
+    {
+      "matchDepNames": ["aclemons/slackware"],
+      "matchUpdateTypes": ["major", "minor", "patch", "pin", "pinDigest"],
+      "enabled": false
+    }
+  ]
 }
