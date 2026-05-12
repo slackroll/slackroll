@@ -96,7 +96,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       # renovate: datasource=pypi depName=pre-commit
-      PRE_COMMIT_VERSION: "4.5.1"
+      PRE_COMMIT_VERSION: "4.6.0"
       # renovate: datasource=github-releases depName=astral-sh/uv
       UV_VERSION: "0.11.13"
       # renovate: datasource=python-version depName=python
