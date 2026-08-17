@@ -11,12 +11,12 @@ repos:
       - id: check-added-large-files
 
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: 515f543f5718ebfd6ce22e16708bb32c68ff96e1 # frozen: v3.8.3
+    rev: 0ee178619d696787ca73d210cc191d720868c631 # frozen: v3.9.6
     hooks:
       - id: prettier
 
   - repo: https://github.com/crate-ci/typos
-    rev: 5374cbf686e897b15713110e233094e2874de7ef # frozen: v1.46.1
+    rev: 8a48f81b6c64dcfea44b3633223084c4be58ac5f # frozen: v1.49.0
     hooks:
       - id: typos
 
@@ -26,7 +26,7 @@ repos:
       - id: actionlint-docker
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 6fec9b7edb08fd9989088709d864a7826dc74e80 # frozen: v0.15.12
+    rev: 65dbdb59d2f2d9c3bdc343c566821ad3319ddaa3 # frozen: v0.16.3
     hooks:
       - id: ruff-check
         args: ["--fix"]
