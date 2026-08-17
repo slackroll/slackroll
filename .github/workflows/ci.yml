@@ -9,14 +9,20 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   DEFAULT_PYTHON: "3.9.25"
 
 jobs:
   test:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     env:
       # renovate: datasource=github-releases depName=docker/buildx
       BUILDX_VERSION: "v0.36.1"
@@ -51,7 +57,6 @@ jobs:
             coverage: true
             platforms: linux/amd64
 
-    name: ${{ matrix.name }}
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -68,9 +73,22 @@ jobs:
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
         with:
           version: ${{ env.BUILDX_VERSION }}
+          cache-binary: false
           driver-opts: image=${{ env.BUILDKIT_IMAGE }}
 
       - name: Build CI Docker image
+        if: github.ref != 'refs/heads/master'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          load: true
+          tags: ${{ matrix.image_tag }}
+          platforms: ${{ matrix.platforms }}
+          cache-from: type=gha,scope=${{ matrix.image_tag }}
+
+      - name: Build CI Docker image (cache write)
+        if: github.ref == 'refs/heads/master'
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
@@ -92,8 +110,11 @@ jobs:
           EOF
 
       - name: Run tests
+        env:
+          IMAGE_TAG: ${{ matrix.image_tag }}
+          TEST_COMMAND: ${{ matrix.test_command }}
         run: |
-          docker run --rm -v "$(pwd):/slackroll" -w /slackroll ${{ matrix.image_tag }} bash -o pipefail -c '${{ matrix.test_command }}'
+          docker run --rm -v "$(pwd):/slackroll" -w /slackroll "$IMAGE_TAG" bash -o pipefail -c "$TEST_COMMAND"
 
       - name: Upload coverage artefacts
         if: github.event_name == 'pull_request' && matrix.coverage
@@ -105,9 +126,13 @@ jobs:
           if-no-files-found: error
 
   coverage:
+    name: Coverage report
     if: github.event_name == 'pull_request'
     needs: test
     runs-on: ubuntu-slim
+    permissions:
+      contents: read
+      pull-requests: write # Required for MishaKav/pytest-coverage-comment to post/update PR comments.
     env:
       # renovate: datasource=github-releases depName=astral-sh/uv
       UV_VERSION: "0.12.5"
@@ -161,6 +186,8 @@ jobs:
   test-current:
     runs-on: ubuntu-24.04
     name: Python 3.12 (-current)
+    permissions:
+      contents: read
     env:
       # renovate: datasource=github-releases depName=astral-sh/uv
       UV_VERSION: "0.12.5"
@@ -187,7 +214,10 @@ jobs:
           uv run pytest
 
   lint:
+    name: Lint
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     env:
       # renovate: datasource=github-releases depName=astral-sh/uv
       UV_VERSION: "0.12.5"
