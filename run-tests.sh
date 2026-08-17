@@ -27,8 +27,17 @@ printf '\n'
 
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:12.0-python2 py.test
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:13.37-python2 py.test
-docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:15.0-python2 pytest
-docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:15.0-python3 pytest
+
+rm -f .coverage .coverage.python2 .coverage.python3
+
+docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data -e COVERAGE_FILE=.coverage.python2 slackroll-ci:15.0-python2 sh -c 'pytest --cov=slackroll -vv'
+docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data -e COVERAGE_FILE=.coverage.python3 slackroll-ci:15.0-python3 sh -c 'pytest --cov=slackroll -vv'
+
+docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:15.0-python3 sh -c 'coverage combine .coverage.python2 .coverage.python3'
+docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:15.0-python3 sh -c 'coverage html -d htmlcov'
+docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:15.0-python3 sh -c "chown -R $(id -u):$(id -g) /data/htmlcov/"
+
+printf 'Coverage HTML report generated at htmlcov/index.html\n'
 
 # for now, on the host for python3 (-current)
 uv run --python-preference only-managed --python 3.12 pytest
