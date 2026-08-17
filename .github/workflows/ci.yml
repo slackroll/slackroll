@@ -25,10 +25,16 @@ jobs:
             test_command: py.test -vv
             coverage: false
           - name: Slackware 15.0 / Python 2.7
-            dockerfile: ci/15.0/Dockerfile
+            dockerfile: ci/15.0/python2/Dockerfile
             image_tag: slackroll-ci:15.0-python2
             test_command: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=slackroll -vv | tee pytest-coverage.txt
             coverage: true
+          - name: Slackware 15.0 / Python 3.9
+            dockerfile: ci/15.0/python3/Dockerfile
+            image_tag: slackroll-ci:15.0-python3
+            test_command: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=slackroll -vv | tee pytest-coverage.txt
+            coverage: true
+
     name: ${{ matrix.name }}
     steps:
       - name: Check out repository
@@ -62,14 +68,13 @@ jobs:
           junitxml-path: ./pytest.xml
           default-branch: master
 
-  test-python3:
+  test-current:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         python-version:
-          - "3.9"
           - "3.12"
     name: Python ${{ matrix.python-version }}
     env:

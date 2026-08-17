@@ -17,14 +17,18 @@ docker buildx build --platform linux/amd64 --load --progress=none -t slackroll-c
 
 # python 2.7
 printf 'Building Slackware 15.0 with Python 2.7...\n'
-docker buildx build --platform linux/amd64 --load --progress=none -t slackroll-ci:15.0-python2 -f ci/15.0/Dockerfile .
+docker buildx build --platform linux/amd64 --load --progress=none -t slackroll-ci:15.0-python2 -f ci/15.0/python2/Dockerfile .
+
+# python 3.9
+printf 'Building Slackware 15.0 with Python 3.9...\n'
+docker buildx build --platform linux/amd64 --load --progress=none -t slackroll-ci:15.0-python3 -f ci/15.0/python3/Dockerfile .
 
 printf '\n'
 
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:12.0-python2 py.test
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:13.37-python2 py.test
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:15.0-python2 pytest
+docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:15.0-python3 pytest
 
-# for now, on the host for python3
-uv run --python-preference only-managed --python 3.9 pytest
+# for now, on the host for python3 (-current)
 uv run --python-preference only-managed --python 3.12 pytest
