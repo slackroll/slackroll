@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1.26.0@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32
+# check=error=true
 
 FROM aclemons/slackware:13.37@sha256:46bf582fc4683f88bf4468c05b9f58158e1eec1d5eb42cf759bf14afd1880adf AS base
 

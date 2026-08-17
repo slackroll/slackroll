@@ -22,21 +22,25 @@ jobs:
             image_tag: slackroll-ci:12.0-python2
             test_command: py.test -vv
             coverage: false
+            platforms: linux/386
           - name: Slackware 13.37 / Python 2.6
             dockerfile: ci/13.37/Dockerfile
             image_tag: slackroll-ci:13.37-python2
             test_command: py.test -vv
             coverage: false
+            platforms: linux/amd64
           - name: Slackware 15.0 / Python 2.7
             dockerfile: ci/15.0/python2/Dockerfile
             image_tag: slackroll-ci:15.0-python2
             test_command: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=slackroll -vv | tee pytest-coverage.txt
             coverage: true
+            platforms: linux/amd64
           - name: Slackware 15.0 / Python 3.9
             dockerfile: ci/15.0/python3/Dockerfile
             image_tag: slackroll-ci:15.0-python3
             test_command: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=slackroll -vv | tee pytest-coverage.txt
             coverage: true
+            platforms: linux/amd64
 
     name: ${{ matrix.name }}
     steps:
@@ -64,6 +68,7 @@ jobs:
           file: ${{ matrix.dockerfile }}
           load: true
           tags: ${{ matrix.image_tag }}
+          platforms: ${{ matrix.platforms }}
           cache-from: type=gha,scope=${{ matrix.image_tag }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image_tag }}
 
