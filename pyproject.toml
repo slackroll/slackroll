@@ -8,15 +8,14 @@ authors = [
   "Brent Spillner <spillner@acm.org>"
 ]
 license = "CC0 Public Domain Dedication"
-requires-python = ">=3.12"
+requires-python = ">=2.5"
 dependencies = [ ]
 
 [dependency-groups]
 dev = [
-    "pytest==8.4.2",
+    "pytest==9.1.1",
     "pytest-cov==7.1.0",
-    "ruff==0.16.10",
-    "toml==0.10.2",
+    "ruff==0.17.0",
 ]
 
 [tool.ruff]

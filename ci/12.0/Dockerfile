@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.27.1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+# syntax=docker/dockerfile:1.28.0@sha256:bb22d9815c728170f72750f4e5b0d672e06176142e1d602c7e66c050100b7e5b
 # check=error=true
 
 FROM aclemons/slackware:12.0@sha256:9fa0f283a885f0353cdb6cb0c61b9aa611abe6dc516754ddb6ad7a86692912e7 AS base
@@ -19,7 +19,7 @@ RUN export TERSE=0 && \
 
 
 # use modern host to download, since we cannot use https to talk to pypi on 12.0
-FROM alpine:3.24.2@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6 AS downloader
+FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS downloader
 
 WORKDIR /tmp
 

@@ -27,7 +27,7 @@ docker buildx build --platform linux/amd64 --load --progress=none -t slackroll-c
 printf 'Building Slackware -current with Python 2.7...\n'
 docker buildx build --platform linux/amd64 --load --progress=none -t slackroll-ci:current-python2 -f ci/current/python2/Dockerfile .
 
-# python 3.9
+# python 3.12
 printf 'Building Slackware -current with Python 3.12...\n'
 docker buildx build --platform linux/amd64 --load --progress=none -t slackroll-ci:current-python3 -f ci/current/python3/Dockerfile .
 

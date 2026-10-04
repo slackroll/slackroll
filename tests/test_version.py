@@ -1,6 +1,10 @@
 import os
 
-import toml  # type: ignore
+try:
+    import tomllib
+except ImportError:
+    import toml as tomllib  # type: ignore
+
 from slackroll import slackroll_version
 
 
@@ -9,7 +13,7 @@ def test_versions_match():
     """Checks if the version in pyproject.toml and slackroll_version in `slackroll` match."""
 
     pyproject_file = os.path.join(os.path.dirname(__file__), "..", "pyproject.toml")
-    pyproject_version = toml.loads(open(str(pyproject_file)).read())["project"][
+    pyproject_version = tomllib.loads(open(str(pyproject_file)).read())["project"][
         "version"
     ]
 
