@@ -18,6 +18,13 @@
   "packageRules": [
     {
       "matchFileNames": [".python-version"],
+      "matchUpdateTypes": ["major", "minor"],
+      "enabled": false
+    },
+    {
+      "matchDepNames": ["python"],
+      "matchFileNames": [".github/workflows/ci.yml"],
+      "matchUpdateTypes": ["major", "minor"],
       "enabled": false
     },
     {

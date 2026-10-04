@@ -43,7 +43,7 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: uv run --no-project --python 3.9 --with "mypy[python2]==0.961" mypy --py2 --ignore-missing-imports --scripts-are-modules --strict --cache-dir /dev/null slackroll tests
+        entry: uv run --no-project --python-preference only-managed --python 3.9.25 --with "mypy[python2]==0.961" mypy --py2 --ignore-missing-imports --scripts-are-modules --strict --cache-dir /dev/null slackroll tests
         require_serial: true
         language: system
         types_or: [pyi, python]

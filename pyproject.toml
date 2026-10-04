@@ -8,7 +8,7 @@ authors = [
   "Brent Spillner <spillner@acm.org>"
 ]
 license = "CC0 Public Domain Dedication"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 dependencies = [ ]
 
 [dependency-groups]
@@ -20,7 +20,7 @@ dev = [
 ]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
