@@ -38,18 +38,14 @@ RUN wget -q https://files.pythonhosted.org/packages/8b/62/baf1e2c2b02de7898dcacd
     tar -xf py-1.4.17.tar.gz && rm py-1.4.17.tar.gz && \
     wget -q https://files.pythonhosted.org/packages/a7/6e/2580c06b2c0a3afa1376e731a1cfa32888be03de5c59cf9a0408347de727/pytest-2.3.5.tar.gz && \
     echo "18f150e7be96b5fe3c388b0e817b8087  pytest-2.3.5.tar.gz" | md5sum -c && \
-    tar -xf pytest-2.3.5.tar.gz && rm pytest-2.3.5.tar.gz && \
-    wget -q https://files.pythonhosted.org/packages/a2/98/a1b3df99dfe03b7a9cf9ccfd8fb53957cb882c5d25110f9852cb119a92d9/toml-0.7.1.tar.gz && \
-    echo "730580bcdac17185bd3af35525ada1e7  toml-0.7.1.tar.gz" | md5sum -c && \
-    tar -xf toml-0.7.1.tar.gz && rm toml-0.7.1.tar.gz && \
-    sed -i '1s/^/from __future__ import with_statement\n/' toml-0.7.1/setup.py toml-0.7.1/toml.py
+    tar -xf pytest-2.3.5.tar.gz && rm pytest-2.3.5.tar.gz
 
 
 FROM base
 
 # hadolint ignore=DL3003
 RUN --mount=from=downloader,source=/tmp,target=/builder \
-    cp -r /builder/setuptools-0.6c11 /builder/mock-0.8.0 /builder/argparse-1.2.1 /builder/py-1.4.17 /builder/pytest-2.3.5 /builder/toml-0.7.1 /tmp/ && \
+    cp -r /builder/setuptools-0.6c11 /builder/mock-0.8.0 /builder/argparse-1.2.1 /builder/py-1.4.17 /builder/pytest-2.3.5 /tmp/ && \
     cd /tmp/setuptools-0.6c11 && \
     /usr/bin/python setup.py install && \
     cd /tmp/mock-0.8.0 && \
@@ -60,6 +56,4 @@ RUN --mount=from=downloader,source=/tmp,target=/builder \
     /usr/bin/python setup.py install && \
     cd /tmp/pytest-2.3.5 && \
     /usr/bin/python setup.py install && \
-    cd /tmp/toml-0.7.1 && \
-    /usr/bin/python setup.py install && \
-    rm -rf /tmp/setuptools-0.6c11 /tmp/mock-0.8.0 /tmp/argparse-1.2.1 /tmp/py-1.4.17 /tmp/pytest-2.3.5 /tmp/toml-0.7.1
+    rm -rf /tmp/setuptools-0.6c11 /tmp/mock-0.8.0 /tmp/argparse-1.2.1 /tmp/py-1.4.17 /tmp/pytest-2.3.5

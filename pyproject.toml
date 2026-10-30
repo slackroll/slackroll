@@ -3,13 +3,16 @@ name = "slackroll"
 version = "55"
 description = "Package or upgrade manager for Slackware Linux"
 authors = [
-  "Ricardo Garcia <commits@rg3.name>",
-  "Andrew Clemons <andrew.clemons@gmail.com>",
-  "Brent Spillner <spillner@acm.org>"
+  { name = "Ricardo Garcia", email = "commits@rg3.name" },
+  { name = "Andrew Clemons", email = "andrew.clemons@gmail.com" },
+  { name = "Brent Spillner", email = "spillner@acm.org" }
 ]
-license = "CC0 Public Domain Dedication"
+license = "CC0-1.0"
 requires-python = ">=2.5"
 dependencies = [ ]
+
+[project.scripts]
+slackroll = "slackroll:main"
 
 [dependency-groups]
 dev = [
@@ -17,6 +20,16 @@ dev = [
     "pytest-cov==7.1.0",
     "ruff==0.17.0",
 ]
+
+[tool.uv.dependency-groups]
+dev = { requires-python = ">=3.12" }
+
+[build-system]
+requires = ["hatchling==1.32.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+force-include = { "slackroll" = "slackroll/__init__.py", "helpfiles" = "slackroll/helpfiles" }
 
 [tool.ruff]
 target-version = "py312"

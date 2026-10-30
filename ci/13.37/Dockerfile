@@ -49,12 +49,7 @@ RUN wget -q https://slackbuilds.org/slackbuilds/13.37/python/pysetuptools.tar.gz
     echo "841e347d054d653fbbe40d14265b7e8c  argparse.tar.gz" | md5sum -c && \
     wget -q https://files.pythonhosted.org/packages/6f/ad/86448942ad49c5fe05bfdf7ebc874807f521dfcca5ee543afaca2974ad5a/argparse-1.2.1.tar.gz && \
     echo "2fbef8cb61e506c706957ab6e135840c  argparse-1.2.1.tar.gz" | md5sum -c && \
-    tar -xf argparse.tar.gz && rm argparse.tar.gz && mv argparse-1.2.1.tar.gz argparse && \
-    wget -q https://slackbuilds.org/slackbuilds/14.2/python/python-toml.tar.gz && \
-    echo "217438eb0e0afb4f9b9712a9ea20623a  python-toml.tar.gz" | md5sum -c && \
-    wget -q https://files.pythonhosted.org/packages/be/ba/1f744cdc819428fc6b5084ec34d9b30660f6f9daaf70eead706e3203ec3c/toml-0.10.2.tar.gz && \
-    echo "59bce5d8d67e858735ec3f399ec90253  toml-0.10.2.tar.gz" | md5sum -c && \
-    tar -xf python-toml.tar.gz && rm python-toml.tar.gz && mv toml-0.10.2.tar.gz python-toml
+    tar -xf argparse.tar.gz && rm argparse.tar.gz && mv argparse-1.2.1.tar.gz argparse
 
 
 FROM base AS deps
@@ -76,9 +71,6 @@ RUN --mount=from=downloader,source=/tmp,target=/builder \
     rm -rf /tmp/SBo && \
     cd /builder/pytest && \
     VERSION=2.8.7 bash pytest.SlackBuild && \
-    rm -rf /tmp/SBo && \
-    cd /builder/python-toml && \
-    bash python-toml.SlackBuild && \
     rm -rf /tmp/SBo
 
 

@@ -1,4 +1,5 @@
 import pytest
+import slackroll
 from slackroll import (
     handle_writable_dir,
     standardize_locales,
@@ -14,6 +15,26 @@ except ImportError:
 
 if TYPE_CHECKING:
     from typing import Dict, List
+
+
+@pytest.mark.parametrize(  # type: ignore
+    "pkg_dir", ["/var/lib/pkgtools/packages", "/var/log/packages"]
+)
+def test_imported_main_initializes_local_package_paths(request, pkg_dir):
+    # type: (pytest.FixtureRequest, str) -> None
+    tests.start_patch(request, "slackroll.sys.argv", ["slackroll", "version"])
+    tests.start_patch(request, "slackroll.os.path.isdir", lambda path: path == pkg_dir)
+    tests.start_patch(request, "slackroll.standardize_locales")
+    tests.start_patch(request, "slackroll.socket.setdefaulttimeout")
+    tests.start_patch(request, "slackroll.handle_writable_dir")
+    tests.start_patch(request, "slackroll.slackroll_local_pkgs_dir", create=True)
+    tests.start_patch(request, "slackroll.slackroll_local_pkgs_glob", create=True)
+
+    exc_info = pytest.raises(SystemExit, slackroll.main)
+
+    assert exc_info.value.code is None
+    assert slackroll.slackroll_local_pkgs_dir == pkg_dir
+    assert slackroll.slackroll_local_pkgs_glob == pkg_dir + "/*"
 
 
 def test_standardize_locales_clears_known_locale_vars_and_sets_lang(request):

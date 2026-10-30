@@ -238,16 +238,16 @@ slackroll_manifest_filename = os.path.join(slackroll_base_dir, 'manifest.db')
 slackroll_manifest_list_filename = os.path.join(slackroll_base_dir, 'manifestlist.db')
 slackroll_batch_mode = False
 
+if TYPE_CHECKING:
+    slackroll_local_pkgs_glob = ''
+    slackroll_local_pkgs_dir = ''
+
 def yield_slackroll_local_pkgs_dir():
     # type: () -> Generator[str, None, None]
     for opt in slackroll_local_pkgs_dir_names:
         while os.path.isdir(opt):
             yield opt
     sys.exit('ERROR: unable to find local packages directory')
-
-if __name__ == "__main__":
-    slackroll_local_pkgs_glob = os.path.join(next(yield_slackroll_local_pkgs_dir()), '*')
-    slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
 
 def standardize_locales():
     # type: () -> None
@@ -2465,7 +2465,14 @@ def load_persistent_db(filename):
     return PersistentDBProxy(shelve.open(filename, 'c', pickle_protocol))
 
 
-if __name__ == "__main__":
+def main():
+    # type: () -> None
+    global slackroll_batch_mode
+    global slackroll_local_pkgs_glob, slackroll_local_pkgs_dir
+
+    slackroll_local_pkgs_glob = os.path.join(next(yield_slackroll_local_pkgs_dir()), '*')
+    slackroll_local_pkgs_dir = os.path.dirname(slackroll_local_pkgs_glob)
+
     ### Main program ###
     try:
         local_list = None
@@ -2585,6 +2592,8 @@ if __name__ == "__main__":
             else:
                 helpname = args[0]
             helpfile = slackroll_help_file_template % helpname
+            if not is_readable_file(helpfile):
+                helpfile = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'helpfiles', '%s.txt' % helpname)
             if not is_readable_file(helpfile):
                 sys.exit('ERROR: no help found for "%s"' % helpname)
             write_raw_output(texts_to_printed_bytes([read_lossless_text(helpfile)]))
@@ -3225,3 +3234,6 @@ if __name__ == "__main__":
         sys.stderr.write('ERROR: no operation given\n')
         sys.stderr.write('Use "help" operation to get a list\n')
         sys.exit(slackroll_exit_failure)
+
+if __name__ == "__main__":
+    main()

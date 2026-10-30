@@ -33,6 +33,24 @@ docker buildx build --platform linux/amd64 --load --progress=none -t slackroll-c
 
 printf '\n'
 
+wheel_dir=$(mktemp -d)
+trap 'rm -f "$wheel_dir"/*.whl "$wheel_dir/.gitignore"; rmdir "$wheel_dir"' EXIT
+uv build --wheel --out-dir "$wheel_dir"
+
+for python in 2 3; do
+  printf 'Testing installed wheel with Python %s...\n' "$python"
+  docker run --rm -i -v "$wheel_dir:/wheels:ro" -v "$(pwd)/helpfiles:/expected:ro" -w /tmp \
+    "slackroll-ci:current-python$python" sh -es -- "pip$python" <<'EOL'
+"$1" install --no-index /wheels/*.whl
+PAGER=cat slackroll help > default-help
+{ cat /expected/00-default.txt; printf "\n"; } > expected-default
+cmp default-help expected-default
+PAGER=cat slackroll help update > update-help
+{ cat /expected/update.txt; printf "\n"; } > expected-update
+cmp update-help expected-update
+EOL
+done
+
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:12.0-python2 py.test
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:13.37-python2 py.test
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:15.0-python2 pytest

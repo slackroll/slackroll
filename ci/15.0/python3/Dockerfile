@@ -17,4 +17,4 @@ RUN export TERSE=0 && \
     rm -rf /var/cache/packages/* && rm -rf /var/lib/slackpkg/*
 
 # setup running tests
-RUN pip3 --no-cache-dir install "pytest==8.4.2" "pytest_cov==7.1.0" "toml==0.10.2" && rm -rf /root/.cache
+RUN pip3 --no-cache-dir install "pytest==8.4.2" "pytest_cov==7.1.0" && rm -rf /root/.cache
