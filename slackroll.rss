@@ -91,7 +91,7 @@ It also new defaults to ignoring old kernels in the patches/ directory. In Slack
 
 <item>
 <title>slackroll v48 released</title>
-<link>https://github.com/rg3/slackroll/releases/download/v48/slackroll-v48-noarch-1.tgz</link>
+<link>https://github.com/slackroll/slackroll/releases/download/v48/slackroll-v48-noarch-1.tgz</link>
 <pubDate>Sun, 18 Mar 2018 06:04:06 +0000</pubDate>
 <description><![CDATA[
 	<p>This release adds support for blacklisting packages based on URL too.</p>
@@ -102,7 +102,7 @@ It also new defaults to ignoring old kernels in the patches/ directory. In Slack
 
 <item>
 <title>slackroll v47 released</title>
-<link>https://github.com/rg3/slackroll/releases/download/v47/slackroll-v47-noarch-1.tgz</link>
+<link>https://github.com/slackroll/slackroll/releases/download/v47/slackroll-v47-noarch-1.tgz</link>
 <pubDate>Tue, 23 Jan 2018 19:47:44 +0000</pubDate>
 <description><![CDATA[
 	<p>This release adds support for Slackware ARM and running slackroll non-interactively in batch mode.</p>
@@ -111,7 +111,7 @@ It also new defaults to ignoring old kernels in the patches/ directory. In Slack
 
 <item>
 <title>slackroll v46 released</title>
-<link>https://github.com/rg3/slackroll/releases/download/v46/slackroll-v46-noarch-1.tgz</link>
+<link>https://github.com/slackroll/slackroll/releases/download/v46/slackroll-v46-noarch-1.tgz</link>
 <pubDate>Tue, 04 Mar 2014 12:00:16 +0000</pubDate>
 <description><![CDATA[
 	<p>This release restores duplicate package filtering for the "info" operation, which otherwise failed in some situations.</p>
@@ -120,7 +120,7 @@ It also new defaults to ignoring old kernels in the patches/ directory. In Slack
 
 <item>
 <title>slackroll v45 released</title>
-<link>https://github.com/rg3/slackroll/releases/download/v45/slackroll-v45-noarch-1.tgz</link>
+<link>https://github.com/slackroll/slackroll/releases/download/v45/slackroll-v45-noarch-1.tgz</link>
 <pubDate>Tue, 04 Mar 2014 12:00:16 +0000</pubDate>
 <description><![CDATA[
 	<p>This release removes an anti-feature that filtered theoretically duplicate packages during the install operation, preventing some packages in third-party mirrors from being selected and installed by the user.</p>
@@ -129,7 +129,7 @@ It also new defaults to ignoring old kernels in the patches/ directory. In Slack
 
 <item>
 <title>slackroll v44 released</title>
-<link>https://github.com/rg3/slackroll/archive/v44.zip</link>
+<link>https://github.com/slackroll/slackroll/archive/v44.zip</link>
 <pubDate>Sun, 16 Jun 2013 09:46:00 +0000</pubDate>
 <description><![CDATA[
 	<p>slackroll v44 has been released. This version fixes some documentation bugs and adds an option to get a shell to run arbitrary commands after kernel-related operations without exiting the program (similar to stopping the program with Ctrl+Z). In addition, while slackroll is still published to the public domain, the approach has changed from a mere public domain note to CC0, as recommended by the FSF and others, in order to increase legal safety.</p>
@@ -138,7 +138,7 @@ It also new defaults to ignoring old kernels in the patches/ directory. In Slack
 
 <item>
 <title>slackroll v43 released</title>
-<link>https://github.com/rg3/slackroll/archive/v43.zip</link>
+<link>https://github.com/slackroll/slackroll/archive/v43.zip</link>
 <pubDate>Sun, 12 May 2013 19:32:48 +0000</pubDate>
 <description><![CDATA[
 	<p>slackroll v43 has been released. This version adds support for external repositories. The introduction and tutorial has been updated and is a recommended read. slackroll veterans could simply read the "Remote trees" subsection and the "External repositories" subsection. Also, see the help for the "add-repo", "list-repos" and "remove-repo" operations.</p>
