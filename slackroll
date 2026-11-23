@@ -679,6 +679,7 @@ def kernel_upgrade_operation(local_list, remote_list, persistent_list):
     names = [x for x in local_list if x.startswith(slackroll_kernel_pkg_indicator) and persistent_list[x] == slackroll_state_outdated]
     if len(names) == 0:
         print('No outdated kernel packages')
+        return
     install_operations_family('installpkg', names, local_list, remote_list, persistent_list, use_pasture=False)
     post_kernel_operation()
 

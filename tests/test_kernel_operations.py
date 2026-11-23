@@ -114,12 +114,12 @@ def test_kernel_upgrade_ignores_non_kernel_pkgs(request):
 
     _kernel_upgrade(local_list, remote_list, plist)
 
-    # No outdated kernel packages -- install called with empty list, message printed
+    # No outdated kernel packages -- message printed and nothing is installed
     assert "No outdated kernel packages" in tests.mock_output(fake_stdout)
-    assert install_calls == [[]]
+    assert install_calls == []
 
 
-def test_kernel_upgrade_calls_post_kernel_even_when_empty(request):
+def test_kernel_upgrade_does_not_call_post_kernel_when_empty(request):
     # type: (pytest.FixtureRequest) -> None
     post_calls = []  # type: List[int]
     tests.start_patch(request, "slackroll.sys.stdout", tests.Mock())
@@ -133,7 +133,7 @@ def test_kernel_upgrade_calls_post_kernel_even_when_empty(request):
 
     _kernel_upgrade({}, {}, tests.PersistentList())
 
-    assert post_calls == [1]
+    assert post_calls == []
 
 
 # ---------------------------------------------------------------------------
