@@ -136,3 +136,13 @@ def test_package_inequality_matches_equality_for_equal_packages():
     assert pkg == same
     assert not (pkg != same)
     assert pkg != other
+
+
+def test_package_hash_matches_equality():
+    # type: () -> None
+    pkg = tests.build_pkg("vim", "1.0", "./slackware64/ap")
+    same = tests.build_pkg("vim", "1.0", "./slackware64/ap")
+    other = tests.build_pkg("vim", "2.0", "./slackware64/ap")
+
+    assert hash(pkg) == hash(same)
+    assert len(set([pkg, same, other])) == 2

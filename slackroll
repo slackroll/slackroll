@@ -326,6 +326,11 @@ class SlackwarePackage(object):
         # Make != on python 2 behave like python 3 where it is derived from __eq__.
         return not self.__eq__(other)
 
+    def __hash__(self):
+        # type: () -> int
+        # Since we defined __eq__, we must also define __hash__ to make the two agree.
+        return hash((self.__name, self.__version, self.__arch, self.__build))
+
     @property
     def name(self):
         # type: () -> str
@@ -478,6 +483,11 @@ class ChangeLogEntry(object):
         # type: (object) -> bool
         # Make != on python 2 behave like python 3 where it is derived from __eq__.
         return not self.__eq__(other)
+
+    def __hash__(self):
+        # type: () -> int
+        # Since we defined __eq__, we must also define __hash__ to make the two agree.
+        return hash((self.timestamp, self.text))
 
     def __setstate__(self, state):
         # type: (Dict[Union[str, bytes], Any]) -> None

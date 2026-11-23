@@ -238,3 +238,13 @@ def test_changelog_entry_equality_requires_same_timestamp_and_text():
     assert not (entry != ChangeLogEntry("Mon Jan 01 00:00:00 UTC 2024", "  text\n"))
     assert entry != ChangeLogEntry("Mon Jan 01 00:00:00 UTC 2024", "  other\n")
     assert entry != ChangeLogEntry("Tue Feb 01 00:00:00 UTC 2025", "  text\n")
+
+
+def test_changelog_entry_hash_matches_equality():
+    # type: () -> None
+    entry = ChangeLogEntry("Mon Jan 01 00:00:00 UTC 2024", "  text\n")
+    same = ChangeLogEntry("Mon Jan 01 00:00:00 UTC 2024", "  text\n")
+    other = ChangeLogEntry("Mon Jan 01 00:00:00 UTC 2024", "  other\n")
+
+    assert hash(entry) == hash(same)
+    assert len(set([entry, same, other])) == 2
