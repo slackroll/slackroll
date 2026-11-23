@@ -228,3 +228,13 @@ def test_full_changelog_operation_includes_batch_after_empty_batch(request):
     assert cl.num_batches() == 2
     output = tests.bytes_literal("").join(tests.mock_write_args(pager.stdin.write))
     assert tests.bytes_literal("only entry") in output
+
+
+def test_changelog_entry_equality_requires_same_timestamp_and_text():
+    # type: () -> None
+    entry = ChangeLogEntry("Mon Jan 01 00:00:00 UTC 2024", "  text\n")
+
+    assert entry == ChangeLogEntry("Mon Jan 01 00:00:00 UTC 2024", "  text\n")
+    assert not (entry != ChangeLogEntry("Mon Jan 01 00:00:00 UTC 2024", "  text\n"))
+    assert entry != ChangeLogEntry("Mon Jan 01 00:00:00 UTC 2024", "  other\n")
+    assert entry != ChangeLogEntry("Tue Feb 01 00:00:00 UTC 2025", "  text\n")

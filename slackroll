@@ -467,7 +467,7 @@ class ChangeLogEntry(object):
         if not isinstance(other, ChangeLogEntry):
             return False
 
-        return (self.timestamp == other.timestamp or self.text == other.text)
+        return (self.timestamp == other.timestamp and self.text == other.text)
 
     def __setstate__(self, state):
         # type: (Dict[Union[str, bytes], Any]) -> None
