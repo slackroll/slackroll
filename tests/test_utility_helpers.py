@@ -1,5 +1,6 @@
 import pytest
 from slackroll import (
+    download_report_hook,
     get_difftool,
     get_env_or,
     get_pager,
@@ -10,6 +11,24 @@ from slackroll import (
 )
 
 import tests
+
+try:
+    from typing import TYPE_CHECKING
+except ImportError:
+    TYPE_CHECKING = False
+
+if TYPE_CHECKING:
+    from typing import List
+
+
+def test_download_report_hook_handles_empty_file(request):
+    # type: (pytest.FixtureRequest) -> None
+    calls = []  # type: List[str]
+    tests.start_patch(request, "slackroll.print_flush", calls.append)
+
+    download_report_hook("empty.txt", 0, 8192, 0)
+
+    assert calls == ["\rDownloading empty.txt ... 100% of 0b"]
 
 
 def test_get_env_or_returns_default_when_missing(request):

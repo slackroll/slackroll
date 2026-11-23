@@ -1296,6 +1296,10 @@ def download_report_hook(filename, numblocks, blocksize, totalsize): # Template 
     if totalsize == -1:
         percent = 'N/A'
         size = 'N/A'
+    elif totalsize == 0:
+        # Empty file: the first report is already the whole download
+        percent = '100'
+        size = optimum_size_conversion(0)
     else:
         percent = str(min(int(round(numblocks * blocksize * 100.0 / totalsize)), 100))
         size = optimum_size_conversion(totalsize)
