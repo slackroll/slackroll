@@ -109,6 +109,9 @@ if PY2:
     error_module.__dict__.update({"ContentTooShortError": urllib.ContentTooShortError})
     urllib.error = error_module # type: ignore
 
+    class SlackrollURLopener(urllib.request.FancyURLopener): # type: ignore
+        def http_error_default(self, url, fp, errcode, errmsg, headers): # type: ignore
+            raise IOError('%s: %s' % (errcode, errmsg))
 
     URLOpenerTarget = urllib
 
@@ -415,10 +418,6 @@ class SlackwarePackage(object):
     def sig_url(self, mirror):
         # type: (str) -> str
         return urljoin(self.base_url(mirror), self.fullsigname) # type: ignore
-
-class SlackrollURLopener(urllib.request.FancyURLopener): # type: ignore
-    def http_error_default(self, url, fp, errcode, errmsg, headers): # type: ignore
-        raise IOError('%s: %s' % (errcode, errmsg))
 
 def pkg_from_str(path_or_name): # Create a SlackwarePackage object from a string
     # type: (str) -> SlackwarePackage
