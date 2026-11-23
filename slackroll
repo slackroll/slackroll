@@ -512,7 +512,7 @@ class ChangeLog(object):
 
     def num_batches(self):
         # type: () -> int
-        return len(list(self._batches.keys()))
+        return self._cur_batch + 1
 
     def get_batch(self, batchnum):
         # type: (int) -> List[ChangeLogEntry]

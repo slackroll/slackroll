@@ -210,3 +210,21 @@ def test_changelog_entries_operation_exits_on_invalid_entry(request):
     exit_mock.side_effect = ValueError("boom")
 
     pytest.raises(ValueError, changelog_entries_operation, cl, ["99.99"])
+
+
+def test_full_changelog_operation_includes_batch_after_empty_batch(request):
+    # type: (pytest.FixtureRequest) -> None
+    cl = ChangeLog()
+    cl.start_new_batch()
+    cl.add_entry(ChangeLogEntry("Tue Feb 01 00:00:00 UTC 2025", "  only entry\n"))
+
+    pager = tests.Mock()
+    pager.stdin = tests.Mock()
+    tests.start_patch(request, "slackroll.needs_pager", lambda _lines: True)
+    tests.start_patch(request, "slackroll.call_pager", lambda: pager)
+
+    full_changelog_operation(cl)
+
+    assert cl.num_batches() == 2
+    output = tests.bytes_literal("").join(tests.mock_write_args(pager.stdin.write))
+    assert tests.bytes_literal("only entry") in output
