@@ -41,6 +41,11 @@ if not PY2:
     # python 3
     import dbm
 
+    try:
+        import dbm.gnu as gdbm_module
+    except ImportError:
+        gdbm_module = None
+
     def needs_db_upgrade(db):
         # type: (Any) -> bool
         return False
@@ -114,6 +119,9 @@ if PY2:
             raise IOError('%s: %s' % (errcode, errmsg))
 
     URLOpenerTarget = urllib
+
+    # Unused on python 2
+    gdbm_module = None
 
 try:
     from typing import TYPE_CHECKING
@@ -2451,6 +2459,20 @@ class PersistentDBProxy(object):
         # type: () -> None
         self._data.close()
 
+def open_persistent_shelf(filename):
+    # type: (str) -> Any
+    if PY2:
+        return shelve.open(filename, 'c', pickle_protocol)
+
+    # As we mentioned below, on Python 2, we previously used whatever the
+    # default was which was dbhash. On Python 3, the default is gdbm. In case
+    # this ever changes again, we are going to be explicit in the format we use
+    # and exit early if we don't have what is expected.
+    if gdbm_module is None:
+        sys.exit('ERROR: python3 gdbm support (module dbm.gnu) is required')
+
+    return shelve.Shelf(gdbm_module.open(filename, 'c'), protocol=pickle_protocol)
+
 def load_persistent_db(filename):
     # type: (str) -> Any
     # Internally, shelve uses anydbm.open which defaults to dbhash on Python2.
@@ -2466,7 +2488,7 @@ def load_persistent_db(filename):
     # to have used this version and have the existing files upgraded. New
     # installations will immediately default to the new format. We can then
     # ship the python3 version safely.
-    data = shelve.open(filename, 'c', pickle_protocol) # type: Any
+    data = open_persistent_shelf(filename) # type: Any
 
     if not needs_db_upgrade(data.dict):
         return PersistentDBProxy(data)
@@ -2485,7 +2507,7 @@ def load_persistent_db(filename):
     finally:
         try_to_remove(output_name)
 
-    return PersistentDBProxy(shelve.open(filename, 'c', pickle_protocol))
+    return PersistentDBProxy(open_persistent_shelf(filename))
 
 
 def main():
