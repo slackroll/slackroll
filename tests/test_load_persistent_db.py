@@ -6,6 +6,27 @@ from slackroll import load_persistent_db, slackroll_state_installed
 
 import tests
 
+
+def _gdbm_available():
+    # type: () -> bool
+    # Python 2 always uses gdbm via anydbm. Some python 3 builds (e.g. uv managed ones) don't have gdbm.
+    if tests.PY2:
+        return True
+
+    try:
+        import dbm.gnu  # noqa: F401
+    except ImportError:
+        return False
+
+    return True
+
+
+def skip_without_gdbm():
+    # type: () -> None
+    if not _gdbm_available():
+        pytest.skip("python3 build has no gdbm (dbm.gnu)")
+
+
 if tests.PY2:
 
     def test_switch_format(temp_dir, request):
@@ -33,6 +54,7 @@ if tests.PY2:
 def test_round_trip_serialisation(temp_dir, request):
     # type: (str, pytest.FixtureRequest) -> None
     """Checks if we can round trip serialise then deserialise a value."""
+    skip_without_gdbm()
 
     tests.start_patch(request, "slackroll.get_temp_dir", lambda: temp_dir)
     data_file = os.path.join(temp_dir, "test.db")
@@ -61,6 +83,7 @@ def test_round_trip_serialisation(temp_dir, request):
 def test_persistent_db_is_a_single_file(temp_dir, request):
     # type: (str, pytest.FixtureRequest) -> None
     """The database must be one persistent.db file, not the dbm.dumb .dat/.dir/.bak set."""
+    skip_without_gdbm()
 
     tests.start_patch(request, "slackroll.get_temp_dir", lambda: temp_dir)
     data_file = os.path.join(temp_dir, "persistent.db")
