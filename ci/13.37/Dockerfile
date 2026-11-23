@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.28.0@sha256:bb22d9815c728170f72750f4e5b0d672e06176142e1d602c7e66c050100b7e5b
+# syntax=docker/dockerfile:1.29.0@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
 # check=error=true
 
 FROM aclemons/slackware:13.37@sha256:46bf582fc4683f88bf4468c05b9f58158e1eec1d5eb42cf759bf14afd1880adf AS base
@@ -18,7 +18,7 @@ RUN export TERSE=0 && \
 
 
 # use modern host to download, since we cannot use https to talk to these hosts on 13.37
-FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS downloader
+FROM alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS downloader
 
 WORKDIR /tmp
 

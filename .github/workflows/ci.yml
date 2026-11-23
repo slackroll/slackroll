@@ -26,7 +26,7 @@ jobs:
       contents: read
     env:
       # renovate: datasource=github-releases depName=docker/buildx
-      BUILDX_VERSION: "v0.38.1"
+      BUILDX_VERSION: "v0.39.1"
     strategy:
       fail-fast: false
       matrix:
@@ -148,7 +148,7 @@ jobs:
       pull-requests: write # Required for MishaKav/pytest-coverage-comment to post/update PR comments.
     env:
       # renovate: datasource=github-releases depName=astral-sh/uv
-      UV_VERSION: "0.13.6"
+      UV_VERSION: "0.13.9"
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -169,7 +169,7 @@ jobs:
           path: coverage/python3
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
@@ -191,7 +191,7 @@ jobs:
           uv run coverage xml --rcfile=.coveragerc.ci -o coverage.xml
 
       - name: Coverage
-        uses: MishaKav/pytest-coverage-comment@9516bf7f32a9229cf18d5e1717ae387c7154f279 # v1.13.0
+        uses: MishaKav/pytest-coverage-comment@4cfb48edc8f875ac019afdcfd97c48d78ad2b723 # v1.13.1
         with:
           pytest-xml-coverage-path: ./coverage.xml
           default-branch: master
@@ -203,9 +203,9 @@ jobs:
       contents: read
     env:
       # renovate: datasource=github-releases depName=astral-sh/uv
-      UV_VERSION: "0.13.6"
+      UV_VERSION: "0.13.9"
       # renovate: datasource=github-releases depName=j178/prek
-      PREK_VERSION: "0.5.9"
+      PREK_VERSION: "0.5.11"
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -218,12 +218,12 @@ jobs:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
 
       - name: Run prek
-        uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0
+        uses: j178/prek-action@7b101f8338a08d2bd6fdb3625e4e7692428763a3 # v3.1.1
         with:
           prek-version: ${{ env.PREK_VERSION }}
