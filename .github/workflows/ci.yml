@@ -59,14 +59,14 @@ jobs:
             dockerfile: ci/current/python2/Dockerfile
             image_tag: slackroll-ci:current-python2
             coverage_artefact: slackware-current-python2
-            test_command: COVERAGE_RCFILE=.coveragerc.ci COVERAGE_FILE=.coverage.python2 pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=slackroll -vv | tee pytest-coverage.txt
+            test_command: COVERAGE_FILE=.coverage.python2 pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=slackroll --cov-branch -vv | tee pytest-coverage.txt
             coverage: true
             platforms: linux/amd64
           - name: Slackware -current / Python 3.12
             dockerfile: ci/current/python3/Dockerfile
             image_tag: slackroll-ci:current-python3
             coverage_artefact: slackware-current-python3
-            test_command: COVERAGE_RCFILE=.coveragerc.ci COVERAGE_FILE=.coverage.python3 pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=slackroll -vv | tee pytest-coverage.txt
+            test_command: COVERAGE_FILE=.coverage.python3 pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=slackroll --cov-branch -vv | tee pytest-coverage.txt
             coverage: true
             platforms: linux/amd64
 
@@ -111,16 +111,6 @@ jobs:
           platforms: ${{ matrix.platforms }}
           cache-from: type=gha,scope=${{ matrix.image_tag }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image_tag }}
-
-      - name: Configure coverage for container runs
-        if: matrix.coverage
-        run: |
-          cat > .coveragerc.ci <<'EOF'
-          [run]
-          relative_files = True
-          source =
-              slackroll
-          EOF
 
       - name: Run tests
         env:
@@ -185,6 +175,8 @@ jobs:
     env:
       # renovate: datasource=github-releases depName=astral-sh/uv
       UV_VERSION: "0.13.9"
+      # Minimum line+branch coverage of the merged python 2.7 and 3.12 report.
+      COVERAGE_FAIL_UNDER: "61"
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -216,15 +208,10 @@ jobs:
 
       - name: Merge coverage reports
         run: |
-          cat > .coveragerc.ci <<'EOF'
-          [run]
-          relative_files = True
-          source =
-              slackroll
-          EOF
           uv sync
-          uv run coverage combine --rcfile=.coveragerc.ci coverage/python2/.coverage* coverage/python3/.coverage*
-          uv run coverage xml --rcfile=.coveragerc.ci -o coverage.xml
+          uv run coverage combine coverage/python2/.coverage* coverage/python3/.coverage*
+          uv run coverage xml -o coverage.xml
+          uv run coverage report --fail-under="$COVERAGE_FAIL_UNDER"
 
       - name: Coverage
         uses: MishaKav/pytest-coverage-comment@4cfb48edc8f875ac019afdcfd97c48d78ad2b723 # v1.13.1

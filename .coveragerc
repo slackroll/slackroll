@@ -1,0 +1,11 @@
+# Coverage settings shared by all runs.
+#
+# This uses INI because python 2 cannot read TOML.
+#
+[run]
+source = slackroll
+branch = True
+relative_files = True
+
+[report]
+show_missing = True

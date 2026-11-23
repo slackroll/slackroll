@@ -58,8 +58,8 @@ docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackr
 
 rm -f .coverage .coverage.python2 .coverage.python3
 
-docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data -e COVERAGE_FILE=.coverage.python2 slackroll-ci:current-python2 sh -c 'pytest --cov=slackroll -vv'
-docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data -e COVERAGE_FILE=.coverage.python3 slackroll-ci:current-python3 sh -c 'pytest --cov=slackroll -vv'
+docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data -e COVERAGE_FILE=.coverage.python2 slackroll-ci:current-python2 sh -c 'pytest --cov=slackroll --cov-branch -vv'
+docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data -e COVERAGE_FILE=.coverage.python3 slackroll-ci:current-python3 sh -c 'pytest --cov=slackroll --cov-branch -vv'
 
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:current-python3 sh -c 'coverage combine .coverage.python2 .coverage.python3'
 docker run --rm -it --user "$(id -u):$(id -g)" -v "$(pwd):/data" -w /data slackroll-ci:current-python3 sh -c 'coverage html -d htmlcov'
