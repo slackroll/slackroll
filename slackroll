@@ -59,6 +59,7 @@ if not PY2:
 
     import pickle
     import urllib
+    from http.client import HTTPException
     from io import StringIO
     from urllib.request import urljoin, urlopen, urlretrieve
 
@@ -103,6 +104,7 @@ if PY2:
     from types import ModuleType
     from urllib import urlretrieve
 
+    from httplib import HTTPException
     from urllib2 import urlopen
     from urlparse import urljoin
 
@@ -666,13 +668,15 @@ def changelog_operation(cl):
 def list_changelog_operation(cl):
     # type: (ChangeLog) -> None
     interceptor = SlackrollOutputInterceptor()
-    print('ChangeLog.txt entries:')
-    for idb in range(cl.num_batches() - 1, -1, -1):
-        batch = cl.get_batch(idb)
-        for ide in range(len(batch)):
-            print('    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp))
-    print('End of list')
-    interceptor.stop()
+    try:
+        print('ChangeLog.txt entries:')
+        for idb in range(cl.num_batches() - 1, -1, -1):
+            batch = cl.get_batch(idb)
+            for ide in range(len(batch)):
+                print('    %-8s  %s' % ('%s.%s' % (idb, ide), batch[ide].timestamp))
+        print('End of list')
+    finally:
+        interceptor.stop()
 
 def kernel_upgrade_operation(local_list, remote_list, persistent_list):
     # type: (Dict[str, List[SlackwarePackage]], Dict[str, List[SlackwarePackage]], Dict[str, int]) -> None
@@ -712,11 +716,13 @@ def list_transient_operation(local_list, remote_list, persistent_list):
 
     # Print the transient list
     interceptor = SlackrollOutputInterceptor()
-    print('Transient packages:')
-    print('\n'.join(format % (state, name, tr_pkg_detail(local_list, remote_list, persistent_list, name)) for (name, state) in pkgs_and_str_states))
-    print('End of list')
-    maybe_print_key_pkg_watchout(persistent_list)
-    interceptor.stop()
+    try:
+        print('Transient packages:')
+        print('\n'.join(format % (state, name, tr_pkg_detail(local_list, remote_list, persistent_list, name)) for (name, state) in pkgs_and_str_states))
+        print('End of list')
+        maybe_print_key_pkg_watchout(persistent_list)
+    finally:
+        interceptor.stop()
 
 
 def list_upgrades_and_outdated_frozen_operation(operation, local_list, remote_list, persistent_list):
@@ -735,26 +741,28 @@ def list_upgrades_and_outdated_frozen_operation(operation, local_list, remote_li
         return
 
     interceptor = SlackrollOutputInterceptor()
-    if operation == 'list-upgrades':
-        print('Available upgrades:')
-    else: # list-outdated-frozen
-        print('Would be outdated:')
+    try:
+        if operation == 'list-upgrades':
+            print('Available upgrades:')
+        else: # list-outdated-frozen
+            print('Would be outdated:')
 
-    sort_with_cmp(names, pkg_name_cmp)
-    for name in names:
-        candidates = not_pasture(remote_list[name])
-        if len(candidates) == 0:
-            print('    %s: WARNING: only present in /pasture/\n' % name)
-            continue
-        print('    %s:' % name)
-        print('\n'.join('\tLocal:\t%s' % pkg.archivename for pkg in local_list[name]))
-        print('\n'.join('\tRemote:\t%s' % pkg.fullname for pkg in candidates))
-        print('')
-    print('End of list')
+        sort_with_cmp(names, pkg_name_cmp)
+        for name in names:
+            candidates = not_pasture(remote_list[name])
+            if len(candidates) == 0:
+                print('    %s: WARNING: only present in /pasture/\n' % name)
+                continue
+            print('    %s:' % name)
+            print('\n'.join('\tLocal:\t%s' % pkg.archivename for pkg in local_list[name]))
+            print('\n'.join('\tRemote:\t%s' % pkg.fullname for pkg in candidates))
+            print('')
+        print('End of list')
 
-    if operation == 'list-upgrades':
-        maybe_print_key_pkg_watchout(persistent_list)
-    interceptor.stop()
+        if operation == 'list-upgrades':
+            maybe_print_key_pkg_watchout(persistent_list)
+    finally:
+        interceptor.stop()
 
 
 def changelog_entries_operation(cl, args):
@@ -901,12 +909,19 @@ def is_readable_file(filepath):
     # type: (str) -> bool
     return os.path.isfile(filepath) and os.access(filepath, os.R_OK)
 
-def try_dump(object, filepath): # pickle.dump()
+def try_dump(object, filepath): # pickle.dump(), via a temporary file so a failed dump keeps the old file
     # type: (Any, str) -> None
+    temp_path = filepath + slackroll_temp_suffix
     try:
-        pickle.dump(object, open(filepath, 'wb'), pickle_protocol)
+        handle = open(temp_path, 'wb')
+        try:
+            pickle.dump(object, handle, pickle_protocol)
+        finally:
+            handle.close()
+        os.rename(temp_path, filepath)
     except (OSError, IOError, pickle.PickleError):
         err = sys.exc_info()[1]
+        try_to_remove(temp_path, fatal=False)
         sys.exit('ERROR: %s' % err)
 
 def try_load(filepath, load_py2_strings_as_bytes=False): # pickle.load()
@@ -927,7 +942,7 @@ def try_load(filepath, load_py2_strings_as_bytes=False): # pickle.load()
                 return pickle.load(handle, encoding='bytes')
         finally:
             handle.close()
-    except (OSError, IOError, pickle.PickleError):
+    except (OSError, IOError, EOFError, pickle.PickleError):
         err = sys.exc_info()[1]
         sys.exit('ERROR: %s' % err)
 
@@ -1346,7 +1361,7 @@ def download_file(mirror, filepath, local_temp, local_final, displayed_name=None
         print('')
         if not try_to_rename(local_temp, local_final, fatal=False):
             raise SlackrollError('rename error: %s => %s' % (local_temp, local_final))
-    except (OSError, IOError, socket.error, urllib.error.ContentTooShortError): # type: ignore
+    except (OSError, IOError, socket.error, HTTPException, urllib.error.ContentTooShortError): # type: ignore
         err = sys.exc_info()[1]
         sys.stderr.write('\nERROR: %s\n' % err)
         raise SlackrollError(str(err))
@@ -1700,8 +1715,10 @@ def print_in_states_or(states, persistent_list, header, message_on_empty, print_
         print(message_on_empty)
         return
     interceptor = SlackrollOutputInterceptor()
-    print_in_states(states, persistent_list, header, print_state)
-    interceptor.stop()
+    try:
+        print_in_states(states, persistent_list, header, print_state)
+    finally:
+        interceptor.stop()
 
 def print_seq(seq, header): # Print every item in sequence, sorted with pkg_name_cmp()
     # type: (Union[Dict[str, Any], Set[str], List[str]], str) -> None
@@ -1720,8 +1737,10 @@ def print_seq_or(seq, header, message_on_empty): # Idem using interceptor and a 
         print(message_on_empty)
         return
     interceptor = SlackrollOutputInterceptor()
-    print_seq(seq, header)
-    interceptor.stop()
+    try:
+        print_seq(seq, header)
+    finally:
+        interceptor.stop()
 
 def print_list(the_list, header): # Print every list entry, sorted
     # type: (List[str], str) -> None
@@ -1739,8 +1758,10 @@ def print_list_or(the_list, header, message_on_empty): # Idem using interceptor 
         print(message_on_empty)
         return
     interceptor = SlackrollOutputInterceptor()
-    print_list(the_list, header)
-    interceptor.stop()
+    try:
+        print_list(the_list, header)
+    finally:
+        interceptor.stop()
 
 def tr_pkg_detail(local_list, remote_list, persistent_list, pkg_name): # Returns a string with package details for a transient package
     # type: (Dict[str, List[SlackwarePackage]], Dict[str, List[SlackwarePackage]], Dict[str, int], str) -> str
@@ -2896,9 +2917,11 @@ def main():
             every_remote_path = concat([[y.fullname for y in remote_list[x]] for x in remote_list])
             every_remote_path.sort() # type: ignore
             interceptor = SlackrollOutputInterceptor()
-            for path in every_remote_path:
-                print(path)
-            interceptor.stop()
+            try:
+                for path in every_remote_path:
+                    print(path)
+            finally:
+                interceptor.stop()
             sys.exit()
 
         if operation == 'state':
@@ -2996,14 +3019,16 @@ def main():
             names = list(alternatives.keys())
             sort_with_cmp(names, pkg_name_cmp)
             interceptor = SlackrollOutputInterceptor()
-            print('Packages with alternatives:')
-            for name in names:
-                print('    %s:' % name)
-                for ver in alternatives[name]:
-                    print('\t%s' % ver.fullname)
-                print('')
-            print('End of list')
-            interceptor.stop()
+            try:
+                print('Packages with alternatives:')
+                for name in names:
+                    print('    %s:' % name)
+                    for ver in alternatives[name]:
+                        print('\t%s' % ver.fullname)
+                    print('')
+                print('End of list')
+            finally:
+                interceptor.stop()
             sys.exit()
 
         if operation in ['list-outdated', 'list-unavailable', 'list-installed', 'list-not-installed', 'list-frozen', 'list-foreign']:
@@ -3013,10 +3038,12 @@ def main():
             state = slackroll_state_strings.index(state_str)
 
             interceptor = SlackrollOutputInterceptor()
-            print_in_states_or([state], persistent_list, header, empty_message, False)
-            if state in slackroll_transient_states:
-                maybe_print_key_pkg_watchout(persistent_list)
-            interceptor.stop()
+            try:
+                print_in_states_or([state], persistent_list, header, empty_message, False)
+                if state in slackroll_transient_states:
+                    maybe_print_key_pkg_watchout(persistent_list)
+            finally:
+                interceptor.stop()
             sys.exit()
 
         if operation == 'list-local':
@@ -3071,16 +3098,18 @@ def main():
         if operation == 'list-versions':
             maybe_error_unknown_packages(args, persistent_list)
             interceptor = SlackrollOutputInterceptor()
-            print('Available versions:')
-            for name in args:
-                print('    %s:' % name)
-                if name in local_list:
-                    print('\n'.join('\tLocal:\t%s' % ver.archivename for ver in local_list[name]))
-                if name in remote_list:
-                    print('\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name]))
-                print('')
-            print('End of list')
-            interceptor.stop()
+            try:
+                print('Available versions:')
+                for name in args:
+                    print('    %s:' % name)
+                    if name in local_list:
+                        print('\n'.join('\tLocal:\t%s' % ver.archivename for ver in local_list[name]))
+                    if name in remote_list:
+                        print('\n'.join('\tRemote:\t%s' % ver.fullname for ver in remote_list[name]))
+                    print('')
+                print('End of list')
+            finally:
+                interceptor.stop()
             sys.exit()
 
         if operation in ['install', 'reinstall', 'download', 'info', 'urls']:
