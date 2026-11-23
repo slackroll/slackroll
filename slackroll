@@ -321,6 +321,11 @@ class SlackwarePackage(object):
 
         return self.__name == other.__name and self.__version == other.__version and self.__arch == other.__arch and self.__build == other.__build
 
+    def __ne__(self, other):
+        # type: (object) -> bool
+        # Make != on python 2 behave like python 3 where it is derived from __eq__.
+        return not self.__eq__(other)
+
     @property
     def name(self):
         # type: () -> str
@@ -468,6 +473,11 @@ class ChangeLogEntry(object):
             return False
 
         return (self.timestamp == other.timestamp and self.text == other.text)
+
+    def __ne__(self, other):
+        # type: (object) -> bool
+        # Make != on python 2 behave like python 3 where it is derived from __eq__.
+        return not self.__eq__(other)
 
     def __setstate__(self, state):
         # type: (Dict[Union[str, bytes], Any]) -> None

@@ -125,3 +125,14 @@ def test_newer_than_compares_mtimes_when_both_exist(request):
     assert newer_than("newer", "older") is True
     assert newer_than("older", "newer") is False
     assert newer_than("newer", "equal") is False
+
+
+def test_package_inequality_matches_equality_for_equal_packages():
+    # type: () -> None
+    pkg = tests.build_pkg("vim", "1.0", "./slackware64/ap")
+    same = tests.build_pkg("vim", "1.0", "./slackware64/ap")
+    other = tests.build_pkg("vim", "2.0", "./slackware64/ap")
+
+    assert pkg == same
+    assert not (pkg != same)
+    assert pkg != other
